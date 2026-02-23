@@ -23,10 +23,10 @@ yarn lint:fix         # ESLint with auto-fix
 # Testing
 yarn test             # Run Vitest tests once
 yarn test:ui          # Open interactive Vitest UI in a browser
-yarn test:coverage    # Run tests with coverage report (70% minimum)
+yarn test:coverage    # Run tests with coverage report (80% threshold)
 ```
 
-To run a single test file: `yarn vitest run src/path/to/file.test.ts`
+To run a single test file: `yarn vitest run src/path/to/file.spec.ts`
 
 ## Architecture
 
@@ -66,7 +66,14 @@ All utilities, helpers, and types intended for consumers must be re-exported fro
 
 ## TypeScript Configuration
 
-Requires Node.js 24. Outputs to `./build/`, targets ES2022, module resolution `bundler`. Declaration files (`.d.ts`) and source maps are emitted alongside JS. Strict mode is fully enabled (`strict`, `noImplicitAny`, `strictNullChecks`, `strictFunctionTypes`).
+Project uses a 4-config split:
+
+- **`tsconfig.json`** — Base/development configuration used by Vitest and editors. Includes all source files for full type checking.
+- **`tsconfig.build.json`** — Production build configuration that extends `tsconfig.json`, explicitly excludes test files (`src/**/*.spec.ts`), and is used only by the build script.
+- **`tsconfig.test.json`** — Vitest test configuration.
+- **`tsconfig.eslint.json`** — ESLint type-aware linting configuration.
+
+General configuration: Requires Node.js >= 24.0.0. Outputs to `./build/`, targets ES2022, module resolution `bundler`. Declaration files (`.d.ts`) and source maps are emitted alongside JS. Strict mode is fully enabled (`strict`, `noImplicitAny`, `strictNullChecks`, `strictFunctionTypes`).
 
 ## ESLint Configuration
 
@@ -100,7 +107,7 @@ Key compliance files:
 - `.gitignore` — Build, dependencies, IDE, testing, logs, temp files
 - `.npmignore` — Published package includes only: `build/`, `README.md`, `LICENSE`, `package.json`
 - ESLint configuration — Flat config with TypeScript, stylistic, and import rules
-- Test coverage — 70% minimum enforced via Vitest
+- Test coverage — 80% minimum enforced via Vitest
 - Documentation — See `GAP_ANALYSIS.md` for any remaining template gaps
 
 Published scope: `@pawells/math-extended` on npm (public access)

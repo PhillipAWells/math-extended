@@ -1,11 +1,17 @@
 {
 	"name": "@pawells/math-extended",
 	"displayName": "Math Extended",
-	"version": "1.0.3",
+	"version": "1.0.4",
 	"description": "Shared TypeScript math library — vectors, matrices, quaternions, interpolation, angles, and random utilities. ESM-only.",
 	"type": "module",
 	"main": "./build/index.js",
 	"types": "./build/index.d.ts",
+	"exports": {
+		".": {
+			"types": "./build/index.d.ts",
+			"import": "./build/index.js"
+		}
+	},
 	"scripts": {
 		"build": "tsc --project tsconfig.build.json",
 		"start": "node build/index.js",

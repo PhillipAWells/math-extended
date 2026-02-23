@@ -554,6 +554,7 @@ describe('Matrix Transformations', () => {
 
 			test('should throw for invalid vector', () => {
 				const identity = MatrixIdentity(3);
+				// @ts-expect-error intentionally passing wrong vector size to test runtime assertion
 				expect(() => MatrixTransform2D([1], identity)).toThrow();
 			});
 
@@ -612,6 +613,7 @@ describe('Matrix Transformations', () => {
 
 			test('should throw for invalid vector', () => {
 				const identity = MatrixIdentity(4);
+				// @ts-expect-error intentionally passing wrong vector size to test runtime assertion
 				expect(() => MatrixTransform3D([1, 1], identity)).toThrow();
 			});
 
@@ -678,6 +680,7 @@ describe('Matrix Transformations', () => {
 					[0, 1, 0],
 					[0, 0, 1],
 				];
+				// @ts-expect-error intentionally passing wrong vector size to test runtime assertion
 				expect(() => MatrixDirection3D([1, 1], identity)).toThrow();
 			});
 		});
@@ -730,8 +733,11 @@ describe('Matrix Transformations', () => {
 			});
 
 			test('should throw for invalid vectors', () => {
+				// @ts-expect-error intentionally passing wrong vector size to test runtime assertion
 				expect(() => MatrixView([1, 2], [0, 0, 0], [0, 1, 0])).toThrow();
+				// @ts-expect-error intentionally passing wrong vector size to test runtime assertion
 				expect(() => MatrixView([0, 0, 0], [1, 2], [0, 1, 0])).toThrow();
+				// @ts-expect-error intentionally passing wrong vector size to test runtime assertion
 				expect(() => MatrixView([0, 0, 0], [0, 0, 0], [1, 2])).toThrow();
 			});
 		});
@@ -819,7 +825,7 @@ describe('Matrix Transformations', () => {
 			const scale = MatrixScale2D(2, 2);
 
 			// Apply transformations in sequence
-			const point = [1, 0];
+			const point: TVector2 = [1, 0];
 
 			// First translate
 			const translated = MatrixTransform2D(point, translation);

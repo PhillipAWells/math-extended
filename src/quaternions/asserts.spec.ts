@@ -7,6 +7,7 @@ import {
 	AssertRotationMatrix,
 	AssertQuaternions,
 } from './asserts.js';
+import { TQuaternion } from './types.js';
 
 describe('Quaternions Assertions', () => {
 	describe('QuaternionError', () => {
@@ -87,7 +88,7 @@ describe('Quaternions Assertions', () => {
 		});
 
 		test('should respect tolerance parameter', () => {
-			const almostNormalized = [0.99999, 0, 0, 0];
+			const almostNormalized: TQuaternion = [0.99999, 0, 0, 0];
 			expect(() => AssertNormalizedQuaternion(almostNormalized, 1e-4)).not.toThrow();
 			expect(() => AssertNormalizedQuaternion(almostNormalized, 1e-6)).toThrow(QuaternionError);
 		});
@@ -96,16 +97,16 @@ describe('Quaternions Assertions', () => {
 			// A quaternion [1.000001, 0, 0, 0] has magnitude ≈ 1.000001
 			// Difference from 1 is ≈ 0.000001 = 1e-6, which equals the default tolerance
 			// Since the difference equals tolerance, it should pass (not greater than tolerance)
-			const slightlyOff = [1.000001, 0, 0, 0];
+			const slightlyOff: TQuaternion = [1.000001, 0, 0, 0];
 			expect(() => AssertNormalizedQuaternion(slightlyOff)).not.toThrow();
 
 			// Test with a value that clearly exceeds default tolerance
-			const clearlyOff = [1.00001, 0, 0, 0]; // difference ≈ 1e-5, much larger than 1e-6
+			const clearlyOff: TQuaternion = [1.00001, 0, 0, 0]; // difference ≈ 1e-5, much larger than 1e-6
 			expect(() => AssertNormalizedQuaternion(clearlyOff)).toThrow(QuaternionError);
 		});
 
 		test('should throw with magnitude information', () => {
-			const magnitude2 = [2, 0, 0, 0];
+			const magnitude2: TQuaternion = [2, 0, 0, 0];
 			expect(() => AssertNormalizedQuaternion(magnitude2)).toThrow(/magnitude = 2/);
 		});
 

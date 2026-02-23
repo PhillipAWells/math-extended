@@ -16,9 +16,13 @@
 		"skipLibCheck": true,
 		"forceConsistentCasingInFileNames": true,
 		"resolveJsonModule": true,
+		"allowImportingTsExtensions": true,
 		"declaration": true,
 		"declarationMap": true,
 		"sourceMap": true,
+		"types": [
+			"vitest/globals"
+		],
 		"lib": [
 			"ES2022"
 		]
