@@ -11,7 +11,7 @@ import { TQuaternion, TEulerAngles, TAxisAngle, TRotationMatrix } from './types.
  * Extends the base VectorError to maintain consistency with vector operations.
  */
 export class QuaternionError extends VectorError {
-	constructor(message: string) {
+	constructor(message: string = '') {
 		super(message);
 		this.name = 'QuaternionError';
 	}
