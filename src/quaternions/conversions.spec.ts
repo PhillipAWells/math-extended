@@ -1,7 +1,7 @@
 import { QuaternionIdentity, QuaternionEquals, QuaternionNormalize } from './core.js';
 import { QuaternionRotationX, QuaternionRotationY, QuaternionRotationZ } from './predefined.js';
 import { QuaternionError } from './asserts.js';
-import { TQuaternion, IRotationMatrix } from './types.js';
+import { TQuaternion, TRotationMatrix } from './types.js';
 import { IMatrix4 } from '../matrices/types.ts';
 import { DegreesToRadians } from '../angles.ts';
 import { IsValidRotationMatrix, QuaternionFromRotationMatrix, QuaternionFromTransformationMatrix, QuaternionToRotationMatrix, QuaternionToTransformationMatrix } from './conversions.js';
@@ -14,7 +14,7 @@ describe('Quaternion Conversions', () => {
 			const quaternion = QuaternionIdentity();
 			const matrix = QuaternionToRotationMatrix(quaternion);
 
-			const expectedMatrix: IRotationMatrix = [
+			const expectedMatrix: TRotationMatrix = [
 				[1, 0, 0],
 				[0, 1, 0],
 				[0, 0, 1],
@@ -75,7 +75,7 @@ describe('Quaternion Conversions', () => {
 
 	describe('QuaternionFromRotationMatrix', () => {
 		test('should convert identity matrix to identity quaternion', () => {
-			const identityMatrix: IRotationMatrix = [
+			const identityMatrix: TRotationMatrix = [
 				[1, 0, 0],
 				[0, 1, 0],
 				[0, 0, 1],
@@ -87,7 +87,7 @@ describe('Quaternion Conversions', () => {
 		});
 
 		test('should convert 90-degree X rotation matrix', () => {
-			const matrix: IRotationMatrix = [
+			const matrix: TRotationMatrix = [
 				[1, 0, 0],
 				[0, 0, -1],
 				[0, 1, 0],
@@ -99,7 +99,7 @@ describe('Quaternion Conversions', () => {
 		});
 
 		test('should convert 90-degree Y rotation matrix', () => {
-			const matrix: IRotationMatrix = [
+			const matrix: TRotationMatrix = [
 				[0, 0, 1],
 				[0, 1, 0],
 				[-1, 0, 0],
@@ -111,7 +111,7 @@ describe('Quaternion Conversions', () => {
 		});
 
 		test('should convert 90-degree Z rotation matrix', () => {
-			const matrix: IRotationMatrix = [
+			const matrix: TRotationMatrix = [
 				[0, -1, 0],
 				[1, 0, 0],
 				[0, 0, 1],
@@ -124,7 +124,7 @@ describe('Quaternion Conversions', () => {
 
 		test('should handle matrix with largest diagonal element in different positions', () => {
 			// Test case where m11 is largest
-			const matrix: IRotationMatrix = [
+			const matrix: TRotationMatrix = [
 				[0, 0, 1],
 				[0, 1, 0],
 				[-1, 0, 0],
@@ -137,7 +137,7 @@ describe('Quaternion Conversions', () => {
 
 		test('should handle matrix with largest diagonal element m22', () => {
 			// Test case where m22 is largest
-			const matrix: IRotationMatrix = [
+			const matrix: TRotationMatrix = [
 				[0, 1, 0],
 				[-1, 0, 0],
 				[0, 0, 1],
@@ -192,7 +192,7 @@ describe('Quaternion Conversions', () => {
 			const matrix4x4 = QuaternionToTransformationMatrix(quaternion);
 
 			// Extract 3x3 rotation part
-			const rotationMatrix: IRotationMatrix = [
+			const rotationMatrix: TRotationMatrix = [
 				[matrix4x4[0][0], matrix4x4[0][1], matrix4x4[0][2]],
 				[matrix4x4[1][0], matrix4x4[1][1], matrix4x4[1][2]],
 				[matrix4x4[2][0], matrix4x4[2][1], matrix4x4[2][2]],
@@ -253,7 +253,7 @@ describe('Quaternion Conversions', () => {
 
 	describe('IsValidRotationMatrix', () => {
 		test('should validate identity matrix', () => {
-			const identityMatrix: IRotationMatrix = [
+			const identityMatrix: TRotationMatrix = [
 				[1, 0, 0],
 				[0, 1, 0],
 				[0, 0, 1],
@@ -263,7 +263,7 @@ describe('Quaternion Conversions', () => {
 
 		test('should validate proper rotation matrices', () => {
 			// 90-degree rotation around Z-axis
-			const rotationZ: IRotationMatrix = [
+			const rotationZ: TRotationMatrix = [
 				[0, -1, 0],
 				[1, 0, 0],
 				[0, 0, 1],
@@ -272,7 +272,7 @@ describe('Quaternion Conversions', () => {
 		});
 
 		test('should reject non-orthogonal matrix', () => {
-			const nonOrthogonal: IRotationMatrix = [
+			const nonOrthogonal: TRotationMatrix = [
 				[1, 1, 0],  // Not orthogonal
 				[0, 1, 0],
 				[0, 0, 1],
@@ -281,7 +281,7 @@ describe('Quaternion Conversions', () => {
 		});
 
 		test('should reject matrix with non-unit column vectors', () => {
-			const nonUnit: IRotationMatrix = [
+			const nonUnit: TRotationMatrix = [
 				[2, 0, 0],  // Column 1 has length 2, not 1
 				[0, 1, 0],
 				[0, 0, 1],
@@ -290,7 +290,7 @@ describe('Quaternion Conversions', () => {
 		});
 
 		test('should reject matrix with determinant -1 (reflection)', () => {
-			const reflection: IRotationMatrix = [
+			const reflection: TRotationMatrix = [
 				[-1, 0, 0],  // Reflection, det = -1
 				[0, 1, 0],
 				[0, 0, 1],
@@ -299,7 +299,7 @@ describe('Quaternion Conversions', () => {
 		});
 
 		test('should respect custom tolerance', () => {
-			const almostValid: IRotationMatrix = [
+			const almostValid: TRotationMatrix = [
 				[1.0001, 0, 0],  // Slightly off from 1
 				[0, 1, 0],
 				[0, 0, 1],
@@ -313,7 +313,7 @@ describe('Quaternion Conversions', () => {
 			const cos45 = Math.cos(DegreesToRadians(45));
 			const sin45 = Math.sin(DegreesToRadians(45));
 
-			const rotationY: IRotationMatrix = [
+			const rotationY: TRotationMatrix = [
 				[cos45, 0, sin45],
 				[0, 1, 0],
 				[-sin45, 0, cos45],
@@ -331,7 +331,7 @@ describe('Quaternion Conversions', () => {
 		});
 
 		test('matrix -> quaternion -> matrix should preserve matrix', () => {
-			const originalMatrix: IRotationMatrix = [
+			const originalMatrix: TRotationMatrix = [
 				[0, -1, 0],
 				[1, 0, 0],
 				[0, 0, 1],
