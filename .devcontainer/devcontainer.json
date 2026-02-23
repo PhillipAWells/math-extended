@@ -2,11 +2,18 @@
 // README at: https://github.com/devcontainers/templates/tree/main/src/typescript-node
 {
 	"name": "pawells-math-extended",
-	"image": "node:lts",
-	"features": {
-		"ghcr.io/devcontainers/features/github-cli:1": {}
+	"build": {
+		"dockerfile": "Dockerfile"
 	},
-	"postCreateCommand": "yarn install",
+	"features": {
+		"ghcr.io/devcontainers/features/common-utils:2": {},
+		"ghcr.io/devcontainers/features/git:1": {},
+		"ghcr.io/devcontainers/features/github-cli:1": {},
+		"ghcr.io/devcontainers/features/node:1": {
+			"version": "lts"
+		}
+	},
+	"postCreateCommand": "bash .devcontainer/scripts/postCreate.sh",
 	"customizations": {
 		"vscode": {
 			"extensions": [
@@ -17,5 +24,6 @@
 			]
 		}
 	},
-	"remoteUser": "node"
+	"remoteUser": "dev",
+	"updateRemoteUserUID": true,
 }
