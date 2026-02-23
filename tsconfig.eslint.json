@@ -1,13 +1,11 @@
 {
 	"extends": "./tsconfig.json",
 	"compilerOptions": {
-		"noEmit": true
+		"allowJs": true
 	},
 	"include": [
-		"src/**/*"
-	],
-	"exclude": [
-		"node_modules",
-		"build"
+		"src/**/*.ts",
+		"*.config.mjs",
+		"*.config.ts"
 	]
 }

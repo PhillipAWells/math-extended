@@ -9,16 +9,21 @@ This file provides guidance to AI coding agents when working with code in this r
 ## Commands
 
 ```bash
+# Build & Run
 yarn build            # Compile TypeScript → ./build/
 yarn dev              # Build and run (tsc && node build/index.js)
 yarn watch            # TypeScript watch mode
-yarn typecheck        # Type check without emitting
-yarn lint             # ESLint src/
-yarn lint:fix         # ESLint with auto-fix
-yarn test             # Run Vitest tests
-yarn test:ui          # Open interactive Vitest UI in a browser
-yarn test:coverage    # Run tests with coverage report
 yarn start            # Run built output
+
+# Code Quality
+yarn typecheck        # Type check without emitting
+yarn lint             # ESLint check (src/)
+yarn lint:fix         # ESLint with auto-fix
+
+# Testing
+yarn test             # Run Vitest tests once
+yarn test:ui          # Open interactive Vitest UI in a browser
+yarn test:coverage    # Run tests with coverage report (70% minimum)
 ```
 
 To run a single test file: `yarn vitest run src/path/to/file.test.ts`
@@ -27,7 +32,11 @@ To run a single test file: `yarn vitest run src/path/to/file.test.ts`
 
 All source lives under `src/` and is compiled to `./build/` by `tsc`. The suite currently has **1077 tests**.
 
-**Entry point** (`src/index.ts`): The single public export surface. All utilities, helpers, and types intended for consumers must be re-exported from this file.
+**Entry point** (`src/index.ts`): The single public export surface with both:
+- **Namespace exports** (`VectorUtils`, `MatrixUtils`, `QuaternionUtils`) for grouped imports
+- **Direct named exports** for tree-shaking optimization
+
+All utilities, helpers, and types intended for consumers must be re-exported from this file.
 
 ### Module structure
 
@@ -59,8 +68,39 @@ All source lives under `src/` and is compiled to `./build/` by `tsc`. The suite 
 
 Requires Node.js 24. Outputs to `./build/`, targets ES2022, module resolution `bundler`. Declaration files (`.d.ts`) and source maps are emitted alongside JS. Strict mode is fully enabled (`strict`, `noImplicitAny`, `strictNullChecks`, `strictFunctionTypes`).
 
+## ESLint Configuration
+
+Modern ESLint flat config (`eslint.config.mjs`) with:
+- **TypeScript-specific rules** (`@typescript-eslint/eslint-plugin`)
+- **Stylistic rules** (`@stylistic/eslint-plugin`) — tabs, single quotes, semicolons, trailing commas
+- **Import management** — sorted imports, cycle detection, unused imports removal
+- **Test relaxations** (`.test.ts`, `.spec.ts`) — disabled strict naming in tests
+
+Key enforced conventions:
+- Classes/Interfaces/Types: **PascalCase**
+- Functions: **PascalCase**
+- Constants: **UPPER_CASE**
+- Tabs for indentation, single quotes, explicit return types
+
+Configuration file: `eslint.config.mjs`
+Ignore file: `.eslintignore`
+ESLint commands: `yarn lint`, `yarn lint:fix`
+
 ## CI/CD
 
 Single workflow (`.github/workflows/ci.yml`) triggered on push to `main`, PRs to `main`, and `v*` tags:
 - **Push to `main` / PR**: typecheck → lint → test → build
 - **Push `v*` tag**: typecheck → lint → test → build → publish to npm (with provenance) → create GitHub Release
+
+## Compliance & Documentation
+
+**Template Compliance**: ~95% aligned with `lib/library.template.md`
+
+Key compliance files:
+- `.gitignore` — Build, dependencies, IDE, testing, logs, temp files
+- `.npmignore` — Published package includes only: `build/`, `README.md`, `LICENSE`, `package.json`
+- ESLint configuration — Flat config with TypeScript, stylistic, and import rules
+- Test coverage — 70% minimum enforced via Vitest
+- Documentation — See `GAP_ANALYSIS.md` for any remaining template gaps
+
+Published scope: `@pawells/math-extended` on npm (public access)

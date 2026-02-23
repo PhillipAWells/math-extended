@@ -6,6 +6,12 @@
 		"outDir": "./build",
 		"rootDir": "./src",
 		"strict": true,
+		"noImplicitAny": true,
+		"strictNullChecks": true,
+		"strictFunctionTypes": true,
+		"strictPropertyInitialization": true,
+		"strictBindCallApply": true,
+		"alwaysStrict": true,
 		"esModuleInterop": true,
 		"skipLibCheck": true,
 		"forceConsistentCasingInFileNames": true,
@@ -13,9 +19,6 @@
 		"declaration": true,
 		"declarationMap": true,
 		"sourceMap": true,
-		"noImplicitAny": true,
-		"strictNullChecks": true,
-		"strictFunctionTypes": true,
 		"lib": [
 			"ES2022"
 		]
@@ -25,8 +28,6 @@
 	],
 	"exclude": [
 		"node_modules",
-		"build",
-		"**/*.spec.ts",
-		"**/*.test.ts"
+		"build"
 	]
 }

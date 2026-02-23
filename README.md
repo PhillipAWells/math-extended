@@ -19,7 +19,9 @@ yarn add @pawells/math-extended
 
 ## Usage
 
-All exports are available as individual named imports for tree-shaking.
+All exports are available as individual named imports for tree-shaking, or grouped via namespace imports for convenience.
+
+### Direct Named Imports (Tree-Shaking Friendly)
 
 ```typescript
 import {
@@ -40,6 +42,27 @@ const v = SmoothStep(0, 10, 0.5); // 5
 // Angles
 const rad = DegreesToRadians(180); // Math.PI
 ```
+
+### Namespace Imports (Grouped)
+
+Import related utilities together using namespace imports:
+
+```typescript
+import { VectorUtils, MatrixUtils, QuaternionUtils } from '@pawells/math-extended';
+
+// Access utilities via namespace
+VectorUtils.VectorAdd([1, 0, 0], [0, 1, 0]);
+MatrixUtils.MatrixMultiply(matA, matB);
+QuaternionUtils.QuaternionSLERP(q1, q2, 0.5);
+```
+
+### Import Patterns
+
+| Pattern | Best For | Example |
+|---------|----------|---------|
+| **Direct named** | Tree-shaking, small imports | `import { VectorAdd } from '@pawells/math-extended'` |
+| **Namespace** | Grouping related functions | `import { VectorUtils } from '@pawells/math-extended'` |
+| **Mixed** | Flexibility | Both patterns together |
 
 ## API
 
