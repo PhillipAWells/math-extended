@@ -5,8 +5,10 @@ const BOX_MULLER_COEFFICIENT = -2;
  * @param min - Minimum value (inclusive)
  * @param max - Maximum value (inclusive)
  * @returns Random integer between min and max, or NaN if min > max
+ * @throws Returns `Number.NaN` when `min > max`
  * @example RandomInt(1, 6) // Returns 1, 2, 3, 4, 5, or 6 (dice roll)
  * @example RandomInt(-5, 5) // Returns any integer from -5 to 5
+ * @example RandomInt(10, 5) // Returns Number.NaN (invalid range)
  */
 export function RandomInt(min: number, max: number): number {
 	if (min > max) return Number.NaN;
@@ -16,11 +18,14 @@ export function RandomInt(min: number, max: number): number {
 
 /**
  * Generates a random floating-point number within the specified range.
+ * Note: Asymmetry with RandomInt — this function returns NaN when min >= max (not just min > max).
  * @param min - Minimum value (inclusive)
  * @param max - Maximum value (exclusive)
  * @returns Random float between min (inclusive) and max (exclusive), or NaN if min >= max
+ * @throws Returns `Number.NaN` when `min >= max`
  * @example RandomFloat(0, 1) // Returns 0.0 to 0.999...
  * @example RandomFloat(-1.5, 1.5) // Returns any float from -1.5 to 1.499...
+ * @example RandomFloat(5, 5) // Returns Number.NaN (min equals max)
  */
 export function RandomFloat(min: number, max: number): number {
 	if (min >= max) return Number.NaN;
