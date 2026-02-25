@@ -4,6 +4,8 @@ import { Clamp } from './clamp.js';
 const CUBIC = 3;                 // t³ power used in cubic ease, smooth step, etc.
 const QUARTIC = 4;               // t⁴ power used in smoother step / catmull-rom
 const QUINTIC = 5;               // t⁵ power used in smoother step
+// Perlin's smootherstep formula coefficients: 6t⁵ − 15t⁴ + 10t³
+// These create a smooth curve with zero first and second derivatives at endpoints
 const SMOOTHER_COEFF_A = 6;     // 6t⁵ coefficient in SmootherStep
 const SMOOTHER_COEFF_B = 15;    // 15t⁴ coefficient in SmootherStep
 const SMOOTHER_COEFF_C = 10;    // 10t³ coefficient in SmootherStep
