@@ -99,7 +99,7 @@ export function VectorToString(vector: TVector, style: 'parens' | 'brackets' = '
  * const velocity = [1, -2, 0.5];
  * const newPosition = VectorAdd(position, velocity); // [11, 18, 30.5]
  */
-export function VectorAdd<T extends TAnyVector>(a:T, b: T): TVectorResult<T> {
+export function VectorAdd<T extends TAnyVector>(a: T, b: T): TVectorResult<T> {
 	AssertVectors([a, b]);
 
 	const result: number[] = [];
@@ -130,7 +130,7 @@ export function VectorAdd<T extends TAnyVector>(a:T, b: T): TVectorResult<T> {
  * const current = [80, 30, 0];
  * const direction = VectorSubtract(target, current); // [20, 20, 0]
  */
-export function VectorSubtract<T extends TAnyVector>(a:T, b: T): TVectorResult<T> {
+export function VectorSubtract<T extends TAnyVector>(a: T, b: T): TVectorResult<T> {
 	AssertVectors([a, b]);
 
 	const result: number[] = [];
@@ -162,7 +162,7 @@ export function VectorSubtract<T extends TAnyVector>(a:T, b: T): TVectorResult<T
  * const factors = [1, -1, 0.5];
  * const componentWise = VectorMultiply(velocity, factors); // [10, -5, 0] - component-wise
  */
-export function VectorMultiply<T extends TAnyVector>(a:T, b: T | number): TVectorResult<T> {
+export function VectorMultiply<T extends TAnyVector>(a: T, b: T | number): TVectorResult<T> {
 	const result: number[] = [];
 
 	if (Array.isArray(b)) {
@@ -221,7 +221,7 @@ export function VectorDistance(a: TVector, b: TVector): number {
  * const pointB = [4, 5];
  * const distSq = VectorDistanceSquared(pointA, pointB); // 25 (faster than distance comparison)
  */
-export function VectorDistanceSquared(a:TVector, b: TVector): number {
+export function VectorDistanceSquared(a: TVector, b: TVector): number {
 	AssertVectors([a, b]);
 
 	let sum = 0;
@@ -255,7 +255,7 @@ export function VectorDistanceSquared(a:TVector, b: TVector): number {
  * const perpendicular = [1, 0, 0];
  * const dotPerp = VectorDot(forward, perpendicular); // 0 (perpendicular)
  */
-export function VectorDot(a:TVector, b: TVector): number {
+export function VectorDot(a: TVector, b: TVector): number {
 	AssertVectors([a, b]);
 
 	let dotProduct = 0;
@@ -349,7 +349,7 @@ export function VectorMagnitude(a: TVector): number {
  * const mixed = [1.5, -2.7, 0];
  * const absValues = VectorAbs(mixed); // [1.5, 2.7, 0]
  */
-export function VectorAbs<T extends TAnyVector>(a: T):TVectorResult<T> {
+export function VectorAbs<T extends TAnyVector>(a: T): TVectorResult<T> {
 	AssertVector(a);
 
 	const result: number[] = [];
