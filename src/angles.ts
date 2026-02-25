@@ -6,6 +6,7 @@ const ANGLE_FRACTION_QUARTER = 0.25;
 const ANGLE_FRACTION_THREE_QUARTERS = 0.75;
 const ANGLE_FRACTION_TOLERANCE = 0.0001;
 const ANGLE_MAX_DENOMINATOR = 12;
+const NORMALIZE_EPSILON = 1e-10; // Epsilon for floating-point boundary cleanup
 
 /**
  * Converts degrees to radians
@@ -77,7 +78,10 @@ export function FormatRadians(radians: number): string {
  */
 export function NormalizeRadians(radians: number): number {
 	const twoPi = 2 * Math.PI;
-	return ((radians % twoPi) + twoPi) % twoPi;
+	const result = ((radians % twoPi) + twoPi) % twoPi;
+	// Epsilon cleanup for floating-point precision at boundaries
+	if (result < NORMALIZE_EPSILON || result > twoPi - NORMALIZE_EPSILON) return 0;
+	return result;
 }
 
 /**
