@@ -12,9 +12,6 @@
  *
  * All matrices use homogeneous coordinates for consistent transformation composition.
  * 2D transformations use 3x3 matrices, 3D transformations use 4x4 matrices.
- *
- * @author JTV Development Team
- * @since 1.0.0
  */
 
 import { AssertNumber, AssertNotEquals } from '@pawells/typescript-common';
