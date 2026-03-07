@@ -454,9 +454,9 @@ __metadata:
   linkType: soft
 
 "@pawells/typescript-common@npm:^1.1.1":
-  version: 1.1.1
-  resolution: "@pawells/typescript-common@npm:1.1.1"
-  checksum: 10c0/c941a7a3aa3c344b894af913eeb1f984d760861ce0621d2d4d27f2d8dcfd2b8525e049f34a9c87eadd938f02501a964fef5c5bf557dd180539d77508f03bb3b0
+  version: 1.1.7
+  resolution: "@pawells/typescript-common@npm:1.1.7"
+  checksum: 10c0/83867c1ad54d804adabd186e402041bfee7c25a559b86f4a1fdd06898f45431ac6dde3c2abfb9a3bdc890b10d4a8fc943c07e26d0f9654a20965d97f84d06c0a
   languageName: node
   linkType: hard
 
