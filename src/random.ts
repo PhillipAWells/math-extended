@@ -1,4 +1,5 @@
 const BOX_MULLER_COEFFICIENT = -2;
+const BOX_MULLER_MIN_U1 = Number.EPSILON; // Avoid log(0) = -Infinity in Box-Muller transform
 
 /**
  * Generates a random integer within the specified range (inclusive).
@@ -60,22 +61,17 @@ export function RandomChoice<T>(array: T[]): T | undefined {
 export function RandomSample<T>(array: T[], count: number): T[] {
 	if (array.length === 0 || count <= 0 || count > array.length) return [];
 
-	const result: T[] = [];
-	const indices = new Set<number>();
+	// Partial Fisher-Yates shuffle: O(count) guaranteed, no collision retries
+	const copy = [...array];
 
-	while (result.length < count) {
-		const index = RandomInt(0, array.length - 1);
-		if (!indices.has(index)) {
-			indices.add(index);
-
-			const element = array[index];
-			if (element !== undefined) {
-				result.push(element);
-			}
-		}
+	for (let i = 0; i < count; i++) {
+		const j = RandomInt(i, copy.length - 1);
+		const temp = copy[i] as T;
+		copy[i] = copy[j] as T;
+		copy[j] = temp;
 	}
 
-	return result;
+	return copy.slice(0, count);
 }
 
 /**
@@ -104,11 +100,12 @@ export function RandomShuffle<T>(array: T[], clone?: boolean): T[] {
  * Generates a random boolean value.
  * @param probability - Probability of returning true (0.0 to 1.0, default: 0.5)
  * @returns Random boolean based on probability
+ * @throws {RangeError} If probability is outside the range [0, 1]
  * @example RandomBool() // 50% chance of true
  * @example RandomBool(0.8) // 80% chance of true
  */
 export function RandomBool(probability: number = 0.5): boolean {
-	if (probability < 0 || probability > 1) return false;
+	if (probability < 0 || probability > 1) throw new RangeError(`Probability must be between 0 and 1, got ${probability}`);
 
 	return Math.random() < probability;
 }
@@ -123,8 +120,9 @@ export function RandomBool(probability: number = 0.5): boolean {
  * @example RandomNormal(100, 15) // IQ-like distribution (mean=100, std=15)
  */
 export function RandomNormal(mean: number = 0, standardDeviation: number = 1): number {
-	// Box-Muller transform
-	const u1 = Math.random();
+	// Box-Muller transform — u1 must be > 0 to avoid log(0) = -Infinity
+	let u1 = 0;
+	do { u1 = Math.random(); } while (u1 < BOX_MULLER_MIN_U1);
 	const u2 = Math.random();
 
 	const z0 = Math.sqrt(BOX_MULLER_COEFFICIENT * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
