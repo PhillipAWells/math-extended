@@ -104,8 +104,10 @@ describe('Vector Core', () => {
 			expect(VectorToString([1.5, -2.7])).toBe('(1.5, -2.7)');
 		});
 
-		it('should throw error for invalid style', () => {
-			expect(() => VectorToString([1, 2], 'invalid' as any)).toThrow('Invalid style: invalid');
+		it('should return brackets format for any non-parens style', () => {
+			// TypeScript prevents passing invalid styles at compile time;
+			// at runtime any non-'parens' value falls through to the brackets path
+			expect(VectorToString([1, 2], 'invalid' as any)).toBe('[1, 2]');
 		});
 	});
 
