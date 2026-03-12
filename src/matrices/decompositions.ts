@@ -1,4 +1,4 @@
-import { AssertNumber, AssertInstanceOf } from '@pawells/typescript-common';
+import { AssertNumber, AssertInstanceOf, ArraySortBy } from '@pawells/typescript-common';
 import { MatrixMultiply } from './arithmetic.js';
 import { AssertMatrix, AssertMatrixRow, AssertMatrixValue, AssertMatrix1, AssertMatrix2, MatrixError } from './asserts.js';
 import { MatrixSize, MatrixCreate, MatrixClone, MatrixIdentity, MatrixTranspose } from './core.js';
@@ -810,7 +810,7 @@ export function MatrixSVD(matrix: IMatrix): TSVDDecompositionResult {
 
 	// Singular values are sqrt of eigenvalues; sort descending
 	const S = eigenvalues.map((ev) => Math.sqrt(Math.max(ev, 0)));
-	const indices = S.map((_, i) => i).sort((a, b) => (S[b] as number) - (S[a] as number));
+	const indices = ArraySortBy(S.map((_, i) => i), (i) => S[i] as number, 'desc');
 
 	const sSorted: number[] = indices.map((i) => S[i] as number);
 
