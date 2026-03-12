@@ -311,11 +311,10 @@ export function MatrixIdentity(size: number): IMatrix {
 
 /**
  * Creates a deep copy of the given matrix.
- * @param matrix - The matrix to clone (supports both IMatrix and IMatrixFlat formats)
- * @returns {IMatrix | IMatrixFlat} A new matrix with identical values but independent memory allocation
+ * @param matrix - The matrix to clone
+ * @returns {TMatrixResult<T>} A new matrix with identical values but independent memory allocation
  * @throws {Error} If the input is not a valid matrix
  * @example MatrixClone([[1, 2], [3, 4]]) // [[1, 2], [3, 4]] (independent copy)
- * @example MatrixClone({data: Float64Array[1,2,3,4], rows: 2, columns: 2}) // New IMatrixFlat with copied data
  */
 export function MatrixClone<T extends IMatrix>(matrix: T): TMatrixResult<T> {
 	AssertMatrix(matrix);
@@ -325,8 +324,8 @@ export function MatrixClone<T extends IMatrix>(matrix: T): TMatrixResult<T> {
 
 /**
  * Checks if two matrices are equal within a specified tolerance.
- * @param a - First matrix to compare (supports both IMatrix and IMatrixFlat formats)
- * @param b - Second matrix to compare (supports both IMatrix and IMatrixFlat formats)
+ * @param a - First matrix to compare
+ * @param b - Second matrix to compare
  * @param tolerance - Maximum allowed difference between corresponding elements (default: 1e-8)
  * @returns {boolean} True if matrices are equal within tolerance, false otherwise
  * @throws {Error} If either input is not a valid matrix or if matrix data is corrupted
@@ -368,7 +367,7 @@ export function MatrixEquals(a: IMatrix, b: IMatrix, tolerance: number = 1e-8): 
 
 /**
  * Converts a matrix to a formatted string representation.
- * @param matrix - The matrix to convert to string (supports both IMatrix and IMatrixFlat formats)
+ * @param matrix - The matrix to convert to string
  * @param precision - Number of decimal places for formatting (default: 2)
  * @returns {string} A formatted string representation of the matrix
  * @throws {Error} If the input is not a valid matrix
@@ -390,7 +389,7 @@ export function MatrixToString(matrix: IMatrix, precision: number = 2): string {
 
 /**
  * Computes the rank of a matrix using Gaussian elimination.
- * @param matrix - The input matrix (any dimensions, supports both IMatrix and IMatrixFlat formats)
+ * @param matrix - The input matrix (any dimensions)
  * @param tolerance - Numerical tolerance for zero detection (default: 1e-10)
  * @returns {number} The rank of the matrix (0 ≤ rank ≤ min(rows, columns))
  * @throws {Error} If the matrix contains invalid values
@@ -466,7 +465,7 @@ export function MatrixRank(matrix: IMatrix, tolerance: number = 1e-10): number {
 
 /**
  * Computes the trace of a matrix (sum of main diagonal elements).
- * @param matrix - The input matrix (can be square or rectangular, supports both IMatrix and IMatrixFlat formats)
+ * @param matrix - The input matrix (can be square or rectangular)
  * @returns {number} The trace value (sum of diagonal elements)
  * @throws {Error} If the matrix contains invalid values
  * @example MatrixTrace([[1, 2, 3], [4, 5, 6], [7, 8, 9]]) // 15 (1 + 5 + 9)
@@ -495,8 +494,8 @@ export function MatrixTrace(matrix: IMatrix): number {
 
 /**
  * Returns the transpose of a matrix (rows become columns and vice versa).
- * @param matrix - The matrix to transpose (can be any m×n matrix, supports both IMatrix and IMatrixFlat formats)
- * @returns {IMatrix | IMatrixFlat} The transposed matrix with dimensions n×m (same format as input)
+ * @param matrix - The matrix to transpose (can be any m×n matrix)
+ * @returns {TMatrixResult<T>} The transposed matrix with dimensions n×m
  * @throws {Error} If the input is not a valid matrix
  * @example MatrixTranspose([[1, 2, 3], [4, 5, 6]]) // [[1, 4], [2, 5], [3, 6]]
  * @example MatrixTranspose([[1, 2], [3, 4]]) // [[1, 3], [2, 4]]
@@ -533,9 +532,9 @@ export function MatrixTranspose<T extends IMatrix>(matrix: T): TMatrixResult<T> 
 
 /**
  * Applies a transformation function to each element of the matrix.
- * @param matrix - The input matrix to transform (supports both IMatrix and IMatrixFlat formats)
+ * @param matrix - The input matrix to transform
  * @param fn - Transformation function: (value, row, col) => transformedValue
- * @returns {IMatrix | IMatrixFlat} A new matrix with transformed values (same dimensions and format as input)
+ * @returns {TMatrixResult<T>} A new matrix with transformed values (same dimensions as input)
  * @throws {Error} If the input matrix is invalid or transformation function throws
  * @example MatrixMap([[1, 2], [3, 4]], (value) => value * value) // [[1, 4], [9, 16]]
  * @example MatrixMap([[1, 2], [3, 4]], (value, row, col) => value + row + col) // [[1, 3], [4, 6]]

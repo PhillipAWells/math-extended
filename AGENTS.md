@@ -73,7 +73,7 @@ Project uses a 4-config split:
 - **`tsconfig.test.json`** — Vitest test configuration.
 - **`tsconfig.eslint.json`** — ESLint type-aware linting configuration.
 
-General configuration: Requires Node.js >= 24.0.0. Outputs to `./build/`, targets ES2022, module resolution `bundler`. Declaration files (`.d.ts`) and source maps are emitted alongside JS. Strict mode is fully enabled (`strict`, `noImplicitAny`, `strictNullChecks`, `strictFunctionTypes`).
+General configuration: Requires Node.js >= 22.0.0. Outputs to `./build/`, targets ES2022, module resolution `bundler`. Declaration files (`.d.ts`) and source maps are emitted alongside JS. Strict mode is fully enabled (`strict`, `noImplicitAny`, `strictNullChecks`, `strictFunctionTypes`).
 
 ## ESLint Configuration
 
