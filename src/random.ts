@@ -123,8 +123,10 @@ export function RandomBool(probability: number = 0.5): boolean {
  */
 export function RandomNormal(mean: number = 0, standardDeviation: number = 1): number {
 	// Box-Muller transform — u1 must be > 0 to avoid log(0) = -Infinity
-	let u1 = 0;
-	do { u1 = Math.random(); } while (u1 < BOX_MULLER_MIN_U1);
+	let u1 = Math.random();
+	while (u1 < BOX_MULLER_MIN_U1) {
+		u1 = Math.random();
+	}
 	const u2 = Math.random();
 
 	const z0 = Math.sqrt(BOX_MULLER_COEFFICIENT * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
