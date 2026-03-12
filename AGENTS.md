@@ -30,7 +30,7 @@ To run a single test file: `yarn vitest run src/path/to/file.spec.ts`
 
 ## Architecture
 
-All source lives under `src/` and is compiled to `./build/` by `tsc`. The suite currently has **1077 tests**.
+All source lives under `src/` and is compiled to `./build/` by `tsc`. The suite currently has **1080 tests**.
 
 **Entry point** (`src/index.ts`): The single public export surface with both:
 - **Namespace exports** (`VectorUtils`, `MatrixUtils`, `QuaternionUtils`) for grouped imports

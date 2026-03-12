@@ -425,47 +425,42 @@ export function MatrixEigenQRIteration(matrix: IMatrix, iterations: number = 50)
 	};
 }
 /**
- * Performs LU decomposition of a square matrix A = L × U using Doolittle's method.
+ * Performs LU decomposition of a square matrix with partial pivoting: P × A = L × U.
  *
  * LU decomposition factors a square matrix into the product of a lower triangular matrix L
- * and an upper triangular matrix U. This decomposition is fundamental for solving linear
- * systems, computing determinants, and matrix inversion.
+ * and an upper triangular matrix U, with a permutation vector P recording the row swaps
+ * performed during partial (column) pivoting. Partial pivoting selects the largest-magnitude
+ * element in each column as the pivot, improving numerical stability.
  *
  * **Mathematical Background:**
  * - L is lower triangular with 1's on the diagonal (unit lower triangular)
  * - U is upper triangular containing the pivot elements
- * - The decomposition exists if all leading principal minors are non-zero
- * - Gaussian elimination with partial pivoting would be more stable, but this
- *   implementation uses Doolittle's method without pivoting for simplicity
+ * - P is a permutation vector where P[i] is the original row index at position i
+ * - The relationship is: P × A = L × U
  *
  * **Applications:**
- * - Solving linear systems: Ax = b becomes LUx = b, solve Ly = b then Ux = y
- * - Computing determinant: det(A) = det(L) × det(U) = det(U) = ∏ᵢ U[i,i]
- * - Matrix inversion: A⁻¹ = U⁻¹L⁻¹
+ * - Solving linear systems: Ax = b — apply permutation, solve Ly = Pb, then Ux = y
+ * - Computing determinant: det(A) = ∏ᵢ U[i,i] (with sign from permutation parity)
+ * - Matrix inversion: used internally by `MatrixInverse` for n > 3
  *
- * @param matrix - Square matrix to decompose (must be non-singular and not require pivoting)
- * @returns Object containing L (lower triangular) and U (upper triangular) matrices
- * @throws {Error} If matrix is not square, singular, or contains invalid values
- *
- * @note This implementation does not use partial pivoting (row swapping). It will fail for matrices with zero-valued or near-zero leading minors even if the matrix is otherwise invertible (e.g., [[0,1],[1,0]]). For general matrices, use MatrixInverse instead.
+ * @param matrix - Square matrix to decompose (must be non-singular)
+ * @returns Object `{ L, U, P }` — lower triangular, upper triangular, and permutation vector
+ * @throws {MatrixError} If matrix is not square, singular (zero pivot), or contains invalid values
  *
  * @example
  * ```ts
  * const A = [[2, 1], [1, 1]];
- * const { L, U } = MatrixLU(A);
- * // L = [[1, 0], [0.5, 1]], U = [[2, 1], [0, 0.5]]
+ * const { L, U, P } = MatrixLU(A);
+ * // L = [[1, 0], [0.5, 1]], U = [[2, 1], [0, 0.5]], P = [0, 1]
  *
- * // Verify: L × U should equal A
+ * // Verify: L × U should equal P-permuted A
  * const product = MatrixMultiply(L, U);
  * // product ≈ [[2, 1], [1, 1]]
- *
- * // Solve Ax = b using LU decomposition
- * const b = [3, 2];
- * // First solve Ly = b, then Ux = y
  * ```
  *
  * @complexity Time: O(n³/3), Space: O(n²)
  * @see {@link MatrixCholesky} For symmetric positive definite matrices (more efficient)
+ * @see {@link MatrixSolve} For solving Ax = b directly
  */
 export function MatrixLU(matrix: IMatrix): TLUDecompositionResult {
 	AssertMatrix(matrix, { square: true });
@@ -863,7 +858,8 @@ export function MatrixSVD(matrix: IMatrix): TSVDDecompositionResult {
 }
 /**
  * Solves the linear system Ax = b for the unknown vector x.
- * Uses LU decomposition internally followed by forward and back substitution.
+ * Uses LU decomposition with partial pivoting internally: decomposes A into P, L, U,
+ * applies the row permutation to b, then performs forward and back substitution.
  *
  * Given an n×n coefficient matrix A and an n-element right-hand side vector b,
  * finds x such that A × x = b.

@@ -232,8 +232,12 @@ export function QuaternionFromAxisAngleVector(axisAngle: TAxisAngle): TQuaternio
 /**
  * Converts a quaternion to axis-angle representation.
  *
- * @param quaternion - The quaternion to convert
- * @returns The axis-angle representation as [x, y, z, angle]
+ * The quaternion is first normalized to canonical form (w ≥ 0) so that q and -q,
+ * which represent the same rotation, always produce the same axis-angle result.
+ *
+ * @param quaternion - The quaternion to convert (must be normalized)
+ * @returns The axis-angle representation as [x, y, z, angle] where angle ∈ [0, π]
+ * @throws {Error} If the quaternion is not normalized
  *
  * @example
  * const q = [0, 0.707, 0, 0.707]; // 90° around Y-axis

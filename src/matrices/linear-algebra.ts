@@ -117,9 +117,14 @@ export function MatrixAdjoint(matrix: IMatrix): IMatrix {
 
 /**
  * Computes the matrix inverse (reciprocal) of a square matrix.
+ *
+ * For matrices up to 3×3, uses the closed-form adjugate/cofactor method.
+ * For larger matrices (n > 3), uses LU decomposition with partial pivoting (O(n³))
+ * by solving A × X = I column-by-column.
+ *
  * @param matrix - The square matrix to invert (must be non-singular)
  * @returns {IMatrix} The inverse matrix A⁻¹
- * @throws {Error} If the matrix is not square or is singular (determinant is zero)
+ * @throws {MatrixError} If the matrix is not square or is singular (determinant is zero)
  * @example MatrixInverse([[1, 2], [3, 4]]) // [[-2, 1], [1.5, -0.5]]
  */
 export function MatrixInverse(matrix: IMatrix): IMatrix {

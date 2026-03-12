@@ -51,10 +51,11 @@ export function RandomChoice<T>(array: T[]): T | undefined {
 
 /**
  * Randomly selects multiple elements from an array without replacement.
+ * Uses a partial Fisher-Yates shuffle, running only `count` iterations for O(count) time.
  * @template T - The type of elements in the array
  * @param array - Array to choose from
  * @param count - Number of elements to select
- * @returns Array of randomly selected elements, or empty array if invalid inputs
+ * @returns Array of `count` unique randomly selected elements, or empty array if inputs are invalid
  * @example RandomSample([1, 2, 3, 4, 5], 3) // Returns 3 unique numbers
  * @example RandomSample(['a', 'b', 'c'], 2) // Returns 2 unique letters
  */
@@ -112,7 +113,8 @@ export function RandomBool(probability: number = 0.5): boolean {
 
 /**
  * Generates a random number following a normal (Gaussian) distribution.
- * Uses the Box-Muller transform for generating normally distributed values.
+ * Uses the Box-Muller transform. The first uniform sample u1 is resampled
+ * until it is ≥ `Number.EPSILON` to avoid `log(0) = -Infinity`.
  * @param mean - Mean of the distribution (default: 0)
  * @param standardDeviation - Standard deviation of the distribution (default: 1)
  * @returns Random number from normal distribution

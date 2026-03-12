@@ -88,7 +88,9 @@ export function NormalizeRadians(radians: number): number {
 }
 
 /**
- * Normalizes an angle in degrees to be between 0 and 360
+ * Normalizes an angle in degrees to be between 0 and 360.
+ * Applies a floating-point epsilon cleanup so values within `1e-10` of 0 or 360
+ * are snapped to exactly 0, matching the behaviour of `NormalizeRadians`.
  * @param degrees - Angle in degrees
  * @returns Normalized angle in degrees in the range [0°, 360°)
  *
@@ -96,6 +98,7 @@ export function NormalizeRadians(radians: number): number {
  * NormalizeDegrees(450)   // 90  (wraps around 360°)
  * NormalizeDegrees(-90)   // 270 (negative angles normalized)
  * NormalizeDegrees(0)     // 0
+ * NormalizeDegrees(360 - 1e-11) // 0  (boundary epsilon snap)
  */
 export function NormalizeDegrees(degrees: number): number {
 	const result = ((degrees % DEGREES_PER_FULL_REVOLUTION) + DEGREES_PER_FULL_REVOLUTION) % DEGREES_PER_FULL_REVOLUTION;

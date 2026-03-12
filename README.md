@@ -88,7 +88,7 @@ QuaternionUtils.QuaternionSLERP(q1, q2, 0.5);
 |--------|-------------|
 | `RandomInt(min, max)` | Random integer in `[min, max]` |
 | `RandomFloat(min, max)` | Random float in `[min, max)` |
-| `RandomBool(probability?)` | Random boolean with optional probability |
+| `RandomBool(probability?)` | Random boolean with optional probability; throws `RangeError` if probability is outside `[0, 1]` |
 | `RandomNormal(mean?, stdDev?)` | Normal-distributed random number |
 | `RandomChoice(array)` | Random element from an array |
 | `RandomSample(array, count)` | `count` unique random elements |
@@ -226,7 +226,7 @@ Matrices are `number[][]` arrays (`IMatrix`, `IMatrix1`–`IMatrix4`). All opera
 
 | Export | Description |
 |--------|-------------|
-| `MatrixLU(m)` | LU decomposition `{ L, U }` |
+| `MatrixLU(m)` | LU decomposition with partial pivoting `{ L, U, P }` |
 | `MatrixQR(m)` | QR decomposition `{ Q, R }` |
 | `MatrixCholesky(m)` | Cholesky decomposition `L` |
 | `MatrixEigen(m)` | Eigenvalue decomposition `{ eigenvalues, eigenvectors }` |
@@ -328,7 +328,7 @@ yarn watch          # Watch mode
 yarn typecheck      # Type check without building
 yarn lint           # ESLint
 yarn lint:fix       # ESLint with auto-fix
-yarn test           # Run tests (1077 tests)
+yarn test           # Run tests (1080 tests)
 yarn test:ui        # Interactive Vitest UI
 yarn test:coverage  # Tests with coverage report
 ```
