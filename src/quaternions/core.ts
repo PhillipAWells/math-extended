@@ -245,13 +245,17 @@ export function QuaternionToAxisAngle(quaternion: TQuaternion): TAxisAngle {
 
 	const [x, y, z, w] = quaternion;
 
+	// Normalize to canonical form with w >= 0 (q and -q represent the same rotation).
+	// Without this, a quaternion with w < 0 would pair the wrong axis with the wrong angle.
+	const [qx, qy, qz, qw] = w < 0 ? [-x, -y, -z, -w] : [x, y, z, w];
+
 	// Handle identity quaternion
-	if (Math.abs(w) >= 1) {
+	if (qw >= 1) {
 		return [1, 0, 0, 0]; // Arbitrary axis, zero angle
 	}
 
-	const angle = 2 * Math.acos(Math.min(1, Math.abs(w)));
-	const sinHalfAngle = Math.sqrt(1 - (w * w));
+	const angle = 2 * Math.acos(Math.min(1, qw));
+	const sinHalfAngle = Math.sqrt(1 - (qw * qw));
 
 	if (sinHalfAngle < QUATERNION_ANGLE_TOLERANCE) {
 		// Avoid division by zero for small angles
@@ -259,9 +263,9 @@ export function QuaternionToAxisAngle(quaternion: TQuaternion): TAxisAngle {
 	}
 
 	return [
-		x / sinHalfAngle,
-		y / sinHalfAngle,
-		z / sinHalfAngle,
+		qx / sinHalfAngle,
+		qy / sinHalfAngle,
+		qz / sinHalfAngle,
 		angle,
 	];
 }
@@ -409,8 +413,8 @@ export function QuaternionSLERP(a: TQuaternion, b: TQuaternion, t: number): TQua
 		return QuaternionNormalize(result);
 	}
 
-	// Calculate interpolation factors
-	const theta = Math.acos(Math.abs(dot));
+	// Calculate interpolation factors (dot is guaranteed >= 0 from the sign-flip above)
+	const theta = Math.acos(Math.min(1, dot));
 	const sinTheta = Math.sin(theta);
 	const factor1 = Math.sin((1 - clampedT) * theta) / sinTheta;
 	const factor2 = Math.sin(clampedT * theta) / sinTheta;
