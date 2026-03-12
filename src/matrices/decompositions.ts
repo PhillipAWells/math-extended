@@ -1,4 +1,4 @@
-import { AssertNumber, AssertInstanceOf } from '@pawells/typescript-common';
+import { AssertNumber, AssertInstanceOf, ArraySortBy } from '@pawells/typescript-common';
 import { MatrixMultiply } from './arithmetic.js';
 import { AssertMatrix, AssertMatrixRow, AssertMatrixValue, AssertMatrix1, AssertMatrix2, MatrixError } from './asserts.js';
 import { MatrixSize, MatrixCreate, MatrixClone, MatrixIdentity, MatrixTranspose } from './core.js';
@@ -22,10 +22,11 @@ type TEigenDecompositionResult = {
 	eigenvectors: IMatrix;
 };
 /**
- * Result of LU decomposition where A = L × U.
+ * Result of LU decomposition with partial pivoting where P × A = L × U.
  *
  * LU decomposition factors a square matrix into the product of a lower triangular matrix L
- * and an upper triangular matrix U. This is useful for solving systems of linear equations,
+ * and an upper triangular matrix U, with a permutation vector P recording the row swaps
+ * performed during partial pivoting. This is useful for solving systems of linear equations,
  * computing determinants, and matrix inversion.
  */
 type TLUDecompositionResult = {
@@ -35,6 +36,9 @@ type TLUDecompositionResult = {
 	/** Upper triangular matrix containing the pivots */
 
 	readonly U: IMatrix;
+	/** Permutation vector: P[i] is the original row index that now occupies row i */
+
+	readonly P: number[];
 };
 /**
  * Result of QR decomposition where A = Q × R.
@@ -421,147 +425,118 @@ export function MatrixEigenQRIteration(matrix: IMatrix, iterations: number = 50)
 	};
 }
 /**
- * Performs LU decomposition of a square matrix A = L × U using Doolittle's method.
+ * Performs LU decomposition of a square matrix with partial pivoting: P × A = L × U.
  *
  * LU decomposition factors a square matrix into the product of a lower triangular matrix L
- * and an upper triangular matrix U. This decomposition is fundamental for solving linear
- * systems, computing determinants, and matrix inversion.
+ * and an upper triangular matrix U, with a permutation vector P recording the row swaps
+ * performed during partial (column) pivoting. Partial pivoting selects the largest-magnitude
+ * element in each column as the pivot, improving numerical stability.
  *
  * **Mathematical Background:**
  * - L is lower triangular with 1's on the diagonal (unit lower triangular)
  * - U is upper triangular containing the pivot elements
- * - The decomposition exists if all leading principal minors are non-zero
- * - Gaussian elimination with partial pivoting would be more stable, but this
- *   implementation uses Doolittle's method without pivoting for simplicity
+ * - P is a permutation vector where P[i] is the original row index at position i
+ * - The relationship is: P × A = L × U
  *
  * **Applications:**
- * - Solving linear systems: Ax = b becomes LUx = b, solve Ly = b then Ux = y
- * - Computing determinant: det(A) = det(L) × det(U) = det(U) = ∏ᵢ U[i,i]
- * - Matrix inversion: A⁻¹ = U⁻¹L⁻¹
+ * - Solving linear systems: Ax = b — apply permutation, solve Ly = Pb, then Ux = y
+ * - Computing determinant: det(A) = ∏ᵢ U[i,i] (with sign from permutation parity)
+ * - Matrix inversion: used internally by `MatrixInverse` for n > 3
  *
- * @param matrix - Square matrix to decompose (must be non-singular and not require pivoting)
- * @returns Object containing L (lower triangular) and U (upper triangular) matrices
- * @throws {Error} If matrix is not square, singular, or contains invalid values
- *
- * @note This implementation does not use partial pivoting (row swapping). It will fail for matrices with zero-valued or near-zero leading minors even if the matrix is otherwise invertible (e.g., [[0,1],[1,0]]). For general matrices, use MatrixInverse instead.
+ * @param matrix - Square matrix to decompose (must be non-singular)
+ * @returns Object `{ L, U, P }` — lower triangular, upper triangular, and permutation vector
+ * @throws {MatrixError} If matrix is not square, singular (zero pivot), or contains invalid values
  *
  * @example
  * ```ts
  * const A = [[2, 1], [1, 1]];
- * const { L, U } = MatrixLU(A);
- * // L = [[1, 0], [0.5, 1]], U = [[2, 1], [0, 0.5]]
+ * const { L, U, P } = MatrixLU(A);
+ * // L = [[1, 0], [0.5, 1]], U = [[2, 1], [0, 0.5]], P = [0, 1]
  *
- * // Verify: L × U should equal A
+ * // Verify: L × U should equal P-permuted A
  * const product = MatrixMultiply(L, U);
  * // product ≈ [[2, 1], [1, 1]]
- *
- * // Solve Ax = b using LU decomposition
- * const b = [3, 2];
- * // First solve Ly = b, then Ux = y
  * ```
  *
  * @complexity Time: O(n³/3), Space: O(n²)
  * @see {@link MatrixCholesky} For symmetric positive definite matrices (more efficient)
+ * @see {@link MatrixSolve} For solving Ax = b directly
  */
 export function MatrixLU(matrix: IMatrix): TLUDecompositionResult {
 	AssertMatrix(matrix, { square: true });
 
 	const [n] = MatrixSize(matrix);
+
+	// Work on a mutable copy so partial pivoting can reorder rows
+	const A: number[][] = matrix.map((row) => [...row]);
 	const L = MatrixCreate(n, n);
 	const U = MatrixCreate(n, n);
+	// P[i] records which original row now occupies position i after all swaps
+	const P: number[] = Array.from({ length: n }, (_, i) => i);
 
 	// Initialize L's diagonal with 1's (unit lower triangular)
 	for (let i = 0; i < n; i++) {
-		const lRow = L[i];
-		AssertMatrixRow(lRow);
-		lRow[i] = 1;
+		(L[i] as number[])[i] = 1;
 	}
 
-	// Perform Doolittle's LU decomposition
+	// Doolittle's method with partial (column) pivoting
 	for (let i = 0; i < n; i++) {
-		// Compute upper triangular matrix U (row by row)
+		// --- Partial pivoting: find row with largest |A[k][i]| for k >= i ---
+		let maxVal = Math.abs((A[i] as number[])[i] as number);
+		let maxRow = i;
+
+		for (let k = i + 1; k < n; k++) {
+			const val = Math.abs((A[k] as number[])[i] as number);
+
+			if (val > maxVal) {
+				maxVal = val;
+				maxRow = k;
+			}
+		}
+
+		if (maxRow !== i) {
+			// Swap rows in A
+			[A[i], A[maxRow]] = [A[maxRow] as number[], A[i] as number[]];
+			// Swap rows in P
+			[P[i], P[maxRow]] = [P[maxRow] as number, P[i] as number];
+			// Swap already-computed L columns (indices 0..i-1)
+			for (let j = 0; j < i; j++) {
+				const tmp = (L[i] as number[])[j] as number;
+				(L[i] as number[])[j] = (L[maxRow] as number[])[j] as number;
+				(L[maxRow] as number[])[j] = tmp;
+			}
+		}
+
+		// Compute U row i first — the actual pivot is U[i][i] (Schur complement),
+		// which may be zero even if A[i][i] is non-zero for singular matrices.
 		for (let j = i; j < n; j++) {
 			let sum = 0;
 
-			// Subtract the sum of L[i,k] * U[k,j] for k < i
 			for (let k = 0; k < i; k++) {
-				const lRow = L[i];
-				const uRowK = U[k];
-				AssertMatrixRow(lRow);
-				AssertMatrixRow(uRowK);
-
-				const lVal = lRow[k];
-				AssertMatrixValue(lVal, { rowIndex: i, columnIndex: k });
-
-				const uVal = uRowK[j];
-				AssertMatrixValue(uVal, { rowIndex: k, columnIndex: j });
-				sum += lVal * uVal;
+				sum += ((L[i] as number[])[k] as number) * ((U[k] as number[])[j] as number);
 			}
-
-			const mRow = matrix[i];
-			const uRow = U[i];
-			AssertMatrixRow(mRow);
-			AssertMatrixRow(uRow);
-
-			const mVal = mRow[j];
-			AssertMatrixValue(mVal, { rowIndex: i, columnIndex: j });
-			uRow[j] = mVal - sum; // U[i,j] = A[i,j] - sum
+			(U[i] as number[])[j] = (A[i] as number[])[j] as number - sum;
 		}
 
-		// Check for zero pivot after computing the diagonal element
-		const uRow = U[i];
-		AssertMatrixRow(uRow);
+		// Check for zero pivot after computing U[i][i]
+		const pivot = (U[i] as number[])[i] as number;
 
-		const uVal = uRow[i]; // Pivot element U[i,i]
-		AssertMatrixValue(uVal, { rowIndex: i, columnIndex: i });
-
-		// Fix: Should throw if pivot is too close to zero (singular matrix)
-		if (Math.abs(uVal) < MATRIX_NUMERICAL_TOLERANCE) {
+		if (Math.abs(pivot) < MATRIX_NUMERICAL_TOLERANCE) {
 			throw new MatrixError('Matrix is singular (zero pivot element)');
 		}
 
-		// Compute lower triangular matrix L (column by column)
+		// Compute L column i (rows below diagonal)
 		for (let j = i + 1; j < n; j++) {
 			let sum = 0;
 
-			// Subtract the sum of L[j,k] * U[k,i] for k < i
 			for (let k = 0; k < i; k++) {
-				const lRowJ = L[j];
-				const uRowK = U[k];
-				AssertMatrixRow(lRowJ);
-				AssertMatrixRow(uRowK);
-
-				const lVal = lRowJ[k];
-				AssertMatrixValue(lVal, { rowIndex: j, columnIndex: k });
-
-				const uVal = uRowK[i];
-				AssertMatrixValue(uVal, { rowIndex: k, columnIndex: i });
-				sum += lVal * uVal;
+				sum += ((L[j] as number[])[k] as number) * ((U[k] as number[])[i] as number);
 			}
-
-			const uRow = U[i];
-			AssertMatrixRow(uRow);
-
-			const uVal = uRow[i]; // Pivot element U[i,i]
-			AssertMatrixValue(uVal, { rowIndex: i, columnIndex: i });
-
-			// Check for zero pivot (singular matrix)
-			if (Math.abs(uVal) < MATRIX_NUMERICAL_TOLERANCE) {
-				throw new MatrixError('Matrix is singular (zero pivot element)');
-			}
-
-			const mRowJ = matrix[j];
-			const lRowJ = L[j];
-			AssertMatrixRow(mRowJ);
-			AssertMatrixRow(lRowJ);
-
-			const mVal = mRowJ[i];
-			AssertMatrixValue(mVal, { rowIndex: j, columnIndex: i });
-			lRowJ[i] = (mVal - sum) / uVal; // L[j,i] = (A[j,i] - sum) / U[i,i]
+			(L[j] as number[])[i] = ((A[j] as number[])[i] as number - sum) / pivot;
 		}
 	}
 
-	return { L, U };
+	return { L, U, P };
 }
 /**
  * Performs QR decomposition A = Q × R using Modified Gram-Schmidt orthogonalization.
@@ -832,78 +807,39 @@ export function MatrixSVD(matrix: IMatrix): TSVDDecompositionResult {
 
 	// Step 2: Eigendecomposition of A^T A
 	const { eigenvalues, eigenvectors } = MatrixEigen(ATA);
-	const S = Array.isArray(eigenvalues) ? eigenvalues.map((ev: number) => Math.sqrt(Math.max(ev, 0))) : [];
-	const indices: number[] = [];
-	if (Array.isArray(S)) {
-		for (let i = 0; i < S.length; i++) {
-			indices.push(i);
-		}
-		indices.sort((a, b) => (S[b] ?? 0) - (S[a] ?? 0));
-	}
-	// Defensive: filter out undefined indices and values
-	const validIndices: number[] = [];
 
-	for (const idx of indices) {
-		if (typeof idx === 'number' && isFinite(idx) && idx >= 0 && idx < eigenvalues.length) {
-			validIndices.push(idx);
-		}
-	}
+	// Singular values are sqrt of eigenvalues; sort descending
+	const S = eigenvalues.map((ev) => Math.sqrt(Math.max(ev, 0)));
+	const indices = ArraySortBy(S.map((_, i) => i), (i) => S[i] as number, 'desc');
 
-	const sSorted: number[] = [];
-	const V: number[][] = [];
+	const sSorted: number[] = indices.map((i) => S[i] as number);
 
-	for (const i of validIndices) {
-		sSorted.push(typeof S[i] === 'number' ? S[i] as number : 0);
+	// V columns: each is the eigenvector at the sorted index
+	// eigenvectors is stored row-major, so eigenvectors[row][col] = component `row` of eigenvector `col`
+	const V: number[][] = indices.map((i) => eigenvectors.map((row) => (row as number[])[i] as number));
 
-		const vCol: number[] = [];
+	// vMat: n × n matrix where each row is a right singular vector
+	const vColLength = V.length > 0 ? (V[0] as number[]).length : 0;
+	const vMat: IMatrix = Array.from({ length: vColLength }, (_, rowIdx) =>
+		V.map((col) => (col as number[])[rowIdx] as number),
+	);
 
-		for (const r of eigenvectors) {
-			vCol.push(Array.isArray(r) && typeof r[i] === 'number' ? r[i] as number : 0);
-		}
-		V.push(vCol);
-	}
-
-	// vMat: n x n, columns are right singular vectors
-	const vMat: IMatrix = [];
-	const vColLength = V.length > 0 && Array.isArray(V[0]) ? V[0].length : 0;
-
-	for (let colIdx = 0; colIdx < vColLength; colIdx++) {
-		const col: number[] = [];
-
-		for (const row of V) {
-			const value = Array.isArray(row) && typeof row[colIdx] === 'number' ? row[colIdx] : 0;
-			col.push(typeof value === 'number' ? value : 0);
-		}
-		vMat.push(col);
-	}
-
-	// Step 3: Compute U = AVΣ⁻¹ (m x n)
+	// Step 3: Compute U = AVΣ⁻¹ (m × n)
 	const U: IMatrix = MatrixCreate(m, n);
 
 	for (let j = 0; j < n; j++) {
-		const sigma = sSorted[j];
-		if (sigma && sigma > MATRIX_NUMERICAL_TOLERANCE) {
-			// vj as a column vector (n x 1)
-			const vjCol: number[][] = [];
+		const sigma = sSorted[j] as number;
 
-			for (const row of vMat) {
-				const value = Array.isArray(row) && typeof row[j] === 'number' ? row[j] : 0;
-				vjCol.push([typeof value === 'number' ? value : 0]);
-			}
-
-			const av = MatrixMultiply(matrix, vjCol); // m x 1
+		if (sigma > MATRIX_NUMERICAL_TOLERANCE) {
+			// Multiply A by the j-th right singular vector (n×1 column)
+			const vjCol: IMatrix = vMat.map((row) => [(row as number[])[j] as number]);
+			const av = MatrixMultiply(matrix, vjCol); // m×1
 
 			for (let i = 0; i < m; i++) {
-				const uRow = U[i];
-				const avRow = av[i];
-				if (Array.isArray(uRow) && Array.isArray(avRow)) uRow[j] = (typeof avRow[0] === 'number' ? avRow[0] as number : 0) / sigma;
-			}
-		} else {
-			for (let i = 0; i < m; i++) {
-				const uRow = U[i];
-				if (Array.isArray(uRow)) uRow[j] = 0;
+				(U[i] as number[])[j] = ((av[i] as number[])[0] as number) / sigma;
 			}
 		}
+		// U column j remains zero for near-zero singular values (already zero from MatrixCreate)
 	}
 
 	// Step 4: Orthonormalize U columns (Gram-Schmidt)
@@ -922,7 +858,8 @@ export function MatrixSVD(matrix: IMatrix): TSVDDecompositionResult {
 }
 /**
  * Solves the linear system Ax = b for the unknown vector x.
- * Uses LU decomposition internally followed by forward and back substitution.
+ * Uses LU decomposition with partial pivoting internally: decomposes A into P, L, U,
+ * applies the row permutation to b, then performs forward and back substitution.
  *
  * Given an n×n coefficient matrix A and an n-element right-hand side vector b,
  * finds x such that A × x = b.
@@ -952,9 +889,16 @@ export function MatrixSolve(a: IMatrix, b: number[]): number[] {
 		throw new MatrixError(`Right-hand side vector length (${b.length}) must match matrix dimension (${n})`);
 	}
 
-	const { L, U } = MatrixLU(a);
+	const { L, U, P } = MatrixLU(a);
 
-	// Forward substitution: solve Ly = b (L has 1s on its diagonal)
+	// Apply row permutation to b: b_perm[i] = b[P[i]]
+	const bPerm: number[] = P.map((pi) => {
+		const val = b[pi];
+		if (val === undefined) throw new MatrixError(`b[${pi}] is undefined`);
+		return val;
+	});
+
+	// Forward substitution: solve Ly = b_perm (L has 1s on its diagonal)
 	const y: number[] = new Array(n).fill(0);
 
 	for (let i = 0; i < n; i++) {
@@ -969,9 +913,7 @@ export function MatrixSolve(a: IMatrix, b: number[]): number[] {
 			sum += lVal * (y[j] as number);
 		}
 
-		const bi = b[i];
-		if (bi === undefined) throw new MatrixError(`b[${i}] is undefined`);
-		y[i] = bi - sum;
+		y[i] = (bPerm[i] as number) - sum;
 	}
 
 	// Back substitution: solve Ux = y

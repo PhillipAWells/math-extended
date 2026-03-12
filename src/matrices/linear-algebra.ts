@@ -1,6 +1,7 @@
-import { AssertNotEquals, AssertNumber } from '@pawells/typescript-common';
-import { AssertMatrix, AssertMatrix1, AssertMatrix2, AssertMatrix3, AssertMatrixRow, AssertMatrixValue } from './asserts.js';
+import { AssertNumber } from '@pawells/typescript-common';
+import { AssertMatrix, AssertMatrix1, AssertMatrix2, AssertMatrix3, AssertMatrixRow, AssertMatrixValue, MatrixError } from './asserts.js';
 import { MatrixCreate, MatrixSize, MatrixSizeSquare, MatrixTranspose } from './core.js';
+import { MatrixLU } from './decompositions.js';
 import { IMatrix } from './types.js';
 import { VectorProject, VectorSubtract } from '../vectors/core.js';
 import { TVector } from '../vectors/types.js';
@@ -116,39 +117,77 @@ export function MatrixAdjoint(matrix: IMatrix): IMatrix {
 
 /**
  * Computes the matrix inverse (reciprocal) of a square matrix.
+ *
+ * For matrices up to 3×3, uses the closed-form adjugate/cofactor method.
+ * For larger matrices (n > 3), uses LU decomposition with partial pivoting (O(n³))
+ * by solving A × X = I column-by-column.
+ *
  * @param matrix - The square matrix to invert (must be non-singular)
  * @returns {IMatrix} The inverse matrix A⁻¹
- * @throws {Error} If the matrix is not square or is singular (determinant is zero)
+ * @throws {MatrixError} If the matrix is not square or is singular (determinant is zero)
  * @example MatrixInverse([[1, 2], [3, 4]]) // [[-2, 1], [1.5, -0.5]]
  */
 export function MatrixInverse(matrix: IMatrix): IMatrix {
 	AssertMatrix(matrix, { square: true });
 
-	const det = MatrixDeterminant(matrix);
-	AssertNotEquals(det, 0, { message: 'Matrix is not invertible (determinant is zero)' });
-
 	const [size] = MatrixSize(matrix);
-	const cof = MatrixCofactor(matrix);
 
-	// (1/det) * transpose(cofactor matrix)
-	const transposed = MatrixTranspose(cof);
+	// For 1–3×3 use the adjugate/cofactor method (closed-form, exact)
+	if (size <= 3) {
+		const det = MatrixDeterminant(matrix);
+		if (det === 0) throw new MatrixError('Matrix is not invertible (determinant is zero)');
+
+		const cof = MatrixCofactor(matrix);
+		const transposed = MatrixTranspose(cof);
+		const result = MatrixCreate(size, size);
+		const invDet = 1 / det;
+
+		for (let row = 0; row < size; row++) {
+			const transposedRow = transposed[row];
+			AssertMatrixRow(transposedRow);
+
+			const resultRow = result[row];
+			AssertMatrixRow(resultRow);
+
+			for (let col = 0; col < size; col++) {
+				const val = transposedRow[col];
+				if (typeof val !== 'number') throw new MatrixError(`Transposed matrix value at [${row}, ${col}] is not a number`);
+				resultRow[col] = Object.is(val * invDet, -0) ? 0 : val * invDet;
+			}
+		}
+		return result;
+	}
+
+	// For larger matrices use LU decomposition: O(n³) instead of O(n!)
+	// Solve A * X = I column by column using PA = LU
+	const { L, U, P } = MatrixLU(matrix); // throws if singular
 	const result = MatrixCreate(size, size);
 
-	const invDet = 1 / det;
+	for (let col = 0; col < size; col++) {
+		// e_col permuted by P
+		const eCol = P.map((pi) => (pi === col ? 1 : 0));
 
-	for (let row = 0; row < size; row++) {
-		const transposedRow = transposed[row];
-		AssertMatrixRow(transposedRow);
+		// Forward substitution: Ly = eCol
+		const y: number[] = new Array(size).fill(0);
 
-		const resultRow = result[row];
-		AssertMatrixRow(resultRow);
+		for (let i = 0; i < size; i++) {
+			let sum = 0;
 
-		for (let col = 0; col < size; col++) {
-			const val = transposedRow[col];
-			if (typeof val !== 'number') {
-				throw new Error(`Transposed matrix value at position [${row}, ${col}] is not a number`);
+			for (let k = 0; k < i; k++) {
+				sum += ((L[i] as number[])[k] as number) * (y[k] as number);
 			}
-			resultRow[col] = Object.is(val * invDet, -0) ? 0 : val * invDet;
+			y[i] = (eCol[i] as number) - sum;
+		}
+
+		// Back substitution: Ux = y
+		for (let i = size - 1; i >= 0; i--) {
+			let sum = 0;
+
+			for (let k = i + 1; k < size; k++) {
+				sum += ((U[i] as number[])[k] as number) * ((result[k] as number[])[col] as number);
+			}
+			const uDiag = (U[i] as number[])[i] as number;
+			(result[i] as number[])[col] = ((y[i] as number) - sum) / uDiag;
 		}
 	}
 

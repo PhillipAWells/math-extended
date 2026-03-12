@@ -30,7 +30,7 @@ To run a single test file: `yarn vitest run src/path/to/file.spec.ts`
 
 ## Architecture
 
-All source lives under `src/` and is compiled to `./build/` by `tsc`. The suite currently has **1077 tests**.
+All source lives under `src/` and is compiled to `./build/` by `tsc`. The suite currently has **1080 tests**.
 
 **Entry point** (`src/index.ts`): The single public export surface with both:
 - **Namespace exports** (`VectorUtils`, `MatrixUtils`, `QuaternionUtils`) for grouped imports
@@ -73,7 +73,7 @@ Project uses a 4-config split:
 - **`tsconfig.test.json`** — Vitest test configuration.
 - **`tsconfig.eslint.json`** — ESLint type-aware linting configuration.
 
-General configuration: Requires Node.js >= 24.0.0. Outputs to `./build/`, targets ES2022, module resolution `bundler`. Declaration files (`.d.ts`) and source maps are emitted alongside JS. Strict mode is fully enabled (`strict`, `noImplicitAny`, `strictNullChecks`, `strictFunctionTypes`).
+General configuration: Requires Node.js >= 22.0.0. Outputs to `./build/`, targets ES2022, module resolution `bundler`. Declaration files (`.d.ts`) and source maps are emitted alongside JS. Strict mode is fully enabled (`strict`, `noImplicitAny`, `strictNullChecks`, `strictFunctionTypes`).
 
 ## ESLint Configuration
 

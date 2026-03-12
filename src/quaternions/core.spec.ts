@@ -210,6 +210,22 @@ describe('Quaternion Core Functions', () => {
 			const axisAngle = QuaternionToAxisAngle(identity);
 			expect(axisAngle[3]).toBeCloseTo(0, 6); // Zero angle
 		});
+
+		test('should give the same rotation for q and -q (canonical form)', () => {
+			// 90° around Z axis: w = cos(45°) ≈ 0.707
+			const q: TQuaternion = [0, 0, 0.7071067811865476, 0.7071067811865476];
+			// Negated quaternion represents the identical rotation
+			const qNeg: TQuaternion = [0, 0, -0.7071067811865476, -0.7071067811865476];
+
+			const aa1 = QuaternionToAxisAngle(q);
+			const aa2 = QuaternionToAxisAngle(qNeg);
+
+			// Both must decode to the same angle and equivalent axis
+			expect(aa1[3]).toBeCloseTo(aa2[3], 6);
+			expect(Math.abs(aa1[0])).toBeCloseTo(Math.abs(aa2[0]), 6);
+			expect(Math.abs(aa1[1])).toBeCloseTo(Math.abs(aa2[1]), 6);
+			expect(Math.abs(aa1[2])).toBeCloseTo(Math.abs(aa2[2]), 6);
+		});
 	});
 
 	describe('QuaternionFromEuler', () => {

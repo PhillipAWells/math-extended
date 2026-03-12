@@ -12,9 +12,6 @@
  *
  * All matrices use homogeneous coordinates for consistent transformation composition.
  * 2D transformations use 3x3 matrices, 3D transformations use 4x4 matrices.
- *
- * @author JTV Development Team
- * @since 1.0.0
  */
 
 import { AssertNumber, AssertNotEquals } from '@pawells/typescript-common';
@@ -650,9 +647,9 @@ export function MatrixTransform2D(vector: TVector2, matrix: IMatrix3): TVector2 
  *
  * @example
  * ```typescript
- * const rotationMatrix = Matrix_Transformation_Rotation3D_Yaw(Math.PI / 4);
- * const point = [1, 0, 0];
- * const rotatedPoint = Matrix_Transformation3D(rotationMatrix, point);
+ * const rotationMatrix = MatrixRotation3DYaw(Math.PI / 4);
+ * const point: TVector3 = [1, 0, 0];
+ * const rotatedPoint = MatrixTransform3D(point, rotationMatrix);
  * ```
  */
 export function MatrixTransform3D(vector: TVector3, transform: IMatrix4): TVector3 {
@@ -687,9 +684,9 @@ export function MatrixTransform3D(vector: TVector3, transform: IMatrix4): TVecto
  *
  * @example
  * ```typescript
- * const rotationMatrix = Matrix_Transformation_Rotation3D_Yaw(Math.PI / 4);
- * const normal = [0, 0, 1];
- * const rotatedNormal = Matrix_Transformation_Direction3D(rotationMatrix, normal);
+ * const rotationMatrix = MatrixRotation3DYaw(Math.PI / 4);
+ * const normal: TVector3 = [0, 0, 1];
+ * const rotatedNormal = MatrixDirection3D(normal, rotationMatrix);
  * ```
  */
 export function MatrixDirection3D(direction: TVector3, matrix: IMatrix3): TVector3 {
@@ -715,7 +712,7 @@ export function MatrixDirection3D(direction: TVector3, matrix: IMatrix3): TVecto
  *
  * @example
  * ```typescript
- * const viewMatrix = Matrix_Transformation_View(
+ * const viewMatrix = MatrixView(
  *   [10, 5, 10],  // Camera position
  *   [0, 0, 0],    // Looking at origin
  *   [0, 1, 0]     // Y-axis is up
@@ -771,7 +768,7 @@ export function MatrixView(eye: TVector3, target: TVector3, up: TVector3): IMatr
  *
  * @example
  * ```typescript
- * const perspectiveMatrix = Matrix_Transformation_Perspective(
+ * const perspectiveMatrix = MatrixPerspective(
  *   Math.PI / 4,  // 45-degree field of view
  *   16 / 9,       // Widescreen aspect ratio
  *   0.1,          // Near plane
@@ -820,7 +817,7 @@ export function MatrixPerspective(fovY: number, aspect: number, near: number, fa
  *
  * @example
  * ```typescript
- * const orthoMatrix = Matrix_Transformation_Orthographic(
+ * const orthoMatrix = MatrixOrthographic(
  *   -10, 10,   // Left/Right: 20 units wide
  *   -7.5, 7.5, // Bottom/Top: 15 units tall
  *   -100, 100  // Near/Far: 200 units deep

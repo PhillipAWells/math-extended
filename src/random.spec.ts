@@ -271,9 +271,9 @@ describe('Math > Random ', () => {
 			expect(falseCount).toBeGreaterThan(70);
 		});
 
-		test('Return false for invalid probabilities', () => {
-			expect(RandomBool(-0.1)).toBe(false);
-			expect(RandomBool(1.1)).toBe(false);
+		test('Throw RangeError for invalid probabilities', () => {
+			expect(() => RandomBool(-0.1)).toThrow(RangeError);
+			expect(() => RandomBool(1.1)).toThrow(RangeError);
 		});
 
 		test('Return true for probability 1.0', () => {

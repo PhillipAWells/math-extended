@@ -38,8 +38,7 @@ describe('Math Extended > Angles', () => {
 		expect(FormatRadians(Math.PI / 4)).toBe('π/4');
 		expect(FormatRadians(Math.PI / 3)).toBe('π/3');
 
-		// Based on the current implementation, this returns "1.5π" rather than "3π/2"
-		expect(FormatRadians((3 * Math.PI) / 2)).toContain('π');
+		expect(FormatRadians((3 * Math.PI) / 2)).toBe('3π/2');
 
 		// Additional fraction representations
 		expect(FormatRadians(Math.PI / 6)).toBe('π/6');
@@ -50,9 +49,10 @@ describe('Math Extended > Angles', () => {
 		expect(FormatRadians(0.00001)).toContain('π'); // Very small value
 		expect(FormatRadians(100 * Math.PI)).toContain('π'); // Very large value
 
-		// Common angles - adjust expectations to match the actual implementation
-		const formattedAngle = FormatRadians(Math.PI * 1.5);
-		expect(formattedAngle === '1.5π' || formattedAngle === '3π/2').toBeTruthy();
+		// Fractions greater than 1 — previously returned decimal strings like "1.5π"
+		expect(FormatRadians((5 * Math.PI) / 4)).toBe('5π/4');
+		expect(FormatRadians((7 * Math.PI) / 6)).toBe('7π/6');
+		expect(FormatRadians(-(5 * Math.PI) / 4)).toBe('-5π/4');
 
 		// Value that doesn't have a simple fraction representation
 		expect(FormatRadians(Math.PI * 0.7)).toContain('π');
@@ -136,6 +136,12 @@ describe('Math Extended > Angles', () => {
 			const convertedDegrees = RadiansToDegrees(normalizedRadians);
 			expect(normalizedDegrees).toBeCloseTo(NormalizeDegrees(convertedDegrees));
 		}
+	});
+
+	test('NormalizeDegrees snaps near-360 to 0 (boundary epsilon cleanup)', () => {
+		// A tiny floating-point overshoot above 360 should produce 0, not ~360
+		expect(NormalizeDegrees(360 - 1e-11)).toBe(0);
+		expect(NormalizeDegrees(1e-11)).toBe(0);
 	});
 
 	test('NormalizeRadians covers negative non-multiple of π', () => {

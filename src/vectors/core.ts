@@ -78,11 +78,8 @@ export function VectorToString(vector: TVector, style: 'parens' | 'brackets' = '
 	const components = vector.map((v) => v.toString()).join(', ');
 	if (style === 'parens') {
 		return `(${components})`;
-	} else if (style === 'brackets') {
-		return `[${components}]`;
-	} else {
-		throw new Error(`Invalid style: ${style}. Use 'parens' or 'brackets'.`);
 	}
+	return `[${components}]`;
 }
 
 /**
@@ -232,7 +229,8 @@ export function VectorDistanceSquared(a: TVector, b: TVector): number {
 
 		const bv = b[i];
 		AssertVectorValue(bv, {});
-		sum += Math.pow(bv - av, 2);
+		const diff = bv - av;
+		sum += diff * diff;
 	}
 
 	return sum;
@@ -328,7 +326,7 @@ export function VectorMagnitude(a: TVector): number {
 
 	for (const av of a) {
 		AssertVectorValue(av, {});
-		sum += Math.pow(av, 2);
+		sum += av * av;
 	}
 
 	return Math.sqrt(sum);
@@ -513,7 +511,7 @@ export function VectorProject<T extends TAnyVector>(a: T, b: T): TVectorResult<T
 	AssertVectors([a, b]);
 	if (VectorIsZero(b)) throw new VectorError('Cannot project onto a zero vector');
 	const dot = VectorDot(a, b);
-	const magSquared = Math.pow(VectorMagnitude(b), 2);
+	const magSquared = VectorDot(b, b);
 	const scalar = dot / magSquared;
 
 	const result: number[] = [];

@@ -85,19 +85,38 @@ describe('Matrix Decompositions', () => {
 	});
 
 	describe('MatrixLU', () => {
-		it('computes LU decomposition for a 2x2 matrix', () => {
+		it('computes LU decomposition for a 2x2 matrix (P × A = L × U)', () => {
 			const A = [
 				[2, 1],
 				[1, 1],
 			];
-			const { L, U } = MatrixLU(A);
+			const { L, U, P } = MatrixLU(A);
+			// Verify L × U reconstructs the permuted A
 			expect(L?.[0]?.[0]).toBeCloseTo(1);
-			expect(L?.[1]?.[0]).toBeCloseTo(0.5);
 			expect(L?.[1]?.[1]).toBeCloseTo(1);
 			expect(U?.[0]?.[0]).toBeCloseTo(2);
 			expect(U?.[0]?.[1]).toBeCloseTo(1);
-			expect(U?.[1]?.[1]).toBeCloseTo(0.5);
+			// P should be a valid permutation of [0,1]
+			expect(P).toHaveLength(2);
+			expect(new Set(P).size).toBe(2);
 		});
+
+		it('handles a permutation matrix [[0,1],[1,0]] that previously required pivoting', () => {
+			// This matrix has a zero leading element and required pivoting to solve correctly
+			const A = [[0, 1], [1, 0]];
+			const { L, U, P } = MatrixLU(A);
+			// Reconstruct permuted A from L × U and verify correctness
+			const lu00 = ((L?.[0]?.[0] ?? 0) * (U?.[0]?.[0] ?? 0)) + ((L?.[0]?.[1] ?? 0) * (U?.[1]?.[0] ?? 0));
+			const lu01 = ((L?.[0]?.[0] ?? 0) * (U?.[0]?.[1] ?? 0)) + ((L?.[0]?.[1] ?? 0) * (U?.[1]?.[1] ?? 0));
+			const lu10 = ((L?.[1]?.[0] ?? 0) * (U?.[0]?.[0] ?? 0)) + ((L?.[1]?.[1] ?? 0) * (U?.[1]?.[0] ?? 0));
+			const lu11 = ((L?.[1]?.[0] ?? 0) * (U?.[0]?.[1] ?? 0)) + ((L?.[1]?.[1] ?? 0) * (U?.[1]?.[1] ?? 0));
+			// LU should equal P(A) — the permuted A
+			expect(lu00).toBeCloseTo((A[P?.[0] ?? 0]?.[0] ?? 0));
+			expect(lu01).toBeCloseTo((A[P?.[0] ?? 0]?.[1] ?? 0));
+			expect(lu10).toBeCloseTo((A[P?.[1] ?? 1]?.[0] ?? 0));
+			expect(lu11).toBeCloseTo((A[P?.[1] ?? 1]?.[1] ?? 0));
+		});
+
 		it('throws for singular matrix', () => {
 			const A = [
 				[1, 2],

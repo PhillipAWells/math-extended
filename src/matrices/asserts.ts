@@ -254,20 +254,19 @@ export function AssertMatrix(matrix: unknown, args: IAssertMatrixArgs = {}, exce
  * which should be an array containing only numeric values.
  *
  * @param row - The value to validate as a matrix row
- * @param exception - Custom exception details if validation fails
- * @param rowIndex - Optional row index for more descriptive error messages
- * @throws {IAssertException} When the row is not a valid array of numbers
+ * @param exception - Custom exception details (optionally includes `rowIndex` for richer messages)
+ * @throws {MatrixError} When the row is not a valid array of finite numbers
  *
  * @example
  * ```typescript
  * // Validate a matrix row
  * AssertMatrixRow([1, 2, 3, 4]);
  *
- * // Validate with row index for better error messages
- * AssertMatrixRow([1, 2, 3, 4], {}, 0);
+ * // Validate with row index in exception for better error messages
+ * AssertMatrixRow([1, 2, 3, 4], { rowIndex: 0 });
  *
- * // This would throw an exception
- * AssertMatrixRow([1, "2", 3]); // Contains non-numeric value
+ * // This would throw MatrixError
+ * AssertMatrixRow([1, '2', 3]); // Contains non-numeric value
  * ```
  */
 export function AssertMatrixRow(row: unknown, exception: IAssertMatrixException = {}): asserts row is number[] {
@@ -302,10 +301,8 @@ export function AssertMatrixRow(row: unknown, exception: IAssertMatrixException 
  * which should be a finite number (not NaN, Infinity, or -Infinity).
  *
  * @param value - The value to validate as a matrix element
- * @param exception - Custom exception details if validation fails
- * @param rowIndex - Optional row index for more descriptive error messages
- * @param columnIndex - Optional column index for more descriptive error messages
- * @throws {IAssertException} When the value is not a finite number
+ * @param exception - Custom exception details (optionally includes `rowIndex` and `columnIndex` for richer messages)
+ * @throws {MatrixError} When the value is not a finite number
  *
  * @example
  * ```typescript
@@ -313,12 +310,12 @@ export function AssertMatrixRow(row: unknown, exception: IAssertMatrixException 
  * AssertMatrixValue(42);
  *
  * // Validate with position information for better error messages
- * AssertMatrixValue(3.14, {}, 0, 1);
+ * AssertMatrixValue(3.14, { rowIndex: 0, columnIndex: 1 });
  *
- * // This would throw an exception
- * AssertMatrixValue(NaN); // Not a finite number
+ * // These would throw MatrixError
+ * AssertMatrixValue(NaN);      // Not a number
  * AssertMatrixValue(Infinity); // Not a finite number
- * AssertMatrixValue("5"); // Not a number
+ * AssertMatrixValue('5');      // Not a number type
  * ```
  */
 export function AssertMatrixValue(value: unknown, exception: IAssertMatrixException = {}): asserts value is number {
