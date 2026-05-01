@@ -2,10 +2,10 @@ import { QuaternionIdentity, QuaternionEquals, QuaternionNormalize } from './cor
 import { QuaternionRotationX, QuaternionRotationY, QuaternionRotationZ } from './predefined.js';
 import { QuaternionError } from './asserts.js';
 import { TQuaternion, TRotationMatrix } from './types.js';
-import { IMatrix4 } from '../matrices/types.ts';
-import { DegreesToRadians } from '../angles.ts';
+import { TMatrix4 } from '../matrices/types.js';
+import { DegreesToRadians } from '../angles.js';
 import { IsValidRotationMatrix, QuaternionFromRotationMatrix, QuaternionFromTransformationMatrix, QuaternionToRotationMatrix, QuaternionToTransformationMatrix } from './conversions.js';
-import { AssertMatrixRow, AssertMatrixValue } from '../matrices/asserts.ts';
+import { AssertMatrixRow, AssertMatrixValue } from '../matrices/asserts.js';
 
 describe('Quaternion Conversions', () => {
 	const TOLERANCE = 1e-6;
@@ -159,7 +159,7 @@ describe('Quaternion Conversions', () => {
 			const quaternion = QuaternionIdentity();
 			const matrix4x4 = QuaternionToTransformationMatrix(quaternion);
 
-			const expected: IMatrix4 = [
+			const expected: TMatrix4 = [
 				[1, 0, 0, 0],
 				[0, 1, 0, 0],
 				[0, 0, 1, 0],
@@ -203,7 +203,7 @@ describe('Quaternion Conversions', () => {
 
 	describe('QuaternionFromTransformationMatrix', () => {
 		test('should extract rotation from 4x4 identity matrix', () => {
-			const matrix4x4: IMatrix4 = [
+			const matrix4x4: TMatrix4 = [
 				[1, 0, 0, 0],
 				[0, 1, 0, 0],
 				[0, 0, 1, 0],
@@ -216,7 +216,7 @@ describe('Quaternion Conversions', () => {
 		});
 
 		test('should extract rotation ignoring translation', () => {
-			const matrix4x4: IMatrix4 = [
+			const matrix4x4: TMatrix4 = [
 				[1, 0, 0, 5],   // Translation in X
 				[0, 1, 0, 10],  // Translation in Y
 				[0, 0, 1, 15],  // Translation in Z
@@ -233,7 +233,7 @@ describe('Quaternion Conversions', () => {
 			const cos90 = Math.cos(DegreesToRadians(90));
 			const sin90 = Math.sin(DegreesToRadians(90));
 
-			const matrix4x4: IMatrix4 = [
+			const matrix4x4: TMatrix4 = [
 				[cos90, -sin90, 0, 100],
 				[sin90, cos90, 0, 200],
 				[0, 0, 1, 300],

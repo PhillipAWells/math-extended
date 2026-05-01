@@ -1,5 +1,5 @@
 import { AssertArray2D, IAssertException, AssertNumber, SetExceptionClass, SetExceptionMessage, ThrowException } from '@pawells/typescript-common';
-import { IMatrix, IMatrix1, IMatrix2, IMatrix3, IMatrix4 } from './types.js';
+import { TMatrix, TMatrix1, TMatrix2, TMatrix3, TMatrix4 } from './types.js';
 import { MatrixSize } from './core.js';
 
 /**
@@ -11,19 +11,18 @@ import { MatrixSize } from './core.js';
  *
  * @interface IAssertMatrixArgs
  * @example
- * ```typescript
- * // Validate a square matrix of any size
- * const squareArgs: IAssertMatrixArgs = { square: true };
- *
- * // Validate minimum dimensions
- * const minSizeArgs: IAssertMatrixArgs = { minRows: 2, minColumns: 3 };
- *
- * // Validate exact size using tuple
- * const exactSizeArgs: IAssertMatrixArgs = { size: [4, 5] };
- *
- * // Validate square matrix with exact size
- * const squareExactArgs: IAssertMatrixArgs = { square: true, size: 3 };
- * ```
+	 * ```typescript
+	 * ```typescript
+	 * // Validate a square matrix of any size
+	 * const squareArgs: IAssertMatrixArgs = { square: true };
+	 * // Validate minimum dimensions
+	 * const minSizeArgs: IAssertMatrixArgs = { minRows: 2, minColumns: 3 };
+	 * // Validate exact size using tuple
+	 * const exactSizeArgs: IAssertMatrixArgs = { size: [4, 5] };
+	 * // Validate square matrix with exact size
+	 * const squareExactArgs: IAssertMatrixArgs = { square: true, size: 3 };
+	 * ```
+	 * ```
  */
 interface IAssertMatrixArgs {
 	/** Minimum number of rows required in the matrix */
@@ -57,15 +56,16 @@ interface IAssertMatrixArgs {
  *
  * @interface IAssertMatricesArgs
  * @example
- * ```typescript
- * // Standard compatibility (same dimensions for addition/subtraction)
- * const standardArgs: IAssertMatricesArgs = {};
- *
- * // Allow transposed compatibility for multiplication
- * const transposedArgs: IAssertMatricesArgs = { transposition: true };
- * ```
+	 * ```typescript
+	 * ```typescript
+	 * // Standard compatibility (same dimensions for addition/subtraction)
+	 * const standardArgs: IAssertMatricesArgs = {};
+	 * // Allow transposed compatibility for multiplication
+	 * const transposedArgs: IAssertMatricesArgs = { transposition: true };
+	 * ```
+	 * ```
  */
-interface IAssertMatricesArgs {
+export interface IAssertMatricesArgs {
 	/**
 	 * Whether to allow transposed dimensions between matrices.
 	 * When true, matrices A (m×n) and B (n×m) are considered compatible.
@@ -101,24 +101,30 @@ interface IAssertMatrixException extends IAssertException {
  * @class MatrixError
  * @extends Error
  * @example
- * ```typescript
- * try {
- *   AssertMatrix(invalidMatrix);
- * } catch (error) {
- *   if (error instanceof MatrixError) {
- *     console.log('Matrix validation failed:', error.message);
- *   }
- * }
- * ```
+	 * ```typescript
+	 * ```typescript
+	 * try {
+	 *   AssertMatrix(invalidMatrix);
+	 * } catch (error) {
+	 *   if (error instanceof MatrixError) {
+	 *     console.log('Matrix validation failed:', error.message);
+	 *   }
+	 * }
+	 * ```
+	 * ```
  */
 export class MatrixError extends Error {
+	public readonly code: string = 'MATRIX_ERROR';
+
 	/**
 	 * Creates a new MatrixError instance.
 	 *
-	 * @param message - Optional error message describing the validation failure
+	 * @param message - Error message describing the validation failure
+	 * @param options - Optional error context
+	 * @param options.cause - Original error that caused this error
 	 */
-	constructor(message?: string) {
-		super(message);
+	constructor(message: string, options?: { cause?: unknown }) {
+		super(message, options);
 		this.name = 'MatrixError';
 		// Maintains proper prototype chain for instanceof checks
 		Object.setPrototypeOf(this, new.target.prototype);
@@ -126,7 +132,7 @@ export class MatrixError extends Error {
 }
 
 /**
- * Validates that an unknown value is a valid matrix conforming to the IMatrix interface.
+ * Validates that an unknown value is a valid matrix conforming to the TMatrix interface.
  *
  * This function performs comprehensive validation of matrix structure including:
  * - Type checking to ensure the value is a proper matrix
@@ -140,18 +146,18 @@ export class MatrixError extends Error {
  * @throws {IAssertException} When the matrix doesn't meet the specified criteria
  *
  * @example
- * ```typescript
- * // Validate a 3x3 square matrix
- * AssertMatrix(someValue, { square: true, size: 3 });
- *
- * // Validate minimum dimensions
- * AssertMatrix(someValue, { minRows: 2, minColumns: 3 });
- *
- * // Validate exact dimensions
- * AssertMatrix(someValue, { rows: 4, columns: 5 });
- * ```
+	 * ```typescript
+	 * ```typescript
+	 * // Validate a 3x3 square matrix
+	 * AssertMatrix(someValue, { square: true, size: 3 });
+	 * // Validate minimum dimensions
+	 * AssertMatrix(someValue, { minRows: 2, minColumns: 3 });
+	 * // Validate exact dimensions
+	 * AssertMatrix(someValue, { rows: 4, columns: 5 });
+	 * ```
+	 * ```
  */
-export function AssertMatrix(matrix: unknown, args: IAssertMatrixArgs = {}, exception: IAssertMatrixException = {}): asserts matrix is IMatrix {
+export function AssertMatrix(matrix: unknown, args: IAssertMatrixArgs = {}, exception: IAssertMatrixException = {}): asserts matrix is TMatrix {
 	// Initialize the exception with the default MatrixError class if not provided
 	SetExceptionClass(exception, MatrixError);
 
@@ -258,16 +264,16 @@ export function AssertMatrix(matrix: unknown, args: IAssertMatrixArgs = {}, exce
  * @throws {MatrixError} When the row is not a valid array of finite numbers
  *
  * @example
- * ```typescript
- * // Validate a matrix row
- * AssertMatrixRow([1, 2, 3, 4]);
- *
- * // Validate with row index in exception for better error messages
- * AssertMatrixRow([1, 2, 3, 4], { rowIndex: 0 });
- *
- * // This would throw MatrixError
- * AssertMatrixRow([1, '2', 3]); // Contains non-numeric value
- * ```
+	 * ```typescript
+	 * ```typescript
+	 * // Validate a matrix row
+	 * AssertMatrixRow([1, 2, 3, 4]);
+	 * // Validate with row index in exception for better error messages
+	 * AssertMatrixRow([1, 2, 3, 4], { rowIndex: 0 });
+	 * // This would throw MatrixError
+	 * AssertMatrixRow([1, '2', 3]); // Contains non-numeric value
+	 * ```
+	 * ```
  */
 export function AssertMatrixRow(row: unknown, exception: IAssertMatrixException = {}): asserts row is number[] {
 	// Initialize the exception with the default MatrixError class if not provided
@@ -305,18 +311,18 @@ export function AssertMatrixRow(row: unknown, exception: IAssertMatrixException 
  * @throws {MatrixError} When the value is not a finite number
  *
  * @example
- * ```typescript
- * // Validate a matrix element
- * AssertMatrixValue(42);
- *
- * // Validate with position information for better error messages
- * AssertMatrixValue(3.14, { rowIndex: 0, columnIndex: 1 });
- *
- * // These would throw MatrixError
- * AssertMatrixValue(NaN);      // Not a number
- * AssertMatrixValue(Infinity); // Not a finite number
- * AssertMatrixValue('5');      // Not a number type
- * ```
+	 * ```typescript
+	 * ```typescript
+	 * // Validate a matrix element
+	 * AssertMatrixValue(42);
+	 * // Validate with position information for better error messages
+	 * AssertMatrixValue(3.14, { rowIndex: 0, columnIndex: 1 });
+	 * // These would throw MatrixError
+	 * AssertMatrixValue(NaN);      // Not a number
+	 * AssertMatrixValue(Infinity); // Not a finite number
+	 * AssertMatrixValue('5');      // Not a number type
+	 * ```
+	 * ```
  */
 export function AssertMatrixValue(value: unknown, exception: IAssertMatrixException = {}): asserts value is number {
 	// Initialize the exception with the default MatrixError class if not provided
@@ -328,7 +334,13 @@ export function AssertMatrixValue(value: unknown, exception: IAssertMatrixExcept
 	SetExceptionMessage(exception, `Matrix value${position} must be a finite number`);
 
 	// Delegate to the general number assertion which handles finite number validation
-	AssertNumber(value, { finite: true }, exception);
+	// Wrap any thrown error as MatrixError to maintain consistent error handling
+	try {
+		AssertNumber(value, { finite: true }, exception);
+	} catch {
+		// Re-throw as MatrixError to maintain API contract
+		throw new MatrixError(exception.message ?? 'Matrix value must be a finite number');
+	}
 }
 
 /**
@@ -345,13 +357,14 @@ export function AssertMatrixValue(value: unknown, exception: IAssertMatrixExcept
  * @throws {IAssertException} When the matrices are not compatible
  *
  * @example
- * ```typescript
- * // Validate matrices for multiplication (A columns must equal B rows)
- * AssertMatrices(matrixA, matrixB);
- *
- * // Allow transposed compatibility
- * AssertMatrices(matrixA, matrixB, { transposition: true });
- * ```
+	 * ```typescript
+	 * ```typescript
+	 * // Validate matrices for multiplication (A columns must equal B rows)
+	 * AssertMatrices(matrixA, matrixB);
+	 * // Allow transposed compatibility
+	 * AssertMatrices(matrixA, matrixB, { transposition: true });
+	 * ```
+	 * ```
  */
 export function AssertMatrices(a: unknown, b: unknown, args: IAssertMatricesArgs = {}, exception: IAssertMatrixException = {}): void {
 	// Initialize the exception with the default MatrixError class if not provided
@@ -361,9 +374,9 @@ export function AssertMatrices(a: unknown, b: unknown, args: IAssertMatricesArgs
 	AssertMatrix(a, {}, exception);
 	AssertMatrix(b, {}, exception);
 
-	// Safe cast to IMatrix since we've validated both inputs
-	const matrixA = a as IMatrix;
-	const matrixB = b as IMatrix;
+	// Safe cast to TMatrix since we've validated both inputs
+	const matrixA = a as TMatrix;
+	const matrixB = b as TMatrix;
 
 	// Extract dimensions from both matrices for compatibility checking
 	const rowsA = matrixA.length;
@@ -414,15 +427,16 @@ export function AssertMatrices(a: unknown, b: unknown, args: IAssertMatricesArgs
  * @throws {IAssertException} When the matrix is not a valid 1x1 matrix
  *
  * @example
- * ```typescript
- * // Validate a 1x1 matrix
- * AssertMatrix1([[5]]);
- *
- * // This would throw an exception
- * AssertMatrix1([[1, 2]]); // Too many columns
- * ```
+	 * ```typescript
+	 * ```typescript
+	 * // Validate a 1x1 matrix
+	 * AssertMatrix1([[5]]);
+	 * // This would throw an exception
+	 * AssertMatrix1([[1, 2]]); // Too many columns
+	 * ```
+	 * ```
  */
-export function AssertMatrix1(matrix: unknown, exception: IAssertMatrixException = {}): asserts matrix is IMatrix1 {
+export function AssertMatrix1(matrix: unknown, exception: IAssertMatrixException = {}): asserts matrix is TMatrix1 {
 	// Initialize the exception with the default MatrixError class if not provided
 	SetExceptionClass(exception, MatrixError);
 
@@ -442,15 +456,16 @@ export function AssertMatrix1(matrix: unknown, exception: IAssertMatrixException
  * @throws {IAssertException} When the matrix is not a valid 2x2 matrix
  *
  * @example
- * ```typescript
- * // Validate a 2x2 matrix
- * AssertMatrix2([[1, 2], [3, 4]]);
- *
- * // This would throw an exception
- * AssertMatrix2([[1, 2, 3], [4, 5, 6]]); // Too many columns
- * ```
+	 * ```typescript
+	 * ```typescript
+	 * // Validate a 2x2 matrix
+	 * AssertMatrix2([[1, 2], [3, 4]]);
+	 * // This would throw an exception
+	 * AssertMatrix2([[1, 2, 3], [4, 5, 6]]); // Too many columns
+	 * ```
+	 * ```
  */
-export function AssertMatrix2(matrix: unknown, exception: IAssertMatrixException = {}): asserts matrix is IMatrix2 {
+export function AssertMatrix2(matrix: unknown, exception: IAssertMatrixException = {}): asserts matrix is TMatrix2 {
 	// Initialize the exception with the default MatrixError class if not provided
 	SetExceptionClass(exception, MatrixError);
 
@@ -470,15 +485,16 @@ export function AssertMatrix2(matrix: unknown, exception: IAssertMatrixException
  * @throws {IAssertException} When the matrix is not a valid 3x3 matrix
  *
  * @example
- * ```typescript
- * // Validate a 3x3 matrix
- * AssertMatrix3([[1, 2, 3], [4, 5, 6], [7, 8, 9]]);
- *
- * // This would throw an exception
- * AssertMatrix3([[1, 2], [3, 4]]); // Too few rows and columns
- * ```
+	 * ```typescript
+	 * ```typescript
+	 * // Validate a 3x3 matrix
+	 * AssertMatrix3([[1, 2, 3], [4, 5, 6], [7, 8, 9]]);
+	 * // This would throw an exception
+	 * AssertMatrix3([[1, 2], [3, 4]]); // Too few rows and columns
+	 * ```
+	 * ```
  */
-export function AssertMatrix3(matrix: unknown, exception: IAssertMatrixException = {}): asserts matrix is IMatrix3 {
+export function AssertMatrix3(matrix: unknown, exception: IAssertMatrixException = {}): asserts matrix is TMatrix3 {
 	// Initialize the exception with the default MatrixError class if not provided
 	SetExceptionClass(exception, MatrixError);
 
@@ -498,24 +514,208 @@ export function AssertMatrix3(matrix: unknown, exception: IAssertMatrixException
  * @throws {IAssertException} When the matrix is not a valid 4x4 matrix
  *
  * @example
- * ```typescript
- * // Validate a 4x4 matrix
- * AssertMatrix4([
- *   [1, 2, 3, 4],
- *   [5, 6, 7, 8],
- *   [9, 10, 11, 12],
- *   [13, 14, 15, 16]
- * ]);
- *
- * // This would throw an exception
- * AssertMatrix4([[1, 2], [3, 4]]); // Too few rows and columns
- * ```
+	 * ```typescript
+	 * ```typescript
+	 * // Validate a 4x4 matrix
+	 * AssertMatrix4([
+	 *   [1, 2, 3, 4],
+	 *   [5, 6, 7, 8],
+	 *   [9, 10, 11, 12],
+	 *   [13, 14, 15, 16]
+	 * ]);
+	 * // This would throw an exception
+	 * AssertMatrix4([[1, 2], [3, 4]]); // Too few rows and columns
+	 * ```
+	 * ```
  */
-export function AssertMatrix4(matrix: unknown, exception: IAssertMatrixException = {}): asserts matrix is IMatrix4 {
+export function AssertMatrix4(matrix: unknown, exception: IAssertMatrixException = {}): asserts matrix is TMatrix4 {
 	// Initialize the exception with the default MatrixError class if not provided
 	SetExceptionClass(exception, MatrixError);
 
 	// Delegate to the general matrix assertion with 4x4 square matrix constraints
 	// This ensures the matrix is exactly 4 rows by 4 columns
 	AssertMatrix(matrix, { square: true, size: 4 }, exception);
+}
+
+/**
+ * Validates that an unknown value is a valid matrix without throwing an error.
+ *
+ * This function performs the same validation as AssertMatrix but returns
+ * a boolean instead of throwing an exception, making it suitable for
+ * conditional logic where exceptions are not desired.
+ *
+ * @param matrix - The value to validate as a matrix
+ * @param args - Validation configuration options
+ * @returns true if the matrix is valid, false otherwise
+ *
+ * @example
+ * ```typescript
+ * if (ValidateMatrix(someValue, { square: true })) {
+ *   // Process the valid square matrix
+ * }
+ * ```
+ */
+export function ValidateMatrix(matrix: unknown, args: IAssertMatrixArgs = {}): matrix is TMatrix {
+	try {
+		AssertMatrix(matrix, args);
+		return true;
+	} catch {
+		return false;
+	}
+}
+
+/**
+ * Validates that an unknown value is a valid 1×1 matrix without throwing an error.
+ *
+ * @param matrix - The value to validate as a 1×1 matrix
+ * @returns true if the matrix is valid, false otherwise
+ *
+ * @example
+ * ```typescript
+ * if (ValidateMatrix1(someValue)) {
+ *   // Process the valid 1×1 matrix
+ * }
+ * ```
+ */
+export function ValidateMatrix1(matrix: unknown): matrix is TMatrix1 {
+	try {
+		AssertMatrix1(matrix);
+		return true;
+	} catch {
+		return false;
+	}
+}
+
+/**
+ * Validates that an unknown value is a valid 2×2 matrix without throwing an error.
+ *
+ * @param matrix - The value to validate as a 2×2 matrix
+ * @returns true if the matrix is valid, false otherwise
+ *
+ * @example
+ * ```typescript
+ * if (ValidateMatrix2(someValue)) {
+ *   // Process the valid 2×2 matrix
+ * }
+ * ```
+ */
+export function ValidateMatrix2(matrix: unknown): matrix is TMatrix2 {
+	try {
+		AssertMatrix2(matrix);
+		return true;
+	} catch {
+		return false;
+	}
+}
+
+/**
+ * Validates that an unknown value is a valid 3×3 matrix without throwing an error.
+ *
+ * @param matrix - The value to validate as a 3×3 matrix
+ * @returns true if the matrix is valid, false otherwise
+ *
+ * @example
+ * ```typescript
+ * if (ValidateMatrix3(someValue)) {
+ *   // Process the valid 3×3 matrix
+ * }
+ * ```
+ */
+export function ValidateMatrix3(matrix: unknown): matrix is TMatrix3 {
+	try {
+		AssertMatrix3(matrix);
+		return true;
+	} catch {
+		return false;
+	}
+}
+
+/**
+ * Validates that an unknown value is a valid 4×4 matrix without throwing an error.
+ *
+ * @param matrix - The value to validate as a 4×4 matrix
+ * @returns true if the matrix is valid, false otherwise
+ *
+ * @example
+ * ```typescript
+ * if (ValidateMatrix4(someValue)) {
+ *   // Process the valid 4×4 matrix
+ * }
+ * ```
+ */
+export function ValidateMatrix4(matrix: unknown): matrix is TMatrix4 {
+	try {
+		AssertMatrix4(matrix);
+		return true;
+	} catch {
+		return false;
+	}
+}
+
+/**
+ * Validates that an unknown value is a valid matrix row without throwing an error.
+ *
+ * @param row - The value to validate as a matrix row
+ * @returns true if the row is valid, false otherwise
+ *
+ * @example
+ * ```typescript
+ * if (ValidateMatrixRow([1, 2, 3])) {
+ *   // Process the valid row
+ * }
+ * ```
+ */
+export function ValidateMatrixRow(row: unknown): row is number[] {
+	try {
+		AssertMatrixRow(row);
+		return true;
+	} catch {
+		return false;
+	}
+}
+
+/**
+ * Validates that an unknown value is a valid matrix value (finite number) without throwing an error.
+ *
+ * @param value - The value to validate as a matrix element
+ * @returns true if the value is valid, false otherwise
+ *
+ * @example
+ * ```typescript
+ * if (ValidateMatrixValue(someValue)) {
+ *   // Process the valid numeric value
+ * }
+ * ```
+ */
+export function ValidateMatrixValue(value: unknown): value is number {
+	try {
+		AssertMatrixValue(value);
+		return true;
+	} catch {
+		return false;
+	}
+}
+
+/**
+ * Validates that two unknown values are compatible matrices without throwing an error.
+ *
+ * @param a - The first matrix to validate
+ * @param b - The second matrix to validate
+ * @param args - Validation configuration options
+ * @returns true if both matrices are valid and compatible, false otherwise
+ *
+ * @example
+ * ```typescript
+ * if (ValidateMatrices(matrixA, matrixB, { transposition: true })) {
+ *   // Process the valid and compatible matrices
+ * }
+ * ```
+ */
+export function ValidateMatrices(a: unknown, b: unknown, args: IAssertMatricesArgs = {}): boolean {
+	try {
+		AssertMatrices(a, b, args);
+		return true;
+	} catch {
+		return false;
+	}
 }

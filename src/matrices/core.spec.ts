@@ -1,6 +1,6 @@
 import { AssertMatrixRow, AssertMatrixValue } from './asserts.js';
 import { MatrixCreate, MatrixSize, MatrixSizeSquare, MatrixIsValid, MatrixIsSquare, MatrixIsIdentity, MatrixIsSymmetric, MatrixIsDiagonal, MatrixIdentity, MatrixClone, MatrixEquals, MatrixToString, MatrixRank, MatrixTrace, MatrixTranspose, MatrixMap, MatrixIsZero } from './core.js';
-import { IMatrix } from './types.js';
+import { TMatrix } from './types.js';
 
 describe('Matrices Core', () => {
 	describe('MatrixCreate', () => {
@@ -315,7 +315,7 @@ describe('Matrices Core', () => {
 		});
 
 		// Test overloaded versions for specific matrix types
-		test('should create 1x1 identity matrix with IMatrix1 overload', () => {
+		test('should create 1x1 identity matrix with TMatrix1 overload', () => {
 			const identity = MatrixIdentity(1);
 			expect(identity).toEqual([[1]]);
 			// TypeScript compilation ensures correct typing
@@ -324,7 +324,7 @@ describe('Matrices Core', () => {
 			expect(identity[0].length).toBe(1);
 		});
 
-		test('should create 2x2 identity matrix with IMatrix2 overload', () => {
+		test('should create 2x2 identity matrix with TMatrix2 overload', () => {
 			const identity = MatrixIdentity(2);
 			expect(identity).toEqual([[1, 0], [0, 1]]);
 			// TypeScript compilation ensures correct typing
@@ -334,7 +334,7 @@ describe('Matrices Core', () => {
 			expect(identity[1].length).toBe(2);
 		});
 
-		test('should create 3x3 identity matrix with IMatrix3 overload', () => {
+		test('should create 3x3 identity matrix with TMatrix3 overload', () => {
 			const identity = MatrixIdentity(3);
 			expect(identity).toEqual([
 				[1, 0, 0],
@@ -349,7 +349,7 @@ describe('Matrices Core', () => {
 			expect(identity[2].length).toBe(3);
 		});
 
-		test('should create 4x4 identity matrix with IMatrix4 overload', () => {
+		test('should create 4x4 identity matrix with TMatrix4 overload', () => {
 			const identity = MatrixIdentity(4);
 			expect(identity).toEqual([
 				[1, 0, 0, 0],
@@ -367,18 +367,18 @@ describe('Matrices Core', () => {
 		});
 
 		test('should create identity matrices with proper diagonal elements for overloaded types', () => {
-			// Test IMatrix1
+			// Test TMatrix1
 			const id1 = MatrixIdentity(1);
 			expect(id1[0][0]).toBe(1);
 
-			// Test IMatrix2
+			// Test TMatrix2
 			const id2 = MatrixIdentity(2);
 			expect(id2[0][0]).toBe(1);
 			expect(id2[1][1]).toBe(1);
 			expect(id2[0][1]).toBe(0);
 			expect(id2[1][0]).toBe(0);
 
-			// Test IMatrix3
+			// Test TMatrix3
 			const id3 = MatrixIdentity(3);
 			expect(id3[0][0]).toBe(1);
 			expect(id3[1][1]).toBe(1);
@@ -396,7 +396,7 @@ describe('Matrices Core', () => {
 				}
 			}
 
-			// Test IMatrix4
+			// Test TMatrix4
 			const id4 = MatrixIdentity(4);
 			expect(id4[0][0]).toBe(1);
 			expect(id4[1][1]).toBe(1);
@@ -419,7 +419,7 @@ describe('Matrices Core', () => {
 			// Test that all diagonal elements are exactly 1
 			// Test each size individually to ensure proper overload resolution
 			[1, 2, 3, 4].forEach((size) => {
-				let identity: IMatrix;
+				let identity: TMatrix;
 
 				switch (size) {
 					case 1:

@@ -1,5 +1,5 @@
 
-import { TVector } from '../vectors/types.ts';
+import { TVector } from '../vectors/types.js';
 import {
 	MatrixAdd,
 	MatrixSubtract,
@@ -10,105 +10,105 @@ import {
 } from './arithmetic.js';
 import { AssertMatrixRow } from './asserts.js';
 import { MatrixCreate } from './core.js';
-import { IMatrix, IMatrix1, IMatrix2, IMatrix3, IMatrix4 } from './types.js';
+import { TMatrix, TMatrix1, TMatrix2, TMatrix3, TMatrix4 } from './types.js';
 
 describe('Matrix Arithmetic', () => {
 	describe('MatrixAdd', () => {
 		it('should add two 1x1 matrices', () => {
-			const a: IMatrix1 = [[5]];
-			const b: IMatrix1 = [[3]];
+			const a: TMatrix1 = [[5]];
+			const b: TMatrix1 = [[3]];
 			const result = MatrixAdd(a, b);
 			expect(result).toEqual([[8]]);
 		});
 
 		it('should add two 2x2 matrices', () => {
-			const a: IMatrix2 = [[1, 2], [3, 4]];
-			const b: IMatrix2 = [[5, 6], [7, 8]];
+			const a: TMatrix2 = [[1, 2], [3, 4]];
+			const b: TMatrix2 = [[5, 6], [7, 8]];
 			const result = MatrixAdd(a, b);
 			expect(result).toEqual([[6, 8], [10, 12]]);
 		});
 
 		it('should add two 3x3 matrices', () => {
-			const a: IMatrix3 = [[1, 2, 3], [4, 5, 6], [7, 8, 9]];
-			const b: IMatrix3 = [[9, 8, 7], [6, 5, 4], [3, 2, 1]];
+			const a: TMatrix3 = [[1, 2, 3], [4, 5, 6], [7, 8, 9]];
+			const b: TMatrix3 = [[9, 8, 7], [6, 5, 4], [3, 2, 1]];
 			const result = MatrixAdd(a, b);
 			expect(result).toEqual([[10, 10, 10], [10, 10, 10], [10, 10, 10]]);
 		});
 
 		it('should add matrices with negative numbers', () => {
-			const a: IMatrix = [[1, -2], [-3, 4]];
-			const b: IMatrix = [[-1, 2], [3, -4]];
+			const a: TMatrix = [[1, -2], [-3, 4]];
+			const b: TMatrix = [[-1, 2], [3, -4]];
 			const result = MatrixAdd(a, b);
 			expect(result).toEqual([[0, 0], [0, 0]]);
 		});
 
 		it('should add matrices with zeros', () => {
-			const a: IMatrix = [[1, 2], [3, 4]];
-			const b: IMatrix = [[0, 0], [0, 0]];
+			const a: TMatrix = [[1, 2], [3, 4]];
+			const b: TMatrix = [[0, 0], [0, 0]];
 			const result = MatrixAdd(a, b);
 			expect(result).toEqual([[1, 2], [3, 4]]);
 		});
 
 		it('should add matrices with decimal numbers', () => {
-			const a: IMatrix = [[1.5, 2.5], [3.5, 4.5]];
-			const b: IMatrix = [[0.5, 0.5], [0.5, 0.5]];
+			const a: TMatrix = [[1.5, 2.5], [3.5, 4.5]];
+			const b: TMatrix = [[0.5, 0.5], [0.5, 0.5]];
 			const result = MatrixAdd(a, b);
 			expect(result).toEqual([[2, 3], [4, 5]]);
 		});
 
 		it('should throw error for matrices with different dimensions', () => {
-			const a: IMatrix = [[1, 2], [3, 4]];
-			const b: IMatrix = [[1, 2, 3], [4, 5, 6]];
+			const a: TMatrix = [[1, 2], [3, 4]];
+			const b: TMatrix = [[1, 2, 3], [4, 5, 6]];
 			expect(() => MatrixAdd(a, b)).toThrow();
 		});
 	});
 
 	describe('MatrixSubtract', () => {
 		it('should subtract two 1x1 matrices', () => {
-			const a: IMatrix1 = [[8]];
-			const b: IMatrix1 = [[3]];
+			const a: TMatrix1 = [[8]];
+			const b: TMatrix1 = [[3]];
 			const result = MatrixSubtract(a, b);
 			expect(result).toEqual([[5]]);
 		});
 
 		it('should subtract two 2x2 matrices', () => {
-			const a: IMatrix2 = [[5, 6], [7, 8]];
-			const b: IMatrix2 = [[1, 2], [3, 4]];
+			const a: TMatrix2 = [[5, 6], [7, 8]];
+			const b: TMatrix2 = [[1, 2], [3, 4]];
 			const result = MatrixSubtract(a, b);
 			expect(result).toEqual([[4, 4], [4, 4]]);
 		});
 
 		it('should subtract two 3x3 matrices', () => {
-			const a: IMatrix3 = [[10, 10, 10], [10, 10, 10], [10, 10, 10]];
-			const b: IMatrix3 = [[1, 2, 3], [4, 5, 6], [7, 8, 9]];
+			const a: TMatrix3 = [[10, 10, 10], [10, 10, 10], [10, 10, 10]];
+			const b: TMatrix3 = [[1, 2, 3], [4, 5, 6], [7, 8, 9]];
 			const result = MatrixSubtract(a, b);
 			expect(result).toEqual([[9, 8, 7], [6, 5, 4], [3, 2, 1]]);
 		});
 
 		it('should handle negative results', () => {
-			const a: IMatrix = [[1, 2], [3, 4]];
-			const b: IMatrix = [[5, 6], [7, 8]];
+			const a: TMatrix = [[1, 2], [3, 4]];
+			const b: TMatrix = [[5, 6], [7, 8]];
 			const result = MatrixSubtract(a, b);
 			expect(result).toEqual([[-4, -4], [-4, -4]]);
 		});
 
 		it('should subtract zero matrix', () => {
-			const a: IMatrix = [[1, 2], [3, 4]];
-			const b: IMatrix = [[0, 0], [0, 0]];
+			const a: TMatrix = [[1, 2], [3, 4]];
+			const b: TMatrix = [[0, 0], [0, 0]];
 			const result = MatrixSubtract(a, b);
 			expect(result).toEqual([[1, 2], [3, 4]]);
 		});
 
 		it('should handle decimal numbers', () => {
-			const a: IMatrix = [[3.5, 4.5], [5.5, 6.5]];
-			const b: IMatrix = [[1.5, 2.5], [3.5, 4.5]];
+			const a: TMatrix = [[3.5, 4.5], [5.5, 6.5]];
+			const b: TMatrix = [[1.5, 2.5], [3.5, 4.5]];
 			const result = MatrixSubtract(a, b);
 			expect(result).toEqual([[2, 2], [2, 2]]);
 		});
 
 		it('should throw error for matrices with different dimensions', () => {
-			const a: IMatrix = [[1, 2], [3, 4]];
-			const b: IMatrix = [[1], [2], [3]];
+			const a: TMatrix = [[1, 2], [3, 4]];
+			const b: TMatrix = [[1], [2], [3]];
 			expect(() => MatrixSubtract(a, b)).toThrow();
 		});
 	});
@@ -116,31 +116,31 @@ describe('Matrix Arithmetic', () => {
 	describe('MatrixMultiply', () => {
 		describe('overload: scalar multiplication (matrix, scalar) -> matrix', () => {
 			it('should multiply 1x1 matrix by scalar', () => {
-				const matrix: IMatrix1 = [[5]];
-				const result: IMatrix1 = MatrixMultiply(matrix, 3);
+				const matrix: TMatrix1 = [[5]];
+				const result: TMatrix1 = MatrixMultiply(matrix, 3);
 				expect(result).toEqual([[15]]);
 			});
 
 			it('should multiply 2x2 matrix by scalar', () => {
-				const matrix: IMatrix2 = [[1, 2], [3, 4]];
-				const result: IMatrix2 = MatrixMultiply(matrix, 2);
+				const matrix: TMatrix2 = [[1, 2], [3, 4]];
+				const result: TMatrix2 = MatrixMultiply(matrix, 2);
 				expect(result).toEqual([[2, 4], [6, 8]]);
 			});
 
 			it('should multiply 3x3 matrix by scalar', () => {
-				const matrix: IMatrix3 = [[1, 2, 3], [4, 5, 6], [7, 8, 9]];
-				const result: IMatrix3 = MatrixMultiply(matrix, 2);
+				const matrix: TMatrix3 = [[1, 2, 3], [4, 5, 6], [7, 8, 9]];
+				const result: TMatrix3 = MatrixMultiply(matrix, 2);
 				expect(result).toEqual([[2, 4, 6], [8, 10, 12], [14, 16, 18]]);
 			});
 
 			it('should multiply 4x4 matrix by scalar', () => {
-				const matrix: IMatrix4 = [
+				const matrix: TMatrix4 = [
 					[1, 2, 3, 4],
 					[5, 6, 7, 8],
 					[9, 10, 11, 12],
 					[13, 14, 15, 16],
 				];
-				const result: IMatrix4 = MatrixMultiply(matrix, 0.5);
+				const result: TMatrix4 = MatrixMultiply(matrix, 0.5);
 				expect(result).toEqual([
 					[0.5, 1, 1.5, 2],
 					[2.5, 3, 3.5, 4],
@@ -150,33 +150,33 @@ describe('Matrix Arithmetic', () => {
 			});
 
 			it('should multiply matrix by zero', () => {
-				const matrix: IMatrix2 = [[1, 2], [3, 4]];
-				const result: IMatrix2 = MatrixMultiply(matrix, 0);
+				const matrix: TMatrix2 = [[1, 2], [3, 4]];
+				const result: TMatrix2 = MatrixMultiply(matrix, 0);
 				expect(result).toEqual([[0, 0], [0, 0]]);
 			});
 
 			it('should multiply matrix by negative scalar', () => {
-				const matrix: IMatrix2 = [[1, 2], [3, 4]];
-				const result: IMatrix2 = MatrixMultiply(matrix, -1);
+				const matrix: TMatrix2 = [[1, 2], [3, 4]];
+				const result: TMatrix2 = MatrixMultiply(matrix, -1);
 				expect(result).toEqual([[-1, -2], [-3, -4]]);
 			});
 
 			it('should multiply matrix by decimal scalar', () => {
-				const matrix: IMatrix2 = [[2, 4], [6, 8]];
-				const result: IMatrix2 = MatrixMultiply(matrix, 0.5);
+				const matrix: TMatrix2 = [[2, 4], [6, 8]];
+				const result: TMatrix2 = MatrixMultiply(matrix, 0.5);
 				expect(result).toEqual([[1, 2], [3, 4]]);
 			});
 
 			it('should multiply rectangular matrix by scalar', () => {
-				const matrix: IMatrix = [[1, 2, 3], [4, 5, 6]];
-				const result: IMatrix = MatrixMultiply(matrix, 3);
+				const matrix: TMatrix = [[1, 2, 3], [4, 5, 6]];
+				const result: TMatrix = MatrixMultiply(matrix, 3);
 				expect(result).toEqual([[3, 6, 9], [12, 15, 18]]);
 			});
 
 			it('should preserve matrix type with scalar multiplication', () => {
-				const matrix: IMatrix2 = [[1, 2], [3, 4]];
+				const matrix: TMatrix2 = [[1, 2], [3, 4]];
 				const scalar = 5;
-				const result: IMatrix2 = MatrixMultiply(matrix, scalar);
+				const result: TMatrix2 = MatrixMultiply(matrix, scalar);
 				expect(typeof result).toBe('object');
 				expect(Array.isArray(result)).toBe(true);
 				expect(Array.isArray(result[0])).toBe(true);
@@ -185,21 +185,21 @@ describe('Matrix Arithmetic', () => {
 
 		describe('overload: vector multiplication (matrix, vector) -> vector', () => {
 			it('should multiply 2x2 matrix by 2D vector', () => {
-				const matrix: IMatrix2 = [[1, 2], [3, 4]];
+				const matrix: TMatrix2 = [[1, 2], [3, 4]];
 				const vector: TVector = [5, 6];
 				const result: TVector = MatrixMultiply(matrix, vector);
 				expect(result).toEqual([17, 39]);
 			});
 
 			it('should multiply 3x3 matrix by 3D vector', () => {
-				const matrix: IMatrix3 = [[1, 0, 0], [0, 1, 0], [0, 0, 1]];
+				const matrix: TMatrix3 = [[1, 0, 0], [0, 1, 0], [0, 0, 1]];
 				const vector: TVector = [5, 6, 7];
 				const result: TVector = MatrixMultiply(matrix, vector);
 				expect(result).toEqual([5, 6, 7]);
 			});
 
 			it('should multiply 4x4 matrix by 4D vector', () => {
-				const matrix: IMatrix4 = [
+				const matrix: TMatrix4 = [
 					[1, 0, 0, 0],
 					[0, 2, 0, 0],
 					[0, 0, 3, 0],
@@ -211,35 +211,35 @@ describe('Matrix Arithmetic', () => {
 			});
 
 			it('should multiply rectangular matrix by vector', () => {
-				const matrix: IMatrix = [[1, 2, 3], [4, 5, 6]];
+				const matrix: TMatrix = [[1, 2, 3], [4, 5, 6]];
 				const vector: TVector = [1, 2, 3];
 				const result: TVector = MatrixMultiply(matrix, vector);
 				expect(result).toEqual([14, 32]);
 			});
 
 			it('should handle zero vector', () => {
-				const matrix: IMatrix = [[1, 2], [3, 4]];
+				const matrix: TMatrix = [[1, 2], [3, 4]];
 				const vector: TVector = [0, 0];
 				const result: TVector = MatrixMultiply(matrix, vector);
 				expect(result).toEqual([0, 0]);
 			});
 
 			it('should handle vector with negative values', () => {
-				const matrix: IMatrix = [[1, 2], [3, 4]];
+				const matrix: TMatrix = [[1, 2], [3, 4]];
 				const vector: TVector = [-1, 2];
 				const result: TVector = MatrixMultiply(matrix, vector);
 				expect(result).toEqual([3, 5]);
 			});
 
 			it('should handle vector with decimal values', () => {
-				const matrix: IMatrix = [[2, 0], [0, 2]];
+				const matrix: TMatrix = [[2, 0], [0, 2]];
 				const vector: TVector = [1.5, 2.5];
 				const result: TVector = MatrixMultiply(matrix, vector);
 				expect(result).toEqual([3, 5]);
 			});
 
 			it('should perform identity transformation', () => {
-				const identity: IMatrix3 = [[1, 0, 0], [0, 1, 0], [0, 0, 1]];
+				const identity: TMatrix3 = [[1, 0, 0], [0, 1, 0], [0, 0, 1]];
 				const vector: TVector = [7, 8, 9];
 				const result: TVector = MatrixMultiply(identity, vector);
 				expect(result).toEqual([7, 8, 9]);
@@ -247,14 +247,14 @@ describe('Matrix Arithmetic', () => {
 
 			it('should perform linear transformation', () => {
 				// Rotation by 90 degrees counterclockwise in 2D
-				const rotationMatrix: IMatrix2 = [[0, -1], [1, 0]];
+				const rotationMatrix: TMatrix2 = [[0, -1], [1, 0]];
 				const vector: TVector = [1, 0];
 				const result: TVector = MatrixMultiply(rotationMatrix, vector);
 				expect(result).toEqual([0, 1]);
 			});
 
 			it('should return vector result type', () => {
-				const matrix: IMatrix = [[1, 2], [3, 4]];
+				const matrix: TMatrix = [[1, 2], [3, 4]];
 				const vector: TVector = [1, 1];
 				const result: TVector = MatrixMultiply(matrix, vector);
 				expect(Array.isArray(result)).toBe(true);
@@ -264,48 +264,48 @@ describe('Matrix Arithmetic', () => {
 			});
 
 			it('should throw error for incompatible dimensions', () => {
-				const matrix: IMatrix = [[1, 2], [3, 4]];
+				const matrix: TMatrix = [[1, 2], [3, 4]];
 				const vector: TVector = [1, 2, 3]; // Wrong size
 				expect(() => MatrixMultiply(matrix, vector)).toThrow(/Matrix-vector multiplication requires matrix columns/);
 			});
 
 			it('should throw error for empty vector', () => {
-				const matrix: IMatrix = [[1, 2], [3, 4]];
+				const matrix: TMatrix = [[1, 2], [3, 4]];
 				const vector: TVector = [];
 				expect(() => MatrixMultiply(matrix, vector)).toThrow(/Matrix-vector multiplication requires matrix columns/);
 			});
 
 			it('should handle matrix-vector multiplication examples from documentation', () => {
 				// Example from the documentation
-				const matrix: IMatrix = [[1, 2, 3], [4, 5, 6]];
+				const matrix: TMatrix = [[1, 2, 3], [4, 5, 6]];
 				const vector: TVector = [7, 8, 9];
 				const result: TVector = MatrixMultiply(matrix, vector);
 				expect(result).toEqual([50, 122]);
 			});
 
 			it('should handle single row matrix multiplication', () => {
-				const matrix: IMatrix = [[1, 2, 3]];
+				const matrix: TMatrix = [[1, 2, 3]];
 				const vector: TVector = [4, 5, 6];
 				const result: TVector = MatrixMultiply(matrix, vector);
 				expect(result).toEqual([32]);
 			});
 
 			it('should handle single column matrix multiplication', () => {
-				const matrix: IMatrix = [[1], [2], [3]];
+				const matrix: TMatrix = [[1], [2], [3]];
 				const vector: TVector = [5];
 				const result: TVector = MatrixMultiply(matrix, vector);
 				expect(result).toEqual([5, 10, 15]);
 			});
 
 			it('should handle very large vectors', () => {
-				const matrix: IMatrix = [[1, 2, 3, 4, 5], [6, 7, 8, 9, 10]];
+				const matrix: TMatrix = [[1, 2, 3, 4, 5], [6, 7, 8, 9, 10]];
 				const vector: TVector = [1, 1, 1, 1, 1];
 				const result: TVector = MatrixMultiply(matrix, vector);
 				expect(result).toEqual([15, 40]);
 			});
 
 			it('should preserve precision with decimal arithmetic', () => {
-				const matrix: IMatrix = [[0.1, 0.2], [0.3, 0.4]];
+				const matrix: TMatrix = [[0.1, 0.2], [0.3, 0.4]];
 				const vector: TVector = [0.5, 0.6];
 				const result: TVector = MatrixMultiply(matrix, vector);
 				expect(result[0]).toBeCloseTo(0.17, 10);
@@ -313,7 +313,7 @@ describe('Matrix Arithmetic', () => {
 			});
 
 			it('should handle scaling transformations', () => {
-				const scalingMatrix: IMatrix = [[2, 0], [0, 3]];
+				const scalingMatrix: TMatrix = [[2, 0], [0, 3]];
 				const vector: TVector = [4, 5];
 				const result: TVector = MatrixMultiply(scalingMatrix, vector);
 				expect(result).toEqual([8, 15]);
@@ -321,7 +321,7 @@ describe('Matrix Arithmetic', () => {
 
 			it('should handle reflection transformations', () => {
 				// Reflection across x-axis
-				const reflectionMatrix: IMatrix = [[1, 0], [0, -1]];
+				const reflectionMatrix: TMatrix = [[1, 0], [0, -1]];
 				const vector: TVector = [3, 4];
 				const result: TVector = MatrixMultiply(reflectionMatrix, vector);
 				expect(result).toEqual([3, -4]);
@@ -329,7 +329,7 @@ describe('Matrix Arithmetic', () => {
 
 			it('should handle shear transformations', () => {
 				// Horizontal shear
-				const shearMatrix: IMatrix = [[1, 2], [0, 1]];
+				const shearMatrix: TMatrix = [[1, 2], [0, 1]];
 				const vector: TVector = [1, 3];
 				const result: TVector = MatrixMultiply(shearMatrix, vector);
 				expect(result).toEqual([7, 3]);
@@ -338,40 +338,40 @@ describe('Matrix Arithmetic', () => {
 
 		describe('overload: matrix multiplication (matrix, matrix) -> matrix', () => {
 			it('should multiply two 1x1 matrices', () => {
-				const a: IMatrix1 = [[5]];
-				const b: IMatrix1 = [[3]];
-				const result: IMatrix = MatrixMultiply(a, b);
+				const a: TMatrix1 = [[5]];
+				const b: TMatrix1 = [[3]];
+				const result: TMatrix = MatrixMultiply(a, b);
 				expect(result).toEqual([[15]]);
 			});
 
 			it('should multiply two 2x2 matrices', () => {
-				const a: IMatrix2 = [[1, 2], [3, 4]];
-				const b: IMatrix2 = [[5, 6], [7, 8]];
-				const result: IMatrix = MatrixMultiply(a, b);
+				const a: TMatrix2 = [[1, 2], [3, 4]];
+				const b: TMatrix2 = [[5, 6], [7, 8]];
+				const result: TMatrix = MatrixMultiply(a, b);
 				expect(result).toEqual([[19, 22], [43, 50]]);
 			});
 
 			it('should multiply two 3x3 matrices', () => {
-				const a: IMatrix3 = [[1, 2, 3], [4, 5, 6], [7, 8, 9]];
-				const b: IMatrix3 = [[9, 8, 7], [6, 5, 4], [3, 2, 1]];
-				const result: IMatrix = MatrixMultiply(a, b);
+				const a: TMatrix3 = [[1, 2, 3], [4, 5, 6], [7, 8, 9]];
+				const b: TMatrix3 = [[9, 8, 7], [6, 5, 4], [3, 2, 1]];
+				const result: TMatrix = MatrixMultiply(a, b);
 				expect(result).toEqual([[30, 24, 18], [84, 69, 54], [138, 114, 90]]);
 			});
 
 			it('should multiply two 4x4 matrices', () => {
-				const a: IMatrix4 = [
+				const a: TMatrix4 = [
 					[1, 2, 3, 4],
 					[5, 6, 7, 8],
 					[9, 10, 11, 12],
 					[13, 14, 15, 16],
 				];
-				const b: IMatrix4 = [
+				const b: TMatrix4 = [
 					[16, 15, 14, 13],
 					[12, 11, 10, 9],
 					[8, 7, 6, 5],
 					[4, 3, 2, 1],
 				];
-				const result: IMatrix = MatrixMultiply(a, b);
+				const result: TMatrix = MatrixMultiply(a, b);
 				expect(result).toEqual([
 					[80, 70, 60, 50],
 					[240, 214, 188, 162],
@@ -381,16 +381,16 @@ describe('Matrix Arithmetic', () => {
 			});
 
 			it('should multiply rectangular matrices (2x3 × 3x2)', () => {
-				const a: IMatrix = [[1, 2, 3], [4, 5, 6]];
-				const b: IMatrix = [[7, 8], [9, 10], [11, 12]];
-				const result: IMatrix = MatrixMultiply(a, b);
+				const a: TMatrix = [[1, 2, 3], [4, 5, 6]];
+				const b: TMatrix = [[7, 8], [9, 10], [11, 12]];
+				const result: TMatrix = MatrixMultiply(a, b);
 				expect(result).toEqual([[58, 64], [139, 154]]);
 			});
 
 			it('should multiply rectangular matrices (3x2 × 2x4)', () => {
-				const a: IMatrix = [[1, 2], [3, 4], [5, 6]];
-				const b: IMatrix = [[7, 8, 9, 10], [11, 12, 13, 14]];
-				const result: IMatrix = MatrixMultiply(a, b);
+				const a: TMatrix = [[1, 2], [3, 4], [5, 6]];
+				const b: TMatrix = [[7, 8, 9, 10], [11, 12, 13, 14]];
+				const result: TMatrix = MatrixMultiply(a, b);
 				expect(result).toEqual([
 					[29, 32, 35, 38],
 					[65, 72, 79, 86],
@@ -399,63 +399,63 @@ describe('Matrix Arithmetic', () => {
 			});
 
 			it('should multiply by identity matrix', () => {
-				const a: IMatrix2 = [[1, 2], [3, 4]];
-				const identity: IMatrix2 = [[1, 0], [0, 1]];
-				const result: IMatrix = MatrixMultiply(a, identity);
+				const a: TMatrix2 = [[1, 2], [3, 4]];
+				const identity: TMatrix2 = [[1, 0], [0, 1]];
+				const result: TMatrix = MatrixMultiply(a, identity);
 				expect(result).toEqual([[1, 2], [3, 4]]);
 			});
 
 			it('should multiply identity by matrix', () => {
-				const identity: IMatrix3 = [[1, 0, 0], [0, 1, 0], [0, 0, 1]];
-				const a: IMatrix3 = [[2, 3, 4], [5, 6, 7], [8, 9, 10]];
-				const result: IMatrix = MatrixMultiply(identity, a);
+				const identity: TMatrix3 = [[1, 0, 0], [0, 1, 0], [0, 0, 1]];
+				const a: TMatrix3 = [[2, 3, 4], [5, 6, 7], [8, 9, 10]];
+				const result: TMatrix = MatrixMultiply(identity, a);
 				expect(result).toEqual([[2, 3, 4], [5, 6, 7], [8, 9, 10]]);
 			});
 
 			it('should handle matrices with zeros', () => {
-				const a: IMatrix = [[1, 2], [3, 4]];
-				const b: IMatrix = [[0, 0], [0, 0]];
-				const result: IMatrix = MatrixMultiply(a, b);
+				const a: TMatrix = [[1, 2], [3, 4]];
+				const b: TMatrix = [[0, 0], [0, 0]];
+				const result: TMatrix = MatrixMultiply(a, b);
 				expect(result).toEqual([[0, 0], [0, 0]]);
 			});
 
 			it('should handle matrices with negative values', () => {
-				const a: IMatrix = [[1, -2], [-3, 4]];
-				const b: IMatrix = [[-1, 2], [3, -4]];
-				const result: IMatrix = MatrixMultiply(a, b);
+				const a: TMatrix = [[1, -2], [-3, 4]];
+				const b: TMatrix = [[-1, 2], [3, -4]];
+				const result: TMatrix = MatrixMultiply(a, b);
 				expect(result).toEqual([[-7, 10], [15, -22]]);
 			});
 
 			it('should handle matrices with decimal values', () => {
-				const a: IMatrix = [[1.5, 2.5], [3.5, 4.5]];
-				const b: IMatrix = [[0.5, 1.5], [2.5, 3.5]];
-				const result: IMatrix = MatrixMultiply(a, b);
+				const a: TMatrix = [[1.5, 2.5], [3.5, 4.5]];
+				const b: TMatrix = [[0.5, 1.5], [2.5, 3.5]];
+				const result: TMatrix = MatrixMultiply(a, b);
 				expect(result).toEqual([[7, 11], [13, 21]]);
 			});
 
 			it('should verify non-commutativity (A×B ≠ B×A)', () => {
-				const a: IMatrix = [[1, 2], [3, 4]];
-				const b: IMatrix = [[5, 6], [7, 8]];
-				const ab: IMatrix = MatrixMultiply(a, b);
-				const ba: IMatrix = MatrixMultiply(b, a);
+				const a: TMatrix = [[1, 2], [3, 4]];
+				const b: TMatrix = [[5, 6], [7, 8]];
+				const ab: TMatrix = MatrixMultiply(a, b);
+				const ba: TMatrix = MatrixMultiply(b, a);
 				expect(ab).toEqual([[19, 22], [43, 50]]);
 				expect(ba).toEqual([[23, 34], [31, 46]]);
 				expect(ab).not.toEqual(ba);
 			});
 
 			it('should verify associativity ((A×B)×C = A×(B×C))', () => {
-				const a: IMatrix = [[1, 2]];
-				const b: IMatrix = [[3], [4]];
-				const c: IMatrix = [[5, 6]];
-				const abC: IMatrix = MatrixMultiply(MatrixMultiply(a, b), c);
-				const aBc: IMatrix = MatrixMultiply(a, MatrixMultiply(b, c));
+				const a: TMatrix = [[1, 2]];
+				const b: TMatrix = [[3], [4]];
+				const c: TMatrix = [[5, 6]];
+				const abC: TMatrix = MatrixMultiply(MatrixMultiply(a, b), c);
+				const aBc: TMatrix = MatrixMultiply(a, MatrixMultiply(b, c));
 				expect(abC).toEqual(aBc);
 			});
 
 			it('should return proper matrix type', () => {
-				const a: IMatrix = [[1, 2], [3, 4]];
-				const b: IMatrix = [[5, 6], [7, 8]];
-				const result: IMatrix = MatrixMultiply(a, b);
+				const a: TMatrix = [[1, 2], [3, 4]];
+				const b: TMatrix = [[5, 6], [7, 8]];
+				const result: TMatrix = MatrixMultiply(a, b);
 				expect(Array.isArray(result)).toBe(true);
 				expect(Array.isArray(result[0])).toBe(true);
 				expect(result.length).toBe(2);
@@ -467,24 +467,24 @@ describe('Matrix Arithmetic', () => {
 			});
 
 			it('should throw error for incompatible dimensions', () => {
-				const a: IMatrix = [[1, 2], [3, 4]]; // 2x2
-				const b: IMatrix = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]; // 3x3
+				const a: TMatrix = [[1, 2], [3, 4]]; // 2x2
+				const b: TMatrix = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]; // 3x3
 				expect(() => MatrixMultiply(a, b)).toThrow();
 			});
 
 			it('should throw error for dimension mismatch in rectangular matrices', () => {
-				const a: IMatrix = [[1, 2, 3], [4, 5, 6]]; // 2x3
-				const b: IMatrix = [[1, 2], [3, 4]]; // 2x2 (need 3x2)
+				const a: TMatrix = [[1, 2, 3], [4, 5, 6]]; // 2x3
+				const b: TMatrix = [[1, 2], [3, 4]]; // 2x2 (need 3x2)
 				expect(() => MatrixMultiply(a, b)).toThrow();
 			});
 		});
 
 		describe('overload type safety and dispatch', () => {
 			it('should correctly dispatch to scalar multiplication', () => {
-				const matrix: IMatrix = [[1, 2], [3, 4]];
+				const matrix: TMatrix = [[1, 2], [3, 4]];
 				const scalar = 5;
 
-				// Type should be inferred as IMatrix
+				// Type should be inferred as TMatrix
 				const result = MatrixMultiply(matrix, scalar);
 				expect(result).toEqual([[5, 10], [15, 20]]);
 				expect(Array.isArray(result)).toBe(true);
@@ -492,7 +492,7 @@ describe('Matrix Arithmetic', () => {
 			});
 
 			it('should correctly dispatch to vector multiplication', () => {
-				const matrix: IMatrix = [[1, 2], [3, 4]];
+				const matrix: TMatrix = [[1, 2], [3, 4]];
 				const vector: TVector = [2, 3];
 
 				// Type should be inferred as TVector (1D array)
@@ -503,10 +503,10 @@ describe('Matrix Arithmetic', () => {
 			});
 
 			it('should correctly dispatch to matrix multiplication', () => {
-				const matrixA: IMatrix2 = [[1, 2], [3, 4]];
-				const matrixB: IMatrix2 = [[2, 0], [1, 2]];
+				const matrixA: TMatrix2 = [[1, 2], [3, 4]];
+				const matrixB: TMatrix2 = [[2, 0], [1, 2]];
 
-				// Type should be inferred as IMatrix
+				// Type should be inferred as TMatrix
 				const result = MatrixMultiply(matrixA, matrixB);
 				expect(result).toEqual([[4, 4], [10, 8]]);
 				expect(Array.isArray(result)).toBe(true);
@@ -515,10 +515,10 @@ describe('Matrix Arithmetic', () => {
 			});
 
 			it('should handle mixed operand types correctly', () => {
-				const matrix: IMatrix2 = [[2, 1], [1, 2]];
+				const matrix: TMatrix2 = [[2, 1], [1, 2]];
 
 				// Scalar multiplication
-				const scalarResult: IMatrix = MatrixMultiply(matrix, 3);
+				const scalarResult: TMatrix = MatrixMultiply(matrix, 3);
 				expect(scalarResult).toEqual([[6, 3], [3, 6]]);
 
 				// Vector multiplication
@@ -526,29 +526,29 @@ describe('Matrix Arithmetic', () => {
 				expect(vectorResult).toEqual([4, 5]);
 
 				// Matrix multiplication
-				const matrixResult: IMatrix = MatrixMultiply(matrix, [[1, 0], [0, 1]]);
+				const matrixResult: TMatrix = MatrixMultiply(matrix, [[1, 0], [0, 1]]);
 				expect(matrixResult).toEqual([[2, 1], [1, 2]]);
 			});
 
 			it('should preserve specific matrix types in results', () => {
-				const matrix1: IMatrix1 = [[5]];
-				const matrix2: IMatrix2 = [[1, 2], [3, 4]];
-				const matrix3: IMatrix3 = [[1, 0, 0], [0, 1, 0], [0, 0, 1]];
+				const matrix1: TMatrix1 = [[5]];
+				const matrix2: TMatrix2 = [[1, 2], [3, 4]];
+				const matrix3: TMatrix3 = [[1, 0, 0], [0, 1, 0], [0, 0, 1]];
 
-				// All should return IMatrix type (base type)
-				const result1: IMatrix = MatrixMultiply(matrix1, 2);
-				const result2: IMatrix = MatrixMultiply(matrix2, 0.5);
-				const result3: IMatrix = MatrixMultiply(matrix3, 3);
+				// All should return TMatrix type (base type)
+				const result1: TMatrix = MatrixMultiply(matrix1, 2);
+				const result2: TMatrix = MatrixMultiply(matrix2, 0.5);
+				const result3: TMatrix = MatrixMultiply(matrix3, 3);
 				expect(result1).toEqual([[10]]);
 				expect(result2).toEqual([[0.5, 1], [1.5, 2]]);
 				expect(result3).toEqual([[3, 0, 0], [0, 3, 0], [0, 0, 3]]);
 			});
 
 			it('should handle edge cases for each overload', () => {
-				const matrix: IMatrix = [[1, 0], [0, 1]];
+				const matrix: TMatrix = [[1, 0], [0, 1]];
 
 				// Scalar: multiply by 0
-				const zeroScalar: IMatrix = MatrixMultiply(matrix, 0);
+				const zeroScalar: TMatrix = MatrixMultiply(matrix, 0);
 				expect(zeroScalar).toEqual([[0, 0], [0, 0]]);
 
 				// Vector: zero vector
@@ -556,12 +556,12 @@ describe('Matrix Arithmetic', () => {
 				expect(zeroVector).toEqual([0, 0]);
 
 				// Matrix: zero matrix
-				const zeroMatrix: IMatrix = MatrixMultiply(matrix, [[0, 0], [0, 0]]);
+				const zeroMatrix: TMatrix = MatrixMultiply(matrix, [[0, 0], [0, 0]]);
 				expect(zeroMatrix).toEqual([[0, 0], [0, 0]]);
 			});
 
 			it('should validate input types correctly', () => {
-				const matrix: IMatrix = [[1, 2], [3, 4]];
+				const matrix: TMatrix = [[1, 2], [3, 4]];
 				// Test type detection with edge values
 				expect(MatrixMultiply(matrix, 1)).toEqual([[1, 2], [3, 4]]);
 				expect(MatrixMultiply(matrix, -1)).toEqual([[-1, -2], [-3, -4]]);
@@ -569,7 +569,7 @@ describe('Matrix Arithmetic', () => {
 			});
 
 			it('should handle type coercion edge cases', () => {
-				const matrix: IMatrix = [[2, 3]];
+				const matrix: TMatrix = [[2, 3]];
 
 				// Ensure vector is detected correctly vs matrix
 				const vectorResult = MatrixMultiply(matrix, [4, 5]);
@@ -581,7 +581,7 @@ describe('Matrix Arithmetic', () => {
 			});
 
 			it('should maintain precision in type-specific operations', () => {
-				const matrix2: IMatrix2 = [[1.1, 2.2], [3.3, 4.4]];
+				const matrix2: TMatrix2 = [[1.1, 2.2], [3.3, 4.4]];
 				const vector2: TVector = [0.5, 0.25];
 
 				const result = MatrixMultiply(matrix2, vector2);
@@ -707,8 +707,8 @@ describe('Matrix Arithmetic', () => {
 
 		describe('edge cases and error handling', () => {
 			it('should throw descriptive errors for dimension mismatches', () => {
-				const matrix2x3: IMatrix = [[1, 2, 3], [4, 5, 6]];
-				const matrix2x2: IMatrix = [[1, 2], [3, 4]];
+				const matrix2x3: TMatrix = [[1, 2, 3], [4, 5, 6]];
+				const matrix2x2: TMatrix = [[1, 2], [3, 4]];
 				const vector3: TVector = [1, 2, 3];
 				// Matrix-matrix dimension mismatch
 				expect(() => MatrixMultiply(matrix2x3, matrix2x2))
@@ -724,7 +724,7 @@ describe('Matrix Arithmetic', () => {
 			});
 
 			it('should handle matrices with extreme values', () => {
-				const matrix: IMatrix = [[Number.MAX_SAFE_INTEGER, 0], [0, Number.MIN_SAFE_INTEGER]];
+				const matrix: TMatrix = [[Number.MAX_SAFE_INTEGER, 0], [0, Number.MIN_SAFE_INTEGER]];
 				const scalar = 0.5;
 				const result = MatrixMultiply(matrix, scalar);
 				expect(result[0]).toBeDefined();
@@ -734,7 +734,7 @@ describe('Matrix Arithmetic', () => {
 			});
 
 			it('should handle very small decimal numbers', () => {
-				const matrix: IMatrix = [[1e-10, 2e-10], [3e-10, 4e-10]];
+				const matrix: TMatrix = [[1e-10, 2e-10], [3e-10, 4e-10]];
 				const scalar = 1e10;
 				const result = MatrixMultiply(matrix, scalar);
 				expect(result[0]?.[0]).toBeCloseTo(1, 10);
@@ -744,7 +744,7 @@ describe('Matrix Arithmetic', () => {
 			});
 
 			it('should preserve exact zero values', () => {
-				const matrix: IMatrix = [[0, 1], [1, 0]];
+				const matrix: TMatrix = [[0, 1], [1, 0]];
 				const vector: TVector = [5, 0];
 				const result = MatrixMultiply(matrix, vector);
 				expect(result[0]).toBe(0);
@@ -752,7 +752,7 @@ describe('Matrix Arithmetic', () => {
 			});
 
 			it('should handle NaN and Infinity gracefully', () => {
-				const matrix: IMatrix = [[1, 2], [3, 4]];
+				const matrix: TMatrix = [[1, 2], [3, 4]];
 				// NaN scalar should throw validation error
 				expect(() => MatrixMultiply(matrix, NaN))
 					.toThrow(/Scalar multiplier must be a valid number/);
@@ -763,7 +763,7 @@ describe('Matrix Arithmetic', () => {
 			});
 
 			it('should handle matrices with mixed positive/negative values', () => {
-				const matrix: IMatrix = [[-1, 2, -3], [4, -5, 6]];
+				const matrix: TMatrix = [[-1, 2, -3], [4, -5, 6]];
 				const vector: TVector = [-1, -1, -1];
 				const result = MatrixMultiply(matrix, vector);
 				expect(result[0]).toBe((-1 * -1) + (2 * -1) + (-3 * -1)); // 1 - 2 + 3 = 2
@@ -771,7 +771,7 @@ describe('Matrix Arithmetic', () => {
 			});
 
 			it('should handle single-element matrices and vectors', () => {
-				const matrix1x1: IMatrix1 = [[5]];
+				const matrix1x1: TMatrix1 = [[5]];
 				const vector1: TVector = [3];
 				const result = MatrixMultiply(matrix1x1, vector1);
 				expect(result).toEqual([15]);
@@ -779,13 +779,13 @@ describe('Matrix Arithmetic', () => {
 
 			it('should handle wide and tall rectangular matrices', () => {
 				// Wide matrix (1x5)
-				const wideMatrix: IMatrix = [[1, 2, 3, 4, 5]];
+				const wideMatrix: TMatrix = [[1, 2, 3, 4, 5]];
 				const vector5: TVector = [1, 1, 1, 1, 1];
 				const wideResult = MatrixMultiply(wideMatrix, vector5);
 				expect(wideResult).toEqual([15]);
 
 				// Tall matrix (5x1)
-				const tallMatrix: IMatrix = [[1], [2], [3], [4], [5]];
+				const tallMatrix: TMatrix = [[1], [2], [3], [4], [5]];
 				const vector1: TVector = [2];
 				const tallResult = MatrixMultiply(tallMatrix, vector1);
 				expect(tallResult).toEqual([2, 4, 6, 8, 10]);
@@ -795,10 +795,10 @@ describe('Matrix Arithmetic', () => {
 		describe('performance and optimization tests', () => {
 			it('should handle optimized small matrix sizes efficiently', () => {
 				// Test all optimized sizes: 1x1, 2x2, 3x3, 4x4
-				const matrix1: IMatrix1 = [[2]];
-				const matrix2: IMatrix2 = [[1, 2], [3, 4]];
-				const matrix3: IMatrix3 = [[1, 0, 0], [0, 1, 0], [0, 0, 1]];
-				const matrix4: IMatrix4 = [
+				const matrix1: TMatrix1 = [[2]];
+				const matrix2: TMatrix2 = [[1, 2], [3, 4]];
+				const matrix3: TMatrix3 = [[1, 0, 0], [0, 1, 0], [0, 0, 1]];
+				const matrix4: TMatrix4 = [
 					[1, 0, 0, 0],
 					[0, 1, 0, 0],
 					[0, 0, 1, 0],
@@ -848,7 +848,7 @@ describe('Matrix Arithmetic', () => {
 			});
 
 			it('should handle repeated operations consistently', () => {
-				const matrix: IMatrix2 = [[1, 2], [3, 4]];
+				const matrix: TMatrix2 = [[1, 2], [3, 4]];
 				const vector: TVector = [1, 1];
 
 				// Perform same operation multiple times
@@ -860,9 +860,9 @@ describe('Matrix Arithmetic', () => {
 			});
 
 			it('should handle chained multiplications correctly', () => {
-				const a: IMatrix = [[1, 2]];
-				const b: IMatrix = [[3], [4]];
-				const c: IMatrix = [[5, 6]];
+				const a: TMatrix = [[1, 2]];
+				const b: TMatrix = [[3], [4]];
+				const c: TMatrix = [[5, 6]];
 
 				// Test associativity: (A*B)*C = A*(B*C)
 				const leftAssoc = MatrixMultiply(MatrixMultiply(a, b), c);
@@ -874,37 +874,37 @@ describe('Matrix Arithmetic', () => {
 
 	describe('MatrixSubmatrix', () => {
 		it('should extract 2x2 submatrix from top-left', () => {
-			const matrix: IMatrix = [[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12]];
+			const matrix: TMatrix = [[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12]];
 			const result = MatrixSubmatrix(matrix, 0, 0, 2, 2);
 			expect(result).toEqual([[1, 2], [5, 6]]);
 		});
 
 		it('should extract 2x2 submatrix from center', () => {
-			const matrix: IMatrix = [[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12]];
+			const matrix: TMatrix = [[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12]];
 			const result = MatrixSubmatrix(matrix, 1, 1, 2, 2);
 			expect(result).toEqual([[6, 7], [10, 11]]);
 		});
 
 		it('should extract single element', () => {
-			const matrix: IMatrix = [[1, 2, 3], [4, 5, 6], [7, 8, 9]];
+			const matrix: TMatrix = [[1, 2, 3], [4, 5, 6], [7, 8, 9]];
 			const result = MatrixSubmatrix(matrix, 1, 1, 1, 1);
 			expect(result).toEqual([[5]]);
 		});
 
 		it('should extract full row', () => {
-			const matrix: IMatrix = [[1, 2, 3], [4, 5, 6], [7, 8, 9]];
+			const matrix: TMatrix = [[1, 2, 3], [4, 5, 6], [7, 8, 9]];
 			const result = MatrixSubmatrix(matrix, 0, 1, 3, 1);
 			expect(result).toEqual([[4, 5, 6]]);
 		});
 
 		it('should extract full column', () => {
-			const matrix: IMatrix = [[1, 2, 3], [4, 5, 6], [7, 8, 9]];
+			const matrix: TMatrix = [[1, 2, 3], [4, 5, 6], [7, 8, 9]];
 			const result = MatrixSubmatrix(matrix, 1, 0, 1, 3);
 			expect(result).toEqual([[2], [5], [8]]);
 		});
 
 		it('should handle edge case at matrix boundaries', () => {
-			const matrix: IMatrix = [[1, 2], [3, 4]];
+			const matrix: TMatrix = [[1, 2], [3, 4]];
 			const result = MatrixSubmatrix(matrix, 1, 1, 1, 1);
 			expect(result).toEqual([[4]]);
 		});
@@ -912,7 +912,7 @@ describe('Matrix Arithmetic', () => {
 
 	describe('MatrixPad', () => {
 		it('should pad 2x2 matrix to 4x4', () => {
-			const matrix: IMatrix = [[1, 2], [3, 4]];
+			const matrix: TMatrix = [[1, 2], [3, 4]];
 			const result = MatrixPad(matrix, 4, 4);
 			expect(result).toEqual([
 				[1, 2, 0, 0],
@@ -923,7 +923,7 @@ describe('Matrix Arithmetic', () => {
 		});
 
 		it('should pad matrix asymmetrically', () => {
-			const matrix: IMatrix = [[1, 2], [3, 4]];
+			const matrix: TMatrix = [[1, 2], [3, 4]];
 			const result = MatrixPad(matrix, 3, 4);
 			expect(result).toEqual([
 				[1, 2, 0, 0],
@@ -933,7 +933,7 @@ describe('Matrix Arithmetic', () => {
 		});
 
 		it('should pad single element matrix', () => {
-			const matrix: IMatrix1 = [[5]];
+			const matrix: TMatrix1 = [[5]];
 			const result = MatrixPad(matrix, 3, 3);
 			expect(result).toEqual([
 				[5, 0, 0],
@@ -943,13 +943,13 @@ describe('Matrix Arithmetic', () => {
 		});
 
 		it('should handle padding with same dimensions', () => {
-			const matrix: IMatrix = [[1, 2], [3, 4]];
+			const matrix: TMatrix = [[1, 2], [3, 4]];
 			const result = MatrixPad(matrix, 2, 2);
 			expect(result).toEqual([[1, 2], [3, 4]]);
 		});
 
 		it('should pad only rows', () => {
-			const matrix: IMatrix = [[1, 2, 3], [4, 5, 6]];
+			const matrix: TMatrix = [[1, 2, 3], [4, 5, 6]];
 			const result = MatrixPad(matrix, 4, 3);
 			expect(result).toEqual([
 				[1, 2, 3],
@@ -960,7 +960,7 @@ describe('Matrix Arithmetic', () => {
 		});
 
 		it('should pad only columns', () => {
-			const matrix: IMatrix = [[1, 2], [3, 4], [5, 6]];
+			const matrix: TMatrix = [[1, 2], [3, 4], [5, 6]];
 			const result = MatrixPad(matrix, 3, 4);
 			expect(result).toEqual([
 				[1, 2, 0, 0],
@@ -972,10 +972,10 @@ describe('Matrix Arithmetic', () => {
 
 	describe('MatrixCombine', () => {
 		it('should combine four 2x2 matrices into 4x4', () => {
-			const c11: IMatrix = [[1, 2], [3, 4]];
-			const c12: IMatrix = [[5, 6], [7, 8]];
-			const c21: IMatrix = [[9, 10], [11, 12]];
-			const c22: IMatrix = [[13, 14], [15, 16]];
+			const c11: TMatrix = [[1, 2], [3, 4]];
+			const c12: TMatrix = [[5, 6], [7, 8]];
+			const c21: TMatrix = [[9, 10], [11, 12]];
+			const c22: TMatrix = [[13, 14], [15, 16]];
 
 			const result = MatrixCombine(c11, c12, c21, c22);
 			expect(result).toEqual([
@@ -987,10 +987,10 @@ describe('Matrix Arithmetic', () => {
 		});
 
 		it('should combine four 1x1 matrices into 2x2', () => {
-			const c11: IMatrix1 = [[1]];
-			const c12: IMatrix1 = [[2]];
-			const c21: IMatrix1 = [[3]];
-			const c22: IMatrix1 = [[4]];
+			const c11: TMatrix1 = [[1]];
+			const c12: TMatrix1 = [[2]];
+			const c21: TMatrix1 = [[3]];
+			const c22: TMatrix1 = [[4]];
 
 			const result = MatrixCombine(c11, c12, c21, c22);
 			expect(result).toEqual([
@@ -1000,10 +1000,10 @@ describe('Matrix Arithmetic', () => {
 		});
 
 		it('should handle matrices with negative numbers', () => {
-			const c11: IMatrix = [[1, -2], [-3, 4]];
-			const c12: IMatrix = [[-5, 6], [7, -8]];
-			const c21: IMatrix = [[9, -10], [-11, 12]];
-			const c22: IMatrix = [[-13, 14], [15, -16]];
+			const c11: TMatrix = [[1, -2], [-3, 4]];
+			const c12: TMatrix = [[-5, 6], [7, -8]];
+			const c21: TMatrix = [[9, -10], [-11, 12]];
+			const c22: TMatrix = [[-13, 14], [15, -16]];
 
 			const result = MatrixCombine(c11, c12, c21, c22);
 			expect(result).toEqual([
@@ -1015,10 +1015,10 @@ describe('Matrix Arithmetic', () => {
 		});
 
 		it('should handle matrices with zeros', () => {
-			const c11: IMatrix = [[0, 0], [0, 0]];
-			const c12: IMatrix = [[1, 2], [3, 4]];
-			const c21: IMatrix = [[5, 6], [7, 8]];
-			const c22: IMatrix = [[0, 0], [0, 0]];
+			const c11: TMatrix = [[0, 0], [0, 0]];
+			const c12: TMatrix = [[1, 2], [3, 4]];
+			const c21: TMatrix = [[5, 6], [7, 8]];
+			const c22: TMatrix = [[0, 0], [0, 0]];
 
 			const result = MatrixCombine(c11, c12, c21, c22);
 			expect(result).toEqual([
@@ -1033,8 +1033,8 @@ describe('Matrix Arithmetic', () => {
 	describe('integration tests', () => {
 		it('should perform complex operations sequence', () => {
 			// Create two 2x2 matrices
-			const a: IMatrix2 = [[1, 2], [3, 4]];
-			const b: IMatrix2 = [[5, 6], [7, 8]];
+			const a: TMatrix2 = [[1, 2], [3, 4]];
+			const b: TMatrix2 = [[5, 6], [7, 8]];
 
 			// Add them
 			const sum = MatrixAdd(a, b);
@@ -1050,7 +1050,7 @@ describe('Matrix Arithmetic', () => {
 		});
 
 		it('should work with submatrix operations in Strassen context', () => {
-			const matrix: IMatrix = [
+			const matrix: TMatrix = [
 				[1, 2, 3, 4],
 				[5, 6, 7, 8],
 				[9, 10, 11, 12],
@@ -1069,7 +1069,7 @@ describe('Matrix Arithmetic', () => {
 		});
 
 		it('should handle padding and submatrix extraction round trip', () => {
-			const original: IMatrix = [[1, 2], [3, 4]];
+			const original: TMatrix = [[1, 2], [3, 4]];
 
 			// Pad to larger size
 			const padded = MatrixPad(original, 4, 4);

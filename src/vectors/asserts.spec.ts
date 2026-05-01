@@ -19,7 +19,7 @@ describe('Vector Assertions', () => {
 		});
 
 		it('should create a VectorError without message', () => {
-			const error = new VectorError();
+			const error = new VectorError('');
 			expect(error).toBeInstanceOf(Error);
 			expect(error).toBeInstanceOf(VectorError);
 			expect(error.name).toBe('VectorError');

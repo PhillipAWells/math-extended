@@ -16,12 +16,12 @@ import {
 	MatrixPerspective,
 	MatrixOrthographic,
 } from './transformations.js';
-import { DegreesToRadians } from '../angles.ts';
+import { DegreesToRadians } from '../angles.js';
 import { AssertMatrixRow, AssertMatrixValue } from './asserts.js';
 import { MatrixIdentity } from './core.js';
-import { IMatrix3, IMatrix4 } from './types.js';
-import { VectorMagnitude } from '../vectors/core.ts';
-import { TVector2, TVector3 } from '../vectors/types.ts';
+import { TMatrix3, TMatrix4 } from './types.js';
+import { VectorMagnitude } from '../vectors/core.js';
+import { TVector2, TVector3 } from '../vectors/types.js';
 
 describe('Matrix Transformations', () => {
 	// Helper function to check if matrices are approximately equal
@@ -559,7 +559,7 @@ describe('Matrix Transformations', () => {
 			});
 
 			test('should throw for degenerate transformation', () => {
-				const degenerate: IMatrix3 = [
+				const degenerate: TMatrix3 = [
 					[1, 0, 0],
 					[0, 1, 0],
 					[0, 0, 0], // w = 0 causes division by zero
@@ -618,7 +618,7 @@ describe('Matrix Transformations', () => {
 			});
 
 			test('should throw for degenerate transformation', () => {
-				const degenerate: IMatrix4 = [
+				const degenerate: TMatrix4 = [
 					[1, 0, 0, 0],
 					[0, 1, 0, 0],
 					[0, 0, 1, 0],
@@ -641,7 +641,7 @@ describe('Matrix Transformations', () => {
 			test('should transform direction with rotation', () => {
 				// Extract 3x3 rotation part from 4x4 matrix
 				const yaw4x4 = MatrixRotation3DYaw(Math.PI / 2);
-				const rotation3x3: IMatrix3 = [
+				const rotation3x3: TMatrix3 = [
 					[yaw4x4[0][0], yaw4x4[0][1], yaw4x4[0][2]],
 					[yaw4x4[1][0], yaw4x4[1][1], yaw4x4[1][2]],
 					[yaw4x4[2][0], yaw4x4[2][1], yaw4x4[2][2]],
@@ -655,7 +655,7 @@ describe('Matrix Transformations', () => {
 
 			test('should ignore translation (direction vectors should not be translated)', () => {
 				// Create a 3x3 matrix that would translate if it were 4x4
-				const transform: IMatrix3 = [
+				const transform: TMatrix3 = [
 					[1, 0, 5], // Translation component in 3x3 context
 					[0, 1, 10],
 					[0, 0, 1],
@@ -675,7 +675,7 @@ describe('Matrix Transformations', () => {
 			});
 
 			test('should throw for invalid direction', () => {
-				const identity: IMatrix3 = [
+				const identity: TMatrix3 = [
 					[1, 0, 0],
 					[0, 1, 0],
 					[0, 0, 1],
@@ -873,7 +873,7 @@ describe('Matrix Transformations', () => {
 
 		test('should preserve direction vector properties', () => {
 			const direction: TVector3 = [1, 1, 1];
-			const rotation3x3: IMatrix3 = [
+			const rotation3x3: TMatrix3 = [
 				[1, 0, 0],
 				[0, 0, -1],
 				[0, 1, 0],

@@ -1,4 +1,4 @@
-import { Clamp } from './clamp.ts';
+import { Clamp } from './clamp.js';
 
 describe('Math Extended > Clamp', () => {
 	test('If the value is within range, return the value.', () => {

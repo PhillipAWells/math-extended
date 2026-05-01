@@ -7,27 +7,27 @@ import {
 	MatrixGramSchmidt,
 	MatrixMinor,
 } from './linear-algebra.js';
-import { IMatrix } from './types.js';
+import { TMatrix } from './types.js';
 
 describe('Matrix Operations for Linear Algebra', () => {
 	describe('MatrixDeterminant', () => {
 		test('should calculate determinant of 1x1 matrix', () => {
-			const matrix: IMatrix = [[5]];
+			const matrix: TMatrix = [[5]];
 			expect(MatrixDeterminant(matrix)).toBe(5);
 		});
 
 		test('should calculate determinant of 2x2 matrix', () => {
-			const matrix: IMatrix = [[1, 2], [3, 4]];
+			const matrix: TMatrix = [[1, 2], [3, 4]];
 			expect(MatrixDeterminant(matrix)).toBe(-2); // 1*4 - 2*3 = -2
 		});
 
 		test('should calculate determinant of 2x2 identity matrix', () => {
-			const matrix: IMatrix = [[1, 0], [0, 1]];
+			const matrix: TMatrix = [[1, 0], [0, 1]];
 			expect(MatrixDeterminant(matrix)).toBe(1);
 		});
 
 		test('should calculate determinant of 3x3 matrix', () => {
-			const matrix: IMatrix = [
+			const matrix: TMatrix = [
 				[1, 2, 3],
 				[4, 5, 6],
 				[7, 8, 9],
@@ -36,7 +36,7 @@ describe('Matrix Operations for Linear Algebra', () => {
 		});
 
 		test('should calculate determinant of 3x3 non-singular matrix', () => {
-			const matrix: IMatrix = [
+			const matrix: TMatrix = [
 				[2, -3, 1],
 				[2, 0, -1],
 				[1, 4, 5],
@@ -45,7 +45,7 @@ describe('Matrix Operations for Linear Algebra', () => {
 		});
 
 		test('should calculate determinant of 3x3 identity matrix', () => {
-			const matrix: IMatrix = [
+			const matrix: TMatrix = [
 				[1, 0, 0],
 				[0, 1, 0],
 				[0, 0, 1],
@@ -54,7 +54,7 @@ describe('Matrix Operations for Linear Algebra', () => {
 		});
 
 		test('should calculate determinant of larger matrix using cofactor expansion', () => {
-			const matrix: IMatrix = [
+			const matrix: TMatrix = [
 				[1, 2, 3, 4],
 				[2, 1, 4, 3],
 				[3, 4, 1, 2],
@@ -64,12 +64,12 @@ describe('Matrix Operations for Linear Algebra', () => {
 		});
 
 		test('should throw error for non-square matrix', () => {
-			const matrix: IMatrix = [[1, 2, 3], [4, 5, 6]];
+			const matrix: TMatrix = [[1, 2, 3], [4, 5, 6]];
 			expect(() => MatrixDeterminant(matrix)).toThrow();
 		});
 
 		test('should handle zero determinant matrix', () => {
-			const matrix: IMatrix = [
+			const matrix: TMatrix = [
 				[1, 2],
 				[2, 4],
 			];
@@ -79,7 +79,7 @@ describe('Matrix Operations for Linear Algebra', () => {
 
 	describe('MatrixCofactorElement', () => {
 		test('should calculate cofactor element for 2x2 matrix', () => {
-			const matrix: IMatrix = [[1, 2], [3, 4]];
+			const matrix: TMatrix = [[1, 2], [3, 4]];
 			expect(MatrixCofactorElement(matrix, 0, 0)).toBe(4);  // +4
 			expect(MatrixCofactorElement(matrix, 1, 0)).toBe(-3); // -3
 			expect(MatrixCofactorElement(matrix, 0, 1)).toBe(-2); // -2
@@ -87,7 +87,7 @@ describe('Matrix Operations for Linear Algebra', () => {
 		});
 
 		test('should calculate cofactor element for 3x3 matrix', () => {
-			const matrix: IMatrix = [
+			const matrix: TMatrix = [
 				[1, 2, 3],
 				[0, 1, 4],
 				[5, 6, 0],
@@ -97,12 +97,12 @@ describe('Matrix Operations for Linear Algebra', () => {
 		});
 
 		test('should throw error for non-square matrix', () => {
-			const matrix: IMatrix = [[1, 2, 3], [4, 5, 6]];
+			const matrix: TMatrix = [[1, 2, 3], [4, 5, 6]];
 			expect(() => MatrixCofactorElement(matrix, 0, 0)).toThrow();
 		});
 
 		test('should throw error for out-of-bounds indices', () => {
-			const matrix: IMatrix = [[1, 2], [3, 4]];
+			const matrix: TMatrix = [[1, 2], [3, 4]];
 			expect(() => MatrixCofactorElement(matrix, 2, 0)).toThrow();
 			expect(() => MatrixCofactorElement(matrix, 0, 2)).toThrow();
 		});
@@ -110,13 +110,13 @@ describe('Matrix Operations for Linear Algebra', () => {
 
 	describe('MatrixCofactor', () => {
 		test('should calculate cofactor matrix for 2x2 matrix', () => {
-			const matrix: IMatrix = [[1, 2], [3, 4]];
+			const matrix: TMatrix = [[1, 2], [3, 4]];
 			const result = MatrixCofactor(matrix);
 			expect(result).toEqual([[4, -3], [-2, 1]]);
 		});
 
 		test('should calculate cofactor matrix for 3x3 matrix', () => {
-			const matrix: IMatrix = [
+			const matrix: TMatrix = [
 				[1, 2, 3],
 				[0, 1, 4],
 				[5, 6, 0],
@@ -130,26 +130,26 @@ describe('Matrix Operations for Linear Algebra', () => {
 		});
 
 		test('should calculate cofactor matrix for identity matrix', () => {
-			const matrix: IMatrix = [[1, 0], [0, 1]];
+			const matrix: TMatrix = [[1, 0], [0, 1]];
 			const result = MatrixCofactor(matrix);
 			expect(result).toEqual([[1, 0], [0, 1]]);
 		});
 
 		test('should throw error for non-square matrix', () => {
-			const matrix: IMatrix = [[1, 2, 3], [4, 5, 6]];
+			const matrix: TMatrix = [[1, 2, 3], [4, 5, 6]];
 			expect(() => MatrixCofactor(matrix)).toThrow();
 		});
 	});
 
 	describe('MatrixAdjoint', () => {
 		test('should calculate adjoint matrix for 2x2 matrix', () => {
-			const matrix: IMatrix = [[1, 2], [3, 4]];
+			const matrix: TMatrix = [[1, 2], [3, 4]];
 			const result = MatrixAdjoint(matrix);
 			expect(result).toEqual([[4, -2], [-3, 1]]);
 		});
 
 		test('should calculate adjoint matrix for 3x3 matrix', () => {
-			const matrix: IMatrix = [
+			const matrix: TMatrix = [
 				[1, 2, 3],
 				[0, 1, 4],
 				[5, 6, 0],
@@ -163,20 +163,20 @@ describe('Matrix Operations for Linear Algebra', () => {
 		});
 
 		test('should calculate adjoint matrix for identity matrix', () => {
-			const matrix: IMatrix = [[1, 0], [0, 1]];
+			const matrix: TMatrix = [[1, 0], [0, 1]];
 			const result = MatrixAdjoint(matrix);
 			expect(result).toEqual([[1, 0], [0, 1]]);
 		});
 
 		test('should throw error for non-square matrix', () => {
-			const matrix: IMatrix = [[1, 2, 3], [4, 5, 6]];
+			const matrix: TMatrix = [[1, 2, 3], [4, 5, 6]];
 			expect(() => MatrixAdjoint(matrix)).toThrow();
 		});
 	});
 
 	describe('MatrixInverse', () => {
 		test('should calculate inverse of 2x2 matrix', () => {
-			const matrix: IMatrix = [[1, 2], [3, 4]];
+			const matrix: TMatrix = [[1, 2], [3, 4]];
 			const result = MatrixInverse(matrix);
 			expect(result[0]?.[0]).toBeCloseTo(-2);
 			expect(result[0]?.[1]).toBeCloseTo(1);
@@ -185,13 +185,13 @@ describe('Matrix Operations for Linear Algebra', () => {
 		});
 
 		test('should calculate inverse of identity matrix', () => {
-			const matrix: IMatrix = [[1, 0], [0, 1]];
+			const matrix: TMatrix = [[1, 0], [0, 1]];
 			const result = MatrixInverse(matrix);
 			expect(result).toEqual([[1, 0], [0, 1]]);
 		});
 
 		test('should calculate inverse of 3x3 matrix', () => {
-			const matrix: IMatrix = [
+			const matrix: TMatrix = [
 				[2, -1, 0],
 				[-1, 2, -1],
 				[0, -1, 2],
@@ -203,11 +203,11 @@ describe('Matrix Operations for Linear Algebra', () => {
 		});
 
 		test('should verify inverse property A * A^-1 = I', () => {
-			const matrix: IMatrix = [[2, 1], [1, 1]];
+			const matrix: TMatrix = [[2, 1], [1, 1]];
 			const inverse = MatrixInverse(matrix);
 
 			// Manually multiply matrix * inverse
-			const product: IMatrix = [
+			const product: TMatrix = [
 				[((matrix[0]?.[0] ?? 0) * (inverse[0]?.[0] ?? 0)) + ((matrix[0]?.[1] ?? 0) * (inverse[1]?.[0] ?? 0)),
 					((matrix[0]?.[0] ?? 0) * (inverse[0]?.[1] ?? 0)) + ((matrix[0]?.[1] ?? 0) * (inverse[1]?.[1] ?? 0))],
 				[((matrix[1]?.[0] ?? 0) * (inverse[0]?.[0] ?? 0)) + ((matrix[1]?.[1] ?? 0) * (inverse[1]?.[0] ?? 0)),
@@ -220,19 +220,19 @@ describe('Matrix Operations for Linear Algebra', () => {
 		});
 
 		test('should throw error for singular matrix', () => {
-			const matrix: IMatrix = [[1, 2], [2, 4]]; // determinant = 0
+			const matrix: TMatrix = [[1, 2], [2, 4]]; // determinant = 0
 			expect(() => MatrixInverse(matrix)).toThrow();
 		});
 
 		test('should throw error for non-square matrix', () => {
-			const matrix: IMatrix = [[1, 2, 3], [4, 5, 6]];
+			const matrix: TMatrix = [[1, 2, 3], [4, 5, 6]];
 			expect(() => MatrixInverse(matrix)).toThrow();
 		});
 	});
 
 	describe('MatrixGramSchmidt', () => {
 		test('should orthogonalize 2x2 matrix', () => {
-			const matrix: IMatrix = [[1, 1], [0, 1]];
+			const matrix: TMatrix = [[1, 1], [0, 1]];
 			const result = MatrixGramSchmidt(matrix);
 			// First column should be normalized [1, 0]
 			expect(result[0]?.[0]).toBeCloseTo(1);
@@ -244,7 +244,7 @@ describe('Matrix Operations for Linear Algebra', () => {
 		});
 
 		test('should orthogonalize 3x2 matrix', () => {
-			const matrix: IMatrix = [
+			const matrix: TMatrix = [
 				[1, 1],
 				[1, 0],
 				[0, 1],
@@ -267,7 +267,7 @@ describe('Matrix Operations for Linear Algebra', () => {
 		});
 
 		test('should handle identity matrix', () => {
-			const matrix: IMatrix = [
+			const matrix: TMatrix = [
 				[1, 0, 0],
 				[0, 1, 0],
 				[0, 0, 1],
@@ -283,7 +283,7 @@ describe('Matrix Operations for Linear Algebra', () => {
 		});
 
 		test('should handle single column matrix', () => {
-			const matrix: IMatrix = [[3], [4]];
+			const matrix: TMatrix = [[3], [4]];
 			const result = MatrixGramSchmidt(matrix);
 			// Should normalize the single column
 			expect(result[0]?.[0]).toBeCloseTo(0.6);  // 3/5
@@ -293,7 +293,7 @@ describe('Matrix Operations for Linear Algebra', () => {
 
 	describe('MatrixMinor', () => {
 		test('should calculate minor for 2x2 matrix', () => {
-			const matrix: IMatrix = [[1, 2], [3, 4]];
+			const matrix: TMatrix = [[1, 2], [3, 4]];
 			expect(MatrixMinor(matrix, 0, 0)).toBe(4);
 			expect(MatrixMinor(matrix, 1, 0)).toBe(3);
 			expect(MatrixMinor(matrix, 0, 1)).toBe(2);
@@ -301,7 +301,7 @@ describe('Matrix Operations for Linear Algebra', () => {
 		});
 
 		test('should calculate minor for 3x3 matrix', () => {
-			const matrix: IMatrix = [
+			const matrix: TMatrix = [
 				[1, 2, 3],
 				[4, 5, 6],
 				[7, 8, 9],
@@ -312,7 +312,7 @@ describe('Matrix Operations for Linear Algebra', () => {
 		});
 
 		test('should calculate minor for 4x4 matrix', () => {
-			const matrix: IMatrix = [
+			const matrix: TMatrix = [
 				[1, 2, 3, 4],
 				[5, 6, 7, 8],
 				[9, 10, 11, 12],
@@ -324,17 +324,17 @@ describe('Matrix Operations for Linear Algebra', () => {
 		});
 
 		test('should throw error for 1x1 matrix', () => {
-			const matrix: IMatrix = [[5]];
+			const matrix: TMatrix = [[5]];
 			expect(() => MatrixMinor(matrix, 0, 0)).toThrow();
 		});
 
 		test('should throw error for non-square matrix', () => {
-			const matrix: IMatrix = [[1, 2, 3], [4, 5, 6]];
+			const matrix: TMatrix = [[1, 2, 3], [4, 5, 6]];
 			expect(() => MatrixMinor(matrix, 0, 0)).toThrow();
 		});
 
 		test('should throw error for out-of-bounds indices', () => {
-			const matrix: IMatrix = [[1, 2], [3, 4]];
+			const matrix: TMatrix = [[1, 2], [3, 4]];
 			expect(() => MatrixMinor(matrix, 2, 0)).toThrow();
 			expect(() => MatrixMinor(matrix, 0, 2)).toThrow();
 			expect(() => MatrixMinor(matrix, -1, 0)).toThrow();
@@ -346,7 +346,7 @@ describe('Matrix Operations for Linear Algebra', () => {
 	describe('Integration Tests', () => {
 		test('determinant should equal product of eigenvalues for known matrices', () => {
 			// For a diagonal matrix, determinant = product of diagonal elements
-			const diagonal: IMatrix = [
+			const diagonal: TMatrix = [
 				[2, 0, 0],
 				[0, 3, 0],
 				[0, 0, 4],
@@ -355,7 +355,7 @@ describe('Matrix Operations for Linear Algebra', () => {
 		});
 
 		test('inverse and adjoint relationship: A^-1 = adj(A) / det(A)', () => {
-			const matrix: IMatrix = [[1, 2], [3, 4]];
+			const matrix: TMatrix = [[1, 2], [3, 4]];
 			const inverse = MatrixInverse(matrix);
 			const adjoint = MatrixAdjoint(matrix);
 			const determinant = MatrixDeterminant(matrix);
@@ -368,7 +368,7 @@ describe('Matrix Operations for Linear Algebra', () => {
 		});
 
 		test('cofactor and minor relationship: C_ij = (-1)^(i+j) * M_ij', () => {
-			const matrix: IMatrix = [
+			const matrix: TMatrix = [
 				[1, 2, 3],
 				[4, 5, 6],
 				[7, 8, 9],
@@ -385,7 +385,7 @@ describe('Matrix Operations for Linear Algebra', () => {
 		});
 
 		test('Gram-Schmidt should produce orthonormal matrix', () => {
-			const matrix: IMatrix = [
+			const matrix: TMatrix = [
 				[1, 2, 1],
 				[0, 1, 2],
 				[1, 0, 1],

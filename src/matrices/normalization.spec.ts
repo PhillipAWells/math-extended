@@ -1,6 +1,6 @@
 import { MatrixFrobeniusNorm, MatrixSpectralNorm, Matrix1Norm, MatrixInfinityNorm, MatrixNuclearNorm, MatrixMaxNorm, MatrixPNorm } from './normalization.js';
 import { MatrixIdentity } from './core.js';
-import { IMatrix } from './types.js';
+import { TMatrix } from './types.js';
 
 describe('Matrix Normalizations', () => {
 	describe('MatrixFrobeniusNorm', () => {
@@ -37,7 +37,7 @@ describe('Matrix Normalizations', () => {
 		});
 
 		test('should throw for empty matrix', () => {
-			const matrix: IMatrix = [];
+			const matrix: TMatrix = [];
 			expect(() => MatrixFrobeniusNorm(matrix)).toThrow('Matrix must have at least one row and one column');
 		});
 
@@ -73,7 +73,7 @@ describe('Matrix Normalizations', () => {
 		});
 
 		test('should throw for empty matrix', () => {
-			const matrix: IMatrix = [];
+			const matrix: TMatrix = [];
 			expect(() => MatrixSpectralNorm(matrix)).toThrow('Matrix must have at least one row and one column');
 		});
 
@@ -116,7 +116,7 @@ describe('Matrix Normalizations', () => {
 		});
 
 		test('should throw for empty matrix', () => {
-			const matrix: IMatrix = [];
+			const matrix: TMatrix = [];
 			expect(() => Matrix1Norm(matrix)).toThrow('Matrix must have at least one row and one column');
 		});
 
@@ -160,7 +160,7 @@ describe('Matrix Normalizations', () => {
 		});
 
 		test('should throw for empty matrix', () => {
-			const matrix: IMatrix = [];
+			const matrix: TMatrix = [];
 			expect(() => MatrixInfinityNorm(matrix)).toThrow('Matrix must have at least one row and one column');
 		});
 
@@ -197,7 +197,7 @@ describe('Matrix Normalizations', () => {
 		});
 
 		test('should throw for empty matrix', () => {
-			const matrix: IMatrix = [];
+			const matrix: TMatrix = [];
 			expect(() => MatrixNuclearNorm(matrix)).toThrow('Matrix must have at least one row and one column');
 		});
 
@@ -243,7 +243,7 @@ describe('Matrix Normalizations', () => {
 		});
 
 		test('should throw for empty matrix', () => {
-			const matrix: IMatrix = [];
+			const matrix: TMatrix = [];
 			expect(() => MatrixMaxNorm(matrix)).toThrow('Matrix must have at least one row and one column');
 		});
 
@@ -308,7 +308,7 @@ describe('Matrix Normalizations', () => {
 		});
 
 		test('should throw for empty matrix', () => {
-			const matrix: IMatrix = [];
+			const matrix: TMatrix = [];
 			expect(() => MatrixPNorm(matrix, 2)).toThrow('Matrix must have at least one row and one column');
 		});
 
@@ -374,7 +374,7 @@ describe('Matrix Normalizations', () => {
 		test('should handle large matrices efficiently', () => {
 			// Create a 10x10 matrix with known values
 			const size = 10;
-			const matrix: IMatrix = [];
+			const matrix: TMatrix = [];
 
 			for (let i = 0; i < size; i++) {
 				const row: number[] = [];

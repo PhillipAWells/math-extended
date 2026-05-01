@@ -1,7 +1,7 @@
 import { AssertMatrix, AssertMatrixRow, AssertMatrixValue } from './asserts.js';
 import { MatrixSize } from './core.js';
 import { MatrixSVD } from './decompositions.js';
-import { IMatrix } from './types.js';
+import { TMatrix } from './types.js';
 
 /**
  * Computes the Frobenius norm (Euclidean norm) of a matrix.
@@ -10,7 +10,7 @@ import { IMatrix } from './types.js';
  * @throws {Error} If the matrix contains invalid values
  * @example MatrixFrobeniusNorm([[3, 4], [0, 0]]) // 5 (sqrt(3² + 4²))
  */
-export function MatrixFrobeniusNorm(matrix: IMatrix): number {
+export function MatrixFrobeniusNorm(matrix: TMatrix): number {
 	AssertMatrix(matrix);
 
 	const [rows, cols] = MatrixSize(matrix);
@@ -39,7 +39,7 @@ export function MatrixFrobeniusNorm(matrix: IMatrix): number {
  * @throws {Error} If the matrix contains invalid values
  * @example MatrixSpectralNorm([[3, 0], [0, 4]]) // 4 (largest singular value)
  */
-export function MatrixSpectralNorm(matrix: IMatrix): number {
+export function MatrixSpectralNorm(matrix: TMatrix): number {
 	AssertMatrix(matrix);
 
 	const [rows, cols] = MatrixSize(matrix);
@@ -59,7 +59,7 @@ export function MatrixSpectralNorm(matrix: IMatrix): number {
  * @throws {Error} If the matrix contains invalid values
  * @example Matrix1Norm([[1, 2], [3, 4]]) // 6 (max of column sums: 4, 6)
  */
-export function Matrix1Norm(matrix: IMatrix): number {
+export function Matrix1Norm(matrix: TMatrix): number {
 	AssertMatrix(matrix);
 
 	const [rows, cols] = MatrixSize(matrix);
@@ -92,7 +92,7 @@ export function Matrix1Norm(matrix: IMatrix): number {
  * @throws {Error} If the matrix contains invalid values
  * @example MatrixInfinityNorm([[1, 2], [3, 4]]) // 7 (max of row sums: 3, 7)
  */
-export function MatrixInfinityNorm(matrix: IMatrix): number {
+export function MatrixInfinityNorm(matrix: TMatrix): number {
 	AssertMatrix(matrix);
 
 	const [rows, cols] = MatrixSize(matrix);
@@ -126,7 +126,7 @@ export function MatrixInfinityNorm(matrix: IMatrix): number {
  * @throws {Error} If the matrix contains invalid values
  * @example MatrixNuclearNorm([[3, 0], [0, 4]]) // 7 (sum of singular values: 3 + 4)
  */
-export function MatrixNuclearNorm(matrix: IMatrix): number {
+export function MatrixNuclearNorm(matrix: TMatrix): number {
 	AssertMatrix(matrix);
 
 	const [rows, cols] = MatrixSize(matrix);
@@ -147,7 +147,7 @@ export function MatrixNuclearNorm(matrix: IMatrix): number {
  * @throws {Error} If the matrix contains invalid values
  * @example MatrixMaxNorm([[1, -5], [3, 2]]) // 5 (max absolute value)
  */
-export function MatrixMaxNorm(matrix: IMatrix): number {
+export function MatrixMaxNorm(matrix: TMatrix): number {
 	AssertMatrix(matrix);
 
 	const [rows, cols] = MatrixSize(matrix);
@@ -175,7 +175,7 @@ export function MatrixMaxNorm(matrix: IMatrix): number {
  * @throws {Error} If the matrix contains invalid values or p < 1
  * @example MatrixPNorm([[1, 2], [3, 4]], 1) // 10 (sum of absolute values)
  */
-export function MatrixPNorm(matrix: IMatrix, p: number): number {
+export function MatrixPNorm(matrix: TMatrix, p: number): number {
 	AssertMatrix(matrix);
 
 	if (p < 1) {

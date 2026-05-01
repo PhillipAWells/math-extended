@@ -2,7 +2,7 @@ import { AssertNumber } from '@pawells/typescript-common';
 import { AssertMatrix, AssertMatrix1, AssertMatrix2, AssertMatrix3, AssertMatrixRow, AssertMatrixValue, MatrixError } from './asserts.js';
 import { MatrixCreate, MatrixSize, MatrixSizeSquare, MatrixTranspose } from './core.js';
 import { MatrixLU } from './decompositions.js';
-import { IMatrix } from './types.js';
+import { TMatrix } from './types.js';
 import { VectorProject, VectorSubtract } from '../vectors/core.js';
 import { TVector } from '../vectors/types.js';
 
@@ -15,7 +15,7 @@ const GRAM_SCHMIDT_TOLERANCE = 1e-10;
  * @throws {Error} If the matrix is not square
  * @example MatrixDeterminant([[1, 2], [3, 4]]) // -2 (1×4 - 2×3)
  */
-export function MatrixDeterminant(matrix: IMatrix): number {
+export function MatrixDeterminant(matrix: TMatrix): number {
 	AssertMatrix(matrix, { square: true });
 
 	const size = MatrixSizeSquare(matrix);
@@ -63,7 +63,7 @@ export function MatrixDeterminant(matrix: IMatrix): number {
  * @throws {Error} If the matrix is not square or indices are out of bounds
  * @example MatrixCofactorElement([[1, 2], [3, 4]], 0, 0) // +4 (sign: +, minor: 4)
  */
-export function MatrixCofactorElement(matrix: IMatrix, x: number, y: number): number {
+export function MatrixCofactorElement(matrix: TMatrix, x: number, y: number): number {
 	AssertMatrix(matrix, { square: true });
 
 	const minor = MatrixMinor(matrix, x, y);
@@ -71,7 +71,7 @@ export function MatrixCofactorElement(matrix: IMatrix, x: number, y: number): nu
 	return Math.pow(-1, y + x) * minor;
 }
 
-function normalizeZeroMatrix(matrix: IMatrix): IMatrix {
+function normalizeZeroMatrix(matrix: TMatrix): TMatrix {
 	return matrix.map((row) => {
 		return row.map((v) => {
 			return Object.is(v, -0) ? 0 : v;
@@ -82,11 +82,11 @@ function normalizeZeroMatrix(matrix: IMatrix): IMatrix {
 /**
  * Computes the cofactor matrix (matrix of all cofactors) of a square matrix.
  * @param matrix - The square matrix (must be at least 1×1)
- * @returns {IMatrix} The cofactor matrix (same dimensions as input)
+ * @returns {TMatrix} The cofactor matrix (same dimensions as input)
  * @throws {Error} If the matrix is not square
  * @example MatrixCofactor([[1, 2], [3, 4]]) // [[4, -3], [-2, 1]]
  */
-export function MatrixCofactor(matrix: IMatrix): IMatrix {
+export function MatrixCofactor(matrix: TMatrix): TMatrix {
 	AssertMatrix(matrix, { square: true });
 
 	const [size] = MatrixSize(matrix);
@@ -106,11 +106,11 @@ export function MatrixCofactor(matrix: IMatrix): IMatrix {
 /**
  * Computes the adjoint (adjugate) matrix of a square matrix.
  * @param matrix - The square matrix (must be at least 1×1)
- * @returns {IMatrix} The adjoint matrix (same dimensions as input)
+ * @returns {TMatrix} The adjoint matrix (same dimensions as input)
  * @throws {Error} If the matrix is not square
  * @example MatrixAdjoint([[1, 2], [3, 4]]) // [[4, -2], [-3, 1]]
  */
-export function MatrixAdjoint(matrix: IMatrix): IMatrix {
+export function MatrixAdjoint(matrix: TMatrix): TMatrix {
 	AssertMatrix(matrix, { square: true });
 	return normalizeZeroMatrix(MatrixTranspose(MatrixCofactor(matrix)));
 }
@@ -123,11 +123,11 @@ export function MatrixAdjoint(matrix: IMatrix): IMatrix {
  * by solving A × X = I column-by-column.
  *
  * @param matrix - The square matrix to invert (must be non-singular)
- * @returns {IMatrix} The inverse matrix A⁻¹
+ * @returns {TMatrix} The inverse matrix A⁻¹
  * @throws {MatrixError} If the matrix is not square or is singular (determinant is zero)
  * @example MatrixInverse([[1, 2], [3, 4]]) // [[-2, 1], [1.5, -0.5]]
  */
-export function MatrixInverse(matrix: IMatrix): IMatrix {
+export function MatrixInverse(matrix: TMatrix): TMatrix {
 	AssertMatrix(matrix, { square: true });
 
 	const [size] = MatrixSize(matrix);
@@ -197,12 +197,12 @@ export function MatrixInverse(matrix: IMatrix): IMatrix {
 /**
  * Orthogonalizes matrix columns using Gram-Schmidt process.
  * @param matrix - Input matrix with columns to orthogonalize
- * @returns {IMatrix} Matrix with orthonormal columns
+ * @returns {TMatrix} Matrix with orthonormal columns
  * @throws {Error} If matrix contains linearly dependent columns
  * @example MatrixGramSchmidt([[1, 1], [0, 1]]) // Orthonormal columns
  * @complexity Time: O(n²m), Space: O(mn)
  */
-export function MatrixGramSchmidt(matrix: IMatrix): IMatrix {
+export function MatrixGramSchmidt(matrix: TMatrix): TMatrix {
 	const [rows, cols] = MatrixSize(matrix);
 	const result = MatrixCreate(rows, cols);
 	const vectors: number[][] = [];
@@ -298,7 +298,7 @@ export function MatrixGramSchmidt(matrix: IMatrix): IMatrix {
  * @example MatrixMinor([[1,2,3],[4,5,6],[7,8,9]], 1, 0) // -6
  * @complexity Time: O(n³), Space: O(n²)
  */
-export function MatrixMinor(matrix: IMatrix, x: number, y: number): number {
+export function MatrixMinor(matrix: TMatrix, x: number, y: number): number {
 	AssertMatrix(matrix, { square: true });
 
 	const [rows, cols] = MatrixSize(matrix);
