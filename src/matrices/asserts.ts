@@ -114,7 +114,7 @@ interface IAssertMatrixException extends IAssertException {
 	 * ```
  */
 export class MatrixError extends Error {
-	readonly code: string = 'MATRIX_ERROR';
+	public readonly code: string = 'MATRIX_ERROR';
 
 	/**
 	 * Creates a new MatrixError instance.
@@ -337,7 +337,7 @@ export function AssertMatrixValue(value: unknown, exception: IAssertMatrixExcept
 	// Wrap any thrown error as MatrixError to maintain consistent error handling
 	try {
 		AssertNumber(value, { finite: true }, exception);
-	} catch (error) {
+	} catch {
 		// Re-throw as MatrixError to maintain API contract
 		throw new MatrixError(exception.message ?? 'Matrix value must be a finite number');
 	}

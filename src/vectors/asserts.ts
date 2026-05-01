@@ -63,7 +63,7 @@ type TAssertVectorValueArgs = IAssertNumberArgs;
 	 * ```
  */
 export class VectorError extends Error {
-	readonly code: string = 'VECTOR_ERROR';
+	public readonly code: string = 'VECTOR_ERROR';
 
 	/**
 	 * Creates a new VectorError instance.
