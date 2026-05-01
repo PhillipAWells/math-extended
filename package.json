@@ -28,7 +28,7 @@
 		"prepare": "husky"
 	},
 	"dependencies": {
-		"@pawells/typescript-common": "1.4.1"
+		"@pawells/typescript-common": "2.0.0"
 	},
 	"devDependencies": {
 		"@eslint/js": "^10.0.1",

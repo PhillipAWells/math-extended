@@ -328,7 +328,13 @@ export function AssertMatrixValue(value: unknown, exception: IAssertMatrixExcept
 	SetExceptionMessage(exception, `Matrix value${position} must be a finite number`);
 
 	// Delegate to the general number assertion which handles finite number validation
-	AssertNumber(value, { finite: true }, exception);
+	// Wrap any thrown error as MatrixError to maintain consistent error handling
+	try {
+		AssertNumber(value, { finite: true }, exception);
+	} catch (error) {
+		// Re-throw as MatrixError to maintain API contract
+		throw new MatrixError(exception.message ?? 'Matrix value must be a finite number');
+	}
 }
 
 /**
