@@ -10,9 +10,11 @@ const NORMALIZE_EPSILON = 1e-10; // Epsilon for floating-point boundary cleanup
  * @returns Angle in radians
  *
  * @example
- * DegreesToRadians(180)  // Math.PI
- * DegreesToRadians(90)   // Math.PI / 2
- * DegreesToRadians(0)    // 0
+	 * ```typescript
+	 * DegreesToRadians(180)  // Math.PI
+	 * DegreesToRadians(90)   // Math.PI / 2
+	 * DegreesToRadians(0)    // 0
+	 * ```
  */
 export function DegreesToRadians(degrees: number): number {
 	return (degrees * Math.PI) / DEGREES_PER_HALF_REVOLUTION;
@@ -24,9 +26,11 @@ export function DegreesToRadians(degrees: number): number {
  * @returns Angle in degrees
  *
  * @example
- * RadiansToDegrees(Math.PI)     // 180
- * RadiansToDegrees(Math.PI / 2) // 90
- * RadiansToDegrees(0)           // 0
+	 * ```typescript
+	 * RadiansToDegrees(Math.PI)     // 180
+	 * RadiansToDegrees(Math.PI / 2) // 90
+	 * RadiansToDegrees(0)           // 0
+	 * ```
  */
 export function RadiansToDegrees(radians: number): number {
 	return (radians * DEGREES_PER_HALF_REVOLUTION) / Math.PI;
@@ -38,11 +42,13 @@ export function RadiansToDegrees(radians: number): number {
  * @returns String representation of the angle
  *
  * @example
- * FormatRadians(0)             // '0'
- * FormatRadians(Math.PI)       // 'π'
- * FormatRadians(Math.PI / 2)   // 'π/2'
- * FormatRadians(Math.PI / 4)   // 'π/4'
- * FormatRadians(-Math.PI)      // '-π'
+	 * ```typescript
+	 * FormatRadians(0)             // '0'
+	 * FormatRadians(Math.PI)       // 'π'
+	 * FormatRadians(Math.PI / 2)   // 'π/2'
+	 * FormatRadians(Math.PI / 4)   // 'π/4'
+	 * FormatRadians(-Math.PI)      // '-π'
+	 * ```
  */
 export function FormatRadians(radians: number): string {
 	const r = radians / Math.PI;
@@ -75,9 +81,11 @@ export function FormatRadians(radians: number): string {
  * @returns Normalized angle in radians in the range [0, 2π)
  *
  * @example
- * NormalizeRadians(3 * Math.PI)  // Math.PI  (wraps around)
- * NormalizeRadians(-Math.PI)     // Math.PI  (negative angles normalized)
- * NormalizeRadians(0)            // 0
+	 * ```typescript
+	 * NormalizeRadians(3 * Math.PI)  // Math.PI  (wraps around)
+	 * NormalizeRadians(-Math.PI)     // Math.PI  (negative angles normalized)
+	 * NormalizeRadians(0)            // 0
+	 * ```
  */
 export function NormalizeRadians(radians: number): number {
 	const twoPi = 2 * Math.PI;
@@ -95,10 +103,12 @@ export function NormalizeRadians(radians: number): number {
  * @returns Normalized angle in degrees in the range [0°, 360°)
  *
  * @example
- * NormalizeDegrees(450)   // 90  (wraps around 360°)
- * NormalizeDegrees(-90)   // 270 (negative angles normalized)
- * NormalizeDegrees(0)     // 0
- * NormalizeDegrees(360 - 1e-11) // 0  (boundary epsilon snap)
+	 * ```typescript
+	 * NormalizeDegrees(450)   // 90  (wraps around 360°)
+	 * NormalizeDegrees(-90)   // 270 (negative angles normalized)
+	 * NormalizeDegrees(0)     // 0
+	 * NormalizeDegrees(360 - 1e-11) // 0  (boundary epsilon snap)
+	 * ```
  */
 export function NormalizeDegrees(degrees: number): number {
 	const result = ((degrees % DEGREES_PER_FULL_REVOLUTION) + DEGREES_PER_FULL_REVOLUTION) % DEGREES_PER_FULL_REVOLUTION;

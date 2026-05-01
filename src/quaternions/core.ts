@@ -19,8 +19,10 @@ const SLERP_DOT_THRESHOLD = 0.9995;
  * @returns Identity quaternion [0, 0, 0, 1]
  *
  * @example
- * const identity = QuaternionIdentity();
- * console.log(identity); // [0, 0, 0, 1]
+	 * ```typescript
+	 * const identity = QuaternionIdentity();
+	 * console.log(identity); // [0, 0, 0, 1]
+	 * ```
  */
 export function QuaternionIdentity(): TQuaternion {
 	return [0, 0, 0, 1];
@@ -34,9 +36,11 @@ export function QuaternionIdentity(): TQuaternion {
  * @returns A new quaternion with identical components
  *
  * @example
- * const original = [0, 0, 0.707, 0.707];
- * const copy = QuaternionClone(original);
- * copy[0] = 1; // original remains unchanged
+	 * ```typescript
+	 * const original = [0, 0, 0.707, 0.707];
+	 * const copy = QuaternionClone(original);
+	 * copy[0] = 1; // original remains unchanged
+	 * ```
  */
 export function QuaternionClone(quaternion: TQuaternion): TQuaternion {
 	AssertQuaternion(quaternion);
@@ -55,10 +59,12 @@ export function QuaternionClone(quaternion: TQuaternion): TQuaternion {
  * @returns True if quaternions are equal within tolerance
  *
  * @example
- * const q1 = [0, 0, 0, 1];
- * const q2 = [0, 0, 0, -1];
- * console.log(QuaternionEquals(q1, q2)); // false (different components)
- * console.log(QuaternionEquals(q1, q2, 1e-6, true)); // true (same rotation)
+	 * ```typescript
+	 * const q1 = [0, 0, 0, 1];
+	 * const q2 = [0, 0, 0, -1];
+	 * console.log(QuaternionEquals(q1, q2)); // false (different components)
+	 * console.log(QuaternionEquals(q1, q2, 1e-6, true)); // true (same rotation)
+	 * ```
  */
 export function QuaternionEquals(a: TQuaternion, b: TQuaternion, tolerance: number = 1e-6, checkEquivalence: boolean = false): boolean {
 	AssertQuaternion(a);
@@ -84,8 +90,10 @@ export function QuaternionEquals(a: TQuaternion, b: TQuaternion, tolerance: numb
  * @returns The magnitude of the quaternion
  *
  * @example
- * const q = [0, 0, 0, 1];
- * console.log(QuaternionMagnitude(q)); // 1
+	 * ```typescript
+	 * const q = [0, 0, 0, 1];
+	 * console.log(QuaternionMagnitude(q)); // 1
+	 * ```
  */
 export function QuaternionMagnitude(quaternion: TQuaternion): number {
 	AssertQuaternion(quaternion);
@@ -100,9 +108,11 @@ export function QuaternionMagnitude(quaternion: TQuaternion): number {
  * @returns A normalized quaternion with magnitude 1
  *
  * @example
- * const q = [1, 1, 1, 1];
- * const normalized = QuaternionNormalize(q);
- * console.log(QuaternionMagnitude(normalized)); // 1
+	 * ```typescript
+	 * const q = [1, 1, 1, 1];
+	 * const normalized = QuaternionNormalize(q);
+	 * console.log(QuaternionMagnitude(normalized)); // 1
+	 * ```
  */
 export function QuaternionNormalize(quaternion: TQuaternion): TQuaternion {
 	AssertQuaternion(quaternion);
@@ -118,9 +128,11 @@ export function QuaternionNormalize(quaternion: TQuaternion): TQuaternion {
  * @returns The conjugate quaternion
  *
  * @example
- * const q = [0.5, 0.5, 0.5, 0.5];
- * const conjugate = QuaternionConjugate(q);
- * console.log(conjugate); // [-0.5, -0.5, -0.5, 0.5]
+	 * ```typescript
+	 * const q = [0.5, 0.5, 0.5, 0.5];
+	 * const conjugate = QuaternionConjugate(q);
+	 * console.log(conjugate); // [-0.5, -0.5, -0.5, 0.5]
+	 * ```
  */
 export function QuaternionConjugate(quaternion: TQuaternion): TQuaternion {
 	AssertQuaternion(quaternion);
@@ -138,8 +150,10 @@ export function QuaternionConjugate(quaternion: TQuaternion): TQuaternion {
  * @returns The inverse quaternion
  *
  * @example
- * const q = [0, 0, 0.707, 0.707]; // 90° rotation around Z
- * const inverse = QuaternionInverse(q); // -90° rotation around Z
+	 * ```typescript
+	 * const q = [0, 0, 0.707, 0.707]; // 90° rotation around Z
+	 * const inverse = QuaternionInverse(q); // -90° rotation around Z
+	 * ```
  */
 export function QuaternionInverse(quaternion: TQuaternion): TQuaternion {
 	AssertQuaternion(quaternion);
@@ -170,9 +184,11 @@ export function QuaternionInverse(quaternion: TQuaternion): TQuaternion {
  * @returns The product quaternion representing the combined rotation
  *
  * @example
- * const rotX = QuaternionFromAxisAngle([1, 0, 0], Math.PI/2); // 90° around X
- * const rotY = QuaternionFromAxisAngle([0, 1, 0], Math.PI/2); // 90° around Y
- * const combined = QuaternionMultiply(rotX, rotY); // Y rotation then X rotation
+	 * ```typescript
+	 * const rotX = QuaternionFromAxisAngle([1, 0, 0], Math.PI/2); // 90° around X
+	 * const rotY = QuaternionFromAxisAngle([0, 1, 0], Math.PI/2); // 90° around Y
+	 * const combined = QuaternionMultiply(rotX, rotY); // Y rotation then X rotation
+	 * ```
  */
 export function QuaternionMultiply(a: TQuaternion, b: TQuaternion): TQuaternion {
 	AssertQuaternion(a);
@@ -198,9 +214,11 @@ export function QuaternionMultiply(a: TQuaternion, b: TQuaternion): TQuaternion 
  * @returns A quaternion representing the rotation
  *
  * @example
- * const axis = [0, 1, 0]; // Y-axis
- * const angle = Math.PI / 2; // 90 degrees
- * const q = QuaternionFromAxisAngle(axis, angle);
+	 * ```typescript
+	 * const axis = [0, 1, 0]; // Y-axis
+	 * const angle = Math.PI / 2; // 90 degrees
+	 * const q = QuaternionFromAxisAngle(axis, angle);
+	 * ```
  */
 export function QuaternionFromAxisAngle(axis: TVector3, angle: number): TQuaternion {
 	const normalizedAxis = VectorNormalize(axis);
@@ -240,9 +258,11 @@ export function QuaternionFromAxisAngleVector(axisAngle: TAxisAngle): TQuaternio
  * @throws {Error} If the quaternion is not normalized
  *
  * @example
- * const q = [0, 0.707, 0, 0.707]; // 90° around Y-axis
- * const axisAngle = QuaternionToAxisAngle(q);
- * console.log(axisAngle); // [0, 1, 0, π/2]
+	 * ```typescript
+	 * const q = [0, 0.707, 0, 0.707]; // 90° around Y-axis
+	 * const axisAngle = QuaternionToAxisAngle(q);
+	 * console.log(axisAngle); // [0, 1, 0, π/2]
+	 * ```
  */
 export function QuaternionToAxisAngle(quaternion: TQuaternion): TAxisAngle {
 	AssertNormalizedQuaternion(quaternion);
@@ -282,8 +302,10 @@ export function QuaternionToAxisAngle(quaternion: TQuaternion): TAxisAngle {
  * @returns A quaternion representing the rotation
  *
  * @example
- * const euler = [0, Math.PI/4, 0]; // 45° pitch
- * const q = QuaternionFromEuler(euler);
+	 * ```typescript
+	 * const euler = [0, Math.PI/4, 0]; // 45° pitch
+	 * const q = QuaternionFromEuler(euler);
+	 * ```
  */
 export function QuaternionFromEuler(euler: TEulerAngles): TQuaternion {
 	AssertEulerAngles(euler);
@@ -312,9 +334,11 @@ export function QuaternionFromEuler(euler: TEulerAngles): TQuaternion {
  * @returns Euler angles as [x, y, z] in radians
  *
  * @example
- * const q = [0, 0.383, 0, 0.924]; // ~45° around Y-axis
- * const euler = QuaternionToEuler(q);
- * console.log(euler); // [0, π/4, 0]
+	 * ```typescript
+	 * const q = [0, 0.383, 0, 0.924]; // ~45° around Y-axis
+	 * const euler = QuaternionToEuler(q);
+	 * console.log(euler); // [0, π/4, 0]
+	 * ```
  */
 export function QuaternionToEuler(quaternion: TQuaternion): TEulerAngles {
 	AssertNormalizedQuaternion(quaternion);
@@ -347,9 +371,11 @@ export function QuaternionToEuler(quaternion: TQuaternion): TEulerAngles {
  * @returns The rotated vector
  *
  * @example
- * const q = QuaternionFromAxisAngle([0, 0, 1], Math.PI/2); // 90° around Z
- * const v = [1, 0, 0]; // Point along X-axis
- * const rotated = QuaternionRotateVector(q, v); // Should point along Y-axis
+	 * ```typescript
+	 * const q = QuaternionFromAxisAngle([0, 0, 1], Math.PI/2); // 90° around Z
+	 * const v = [1, 0, 0]; // Point along X-axis
+	 * const rotated = QuaternionRotateVector(q, v); // Should point along Y-axis
+	 * ```
  */
 export function QuaternionRotateVector(quaternion: TQuaternion, vector: TVector3): TVector3 {
 	AssertNormalizedQuaternion(quaternion);
@@ -385,9 +411,11 @@ export function QuaternionRotateVector(quaternion: TQuaternion, vector: TVector3
  * @returns Interpolated quaternion
  *
  * @example
- * const q1 = QuaternionIdentity();
- * const q2 = QuaternionFromAxisAngle([0, 1, 0], Math.PI/2);
- * const halfway = QuaternionSLERP(q1, q2, 0.5); // 45° rotation
+	 * ```typescript
+	 * const q1 = QuaternionIdentity();
+	 * const q2 = QuaternionFromAxisAngle([0, 1, 0], Math.PI/2);
+	 * const halfway = QuaternionSLERP(q1, q2, 0.5); // 45° rotation
+	 * ```
  */
 export function QuaternionSLERP(a: TQuaternion, b: TQuaternion, t: number): TQuaternion {
 	AssertNormalizedQuaternion(a);

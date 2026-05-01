@@ -1,37 +1,37 @@
 import { AssertNumber } from '@pawells/typescript-common';
 import { AssertMatrix, AssertMatrixRow, AssertMatrixValue } from './asserts.js';
-import { IMatrix, IMatrix1, IMatrix2, IMatrix3, IMatrix4, TMatrixResult } from './types.js';
+import { TMatrix, TMatrix1, TMatrix2, TMatrix3, TMatrix4, TMatrixResult } from './types.js';
 
 // Function overloads for specific matrix types
 
-export function MatrixCreate(): IMatrix1;
+export function MatrixCreate(): TMatrix1;
 
-export function MatrixCreate(size: 1): IMatrix1;
+export function MatrixCreate(size: 1): TMatrix1;
 
-export function MatrixCreate(size: 2): IMatrix2;
+export function MatrixCreate(size: 2): TMatrix2;
 
-export function MatrixCreate(size: 3): IMatrix3;
+export function MatrixCreate(size: 3): TMatrix3;
 
-export function MatrixCreate(size: 4): IMatrix4;
+export function MatrixCreate(size: 4): TMatrix4;
 
-export function MatrixCreate(size: number): IMatrix;
+export function MatrixCreate(size: number): TMatrix;
 
-export function MatrixCreate(rows: number, cols: number): IMatrix;
+export function MatrixCreate(rows: number, cols: number): TMatrix;
 
 /**
  * Creates a matrix with specified dimensions, initialized with zeros.
  * @param rows - Number of rows (non-negative integer). If only this parameter is provided, creates a square matrix.
  * @param cols - Number of columns (non-negative integer). Optional for square matrices.
- * @returns {IMatrix | IMatrix1 | IMatrix2 | IMatrix3 | IMatrix4} Zero-filled matrix with specified dimensions
+ * @returns {TMatrix | TMatrix1 | TMatrix2 | TMatrix3 | TMatrix4} Zero-filled matrix with specified dimensions
  * @throws {Error} If rows or cols are negative or not integers
  * @example MatrixCreate() // [[0]] (1x1 matrix)
  * @example MatrixCreate(2) // [[0, 0], [0, 0]] (2x2 matrix)
  * @example MatrixCreate(2, 3) // [[0, 0, 0], [0, 0, 0]] (2x3 matrix)
  */
-export function MatrixCreate(rows?: number, cols?: number): IMatrix | IMatrix1 | IMatrix2 | IMatrix3 | IMatrix4 {
+export function MatrixCreate(rows?: number, cols?: number): TMatrix | TMatrix1 | TMatrix2 | TMatrix3 | TMatrix4 {
 	// Handle no parameters - default to 1x1
 	if (rows === undefined) {
-		return [[0]] as IMatrix1;
+		return [[0]] as TMatrix1;
 	}
 
 	// Handle single parameter - create square matrix
@@ -39,25 +39,25 @@ export function MatrixCreate(rows?: number, cols?: number): IMatrix | IMatrix1 |
 		// Return specific types for common square matrices
 		switch (rows) {
 			case 1:
-				return [[0]] as IMatrix1;
+				return [[0]] as TMatrix1;
 			case 2:
 				return [
 					[0, 0],
 					[0, 0],
-				] as IMatrix2;
+				] as TMatrix2;
 			case 3:
 				return [
 					[0, 0, 0],
 					[0, 0, 0],
 					[0, 0, 0],
-				] as IMatrix3;
+				] as TMatrix3;
 			case 4:
 				return [
 					[0, 0, 0, 0],
 					[0, 0, 0, 0],
 					[0, 0, 0, 0],
 					[0, 0, 0, 0],
-				] as IMatrix4;
+				] as TMatrix4;
 		}
 	}
 
@@ -83,7 +83,7 @@ export function MatrixCreate(rows?: number, cols?: number): IMatrix | IMatrix1 |
  * @throws {Error} If the input is not a valid matrix
  * @example MatrixSize([[1, 2, 3], [4, 5, 6]]) // [2, 3]
  */
-export function MatrixSize(matrix: IMatrix): [number, number] {
+export function MatrixSize(matrix: TMatrix): [number, number] {
 	// Basic validation without calling AssertMatrix to avoid circular dependency
 	if (!Array.isArray(matrix)) {
 		throw new Error('Input must be an array');
@@ -101,7 +101,7 @@ export function MatrixSize(matrix: IMatrix): [number, number] {
  * @throws {Error} If the matrix is not square
  * @example MatrixSizeSquare([[1, 2], [3, 4]]) // 2
  */
-export function MatrixSizeSquare(matrix: IMatrix): number {
+export function MatrixSizeSquare(matrix: TMatrix): number {
 	AssertMatrix(matrix, { square: true });
 
 	const [rows] = MatrixSize(matrix);
@@ -131,7 +131,7 @@ export function MatrixIsValid(matrix: unknown): boolean {
  * @example MatrixIsSquare([[1, 2], [3, 4]]) // true (2×2)
  * @example MatrixIsSquare([[1, 2, 3], [4, 5, 6]]) // false (3×2)
  */
-export function MatrixIsSquare(matrix: IMatrix): boolean {
+export function MatrixIsSquare(matrix: TMatrix): boolean {
 	try {
 		MatrixSizeSquare(matrix);
 		return true;
@@ -150,7 +150,7 @@ export function MatrixIsSquare(matrix: IMatrix): boolean {
  * @example MatrixIsZero([[1e-15, 0], [0, 0]]) // true (within default threshold)
  * @example MatrixIsZero([[0.1, 0], [0, 0]]) // false
  */
-export function MatrixIsZero(matrix: IMatrix, threshold: number = 1e-14): boolean {
+export function MatrixIsZero(matrix: TMatrix, threshold: number = 1e-14): boolean {
 	AssertMatrix(matrix);
 
 	const [rows, cols] = MatrixSize(matrix);
@@ -182,7 +182,7 @@ export function MatrixIsZero(matrix: IMatrix, threshold: number = 1e-14): boolea
  * @example MatrixIsIdentity([[1, 0, 0], [0, 1, 0], [0, 0, 1]]) // true
  * @example MatrixIsIdentity([[1, 1], [0, 1]]) // false
  */
-export function MatrixIsIdentity(matrix: IMatrix, threshold: number = 1e-14): boolean {
+export function MatrixIsIdentity(matrix: TMatrix, threshold: number = 1e-14): boolean {
 	AssertMatrix(matrix);
 
 	const [rows, cols] = MatrixSize(matrix);
@@ -214,7 +214,7 @@ export function MatrixIsIdentity(matrix: IMatrix, threshold: number = 1e-14): bo
  * @example MatrixIsSymmetric([[1, 2], [3, 4]]) // false
  * @example MatrixIsSymmetric([[1, 2, 3], [2, 5, 4], [3, 4, 6]]) // true
  */
-export function MatrixIsSymmetric(matrix: IMatrix, threshold: number = 1e-14): boolean {
+export function MatrixIsSymmetric(matrix: TMatrix, threshold: number = 1e-14): boolean {
 	AssertMatrix(matrix);
 
 	const [rows, cols] = MatrixSize(matrix);
@@ -251,7 +251,7 @@ export function MatrixIsSymmetric(matrix: IMatrix, threshold: number = 1e-14): b
  * @example MatrixIsDiagonal([[1, 0, 0], [0, 5, 0], [0, 0, 2]]) // true
  * @example MatrixIsDiagonal([[1, 2], [0, 1]]) // false
  */
-export function MatrixIsDiagonal(matrix: IMatrix, threshold: number = 1e-14): boolean {
+export function MatrixIsDiagonal(matrix: TMatrix, threshold: number = 1e-14): boolean {
 	AssertMatrix(matrix);
 
 	const [rows, cols] = MatrixSize(matrix);
@@ -277,24 +277,24 @@ export function MatrixIsDiagonal(matrix: IMatrix, threshold: number = 1e-14): bo
 /**
  * Creates an identity matrix of the specified size.
  * @param size - The dimensions of the square identity matrix (must be non-negative integer)
- * @returns {IMatrix} A square identity matrix of size n×n
+ * @returns {TMatrix} A square identity matrix of size n×n
  * @throws {Error} If size is negative or not an integer
  * @example MatrixIdentity(2) // [[1, 0], [0, 1]]
  * @example MatrixIdentity(3) // [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
  */
 
-export function MatrixIdentity(size: 0): IMatrix;
+export function MatrixIdentity(size: 0): TMatrix;
 
-export function MatrixIdentity(size: 1): IMatrix1;
+export function MatrixIdentity(size: 1): TMatrix1;
 
-export function MatrixIdentity(size: 2): IMatrix2;
+export function MatrixIdentity(size: 2): TMatrix2;
 
-export function MatrixIdentity(size: 3): IMatrix3;
+export function MatrixIdentity(size: 3): TMatrix3;
 
-export function MatrixIdentity(size: 4): IMatrix4;
+export function MatrixIdentity(size: 4): TMatrix4;
 
-export function MatrixIdentity(size: number): IMatrix;
-export function MatrixIdentity(size: number): IMatrix {
+export function MatrixIdentity(size: number): TMatrix;
+export function MatrixIdentity(size: number): TMatrix {
 	AssertNumber(size, { integer: true, gte: 0 }, { message: 'Size must be a non-negative integer' });
 
 	const result = MatrixCreate(size, size);
@@ -316,7 +316,7 @@ export function MatrixIdentity(size: number): IMatrix {
  * @throws {Error} If the input is not a valid matrix
  * @example MatrixClone([[1, 2], [3, 4]]) // [[1, 2], [3, 4]] (independent copy)
  */
-export function MatrixClone<T extends IMatrix>(matrix: T): TMatrixResult<T> {
+export function MatrixClone<T extends TMatrix>(matrix: T): TMatrixResult<T> {
 	AssertMatrix(matrix);
 	// Create a deep copy by mapping each row to a new array
 	return matrix.map((row) => [...row]) as TMatrixResult<T>;
@@ -332,7 +332,7 @@ export function MatrixClone<T extends IMatrix>(matrix: T): TMatrixResult<T> {
  * @example MatrixEquals([[1, 2]], [[1.0001, 2]], 0.001) // true
  * @example MatrixEquals([[1, 2]], [[1, 3]]) // false
  */
-export function MatrixEquals(a: IMatrix, b: IMatrix, tolerance: number = 1e-8): boolean {
+export function MatrixEquals(a: TMatrix, b: TMatrix, tolerance: number = 1e-8): boolean {
 	AssertMatrix(a);
 	AssertMatrix(b);
 	AssertNumber(tolerance, { gte: 0 }, { message: 'Tolerance must be a non-negative number' });
@@ -374,7 +374,7 @@ export function MatrixEquals(a: IMatrix, b: IMatrix, tolerance: number = 1e-8): 
  * @example MatrixToString([[1.23, 2.7]]) // "[ 1.23, 2.70 ]"
  * @example MatrixToString([[1, 2], [3, 4]], 0) // "[ 1, 2 ]\n[ 3, 4 ]"
  */
-export function MatrixToString(matrix: IMatrix, precision: number = 2): string {
+export function MatrixToString(matrix: TMatrix, precision: number = 2): string {
 	AssertMatrix(matrix);
 	AssertNumber(precision, { integer: true, gte: 0 }, { message: 'Precision must be a non-negative integer' });
 
@@ -396,7 +396,7 @@ export function MatrixToString(matrix: IMatrix, precision: number = 2): string {
  * @example MatrixRank([[1, 2], [2, 4]]) // 1 (second row = 2 × first row)
  * @example MatrixRank([[1, 0], [0, 1]]) // 2 (full rank)
  */
-export function MatrixRank(matrix: IMatrix, tolerance: number = 1e-10): number {
+export function MatrixRank(matrix: TMatrix, tolerance: number = 1e-10): number {
 	AssertMatrix(matrix);
 	AssertNumber(tolerance, { gte: 0 }, { message: 'Tolerance must be a non-negative number' });
 
@@ -471,7 +471,7 @@ export function MatrixRank(matrix: IMatrix, tolerance: number = 1e-10): number {
  * @example MatrixTrace([[1, 2, 3], [4, 5, 6], [7, 8, 9]]) // 15 (1 + 5 + 9)
  * @example MatrixTrace([[1, 2], [3, 4], [5, 6]]) // 5 (1 + 4, rectangular matrix)
  */
-export function MatrixTrace(matrix: IMatrix): number {
+export function MatrixTrace(matrix: TMatrix): number {
 	AssertMatrix(matrix);
 
 	const [rows, cols] = MatrixSize(matrix);
@@ -500,7 +500,7 @@ export function MatrixTrace(matrix: IMatrix): number {
  * @example MatrixTranspose([[1, 2, 3], [4, 5, 6]]) // [[1, 4], [2, 5], [3, 6]]
  * @example MatrixTranspose([[1, 2], [3, 4]]) // [[1, 3], [2, 4]]
  */
-export function MatrixTranspose<T extends IMatrix>(matrix: T): TMatrixResult<T> {
+export function MatrixTranspose<T extends TMatrix>(matrix: T): TMatrixResult<T> {
 	AssertMatrix(matrix);
 
 	const [rows, cols] = MatrixSize(matrix);
@@ -513,7 +513,7 @@ export function MatrixTranspose<T extends IMatrix>(matrix: T): TMatrixResult<T> 
 	}
 
 	for (let row = 0; row < rows; row++) {
-		const matrixRow = (matrix as IMatrix)[row];
+		const matrixRow = (matrix as TMatrix)[row];
 		AssertMatrixRow(matrixRow, { rowIndex: row });
 
 		for (let col = 0; col < cols; col++) {
@@ -539,7 +539,7 @@ export function MatrixTranspose<T extends IMatrix>(matrix: T): TMatrixResult<T> 
  * @example MatrixMap([[1, 2], [3, 4]], (value) => value * value) // [[1, 4], [9, 16]]
  * @example MatrixMap([[1, 2], [3, 4]], (value, row, col) => value + row + col) // [[1, 3], [4, 6]]
  */
-export function MatrixMap<T extends IMatrix>(matrix: T, fn: (value: number, row: number, col: number) => number): TMatrixResult<T> {
+export function MatrixMap<T extends TMatrix>(matrix: T, fn: (value: number, row: number, col: number) => number): TMatrixResult<T> {
 	AssertMatrix(matrix);
 
 	const [rows, cols] = MatrixSize(matrix);

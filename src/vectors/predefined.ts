@@ -17,9 +17,11 @@ type TVectorSize4 = 4;
  * @returns A vector with all components set to 0
  *
  * @example
- * const origin2D = VectorZero(2); // [0, 0]
- * const origin3D = VectorZero(3); // [0, 0, 0]
- * const origin4D = VectorZero(4); // [0, 0, 0, 0]
+	 * ```typescript
+	 * const origin2D = VectorZero(2); // [0, 0]
+	 * const origin3D = VectorZero(3); // [0, 0, 0]
+	 * const origin4D = VectorZero(4); // [0, 0, 0, 0]
+	 * ```
  */
 export function VectorZero(size: 1): TVector;
 export function VectorZero(size: 2): TVector2;
@@ -38,9 +40,11 @@ export function VectorZero(size: number): TVector | TVector2 | TVector3 | TVecto
  * @returns A vector with all components set to 1
  *
  * @example
- * const ones2D = VectorOne(2); // [1, 1]
- * const ones3D = VectorOne(3); // [1, 1, 1]
- * const ones4D = VectorOne(4); // [1, 1, 1, 1]
+	 * ```typescript
+	 * const ones2D = VectorOne(2); // [1, 1]
+	 * const ones3D = VectorOne(3); // [1, 1, 1]
+	 * const ones4D = VectorOne(4); // [1, 1, 1, 1]
+	 * ```
  */
 export function VectorOne(size: 1): TVector;
 export function VectorOne(size: 2): TVector2;
@@ -58,8 +62,10 @@ export function VectorOne(size: number): TVector | TVector2 | TVector3 | TVector
  * @returns [0, 1] - Unit vector in positive Y direction
  *
  * @example
- * const upDirection = Vector2_Up(); // Character movement upward
- * const velocity = Vector2_Up().map(c => c * speed); // Moving up at given speed
+	 * ```typescript
+	 * const upDirection = Vector2_Up(); // Character movement upward
+	 * const velocity = Vector2_Up().map(c => c * speed); // Moving up at given speed
+	 * ```
  */
 export function Vector2Up(): TVector2 {
 	return [0, 1];
@@ -72,8 +78,10 @@ export function Vector2Up(): TVector2 {
  * @returns [0, 1, 0] - Unit vector in positive Y direction
  *
  * @example
- * const worldUp = Vector3_Up(); // World space up direction
- * const jumpForce = Vector3_Up().map(c => c * jumpStrength);
+	 * ```typescript
+	 * const worldUp = Vector3_Up(); // World space up direction
+	 * const jumpForce = Vector3_Up().map(c => c * jumpStrength);
+	 * ```
  */
 export function Vector3Up(): TVector3 {
 	return [0, 1, 0];
@@ -96,8 +104,10 @@ export function Vector4Up(): TVector4 {
  * @returns [0, -1] - Unit vector in negative Y direction
  *
  * @example
- * const gravity = Vector2_Down().map(c => c * 9.81); // Gravity force
- * const dropDirection = Vector2_Down(); // Object falling down
+	 * ```typescript
+	 * const gravity = Vector2_Down().map(c => c * 9.81); // Gravity force
+	 * const dropDirection = Vector2_Down(); // Object falling down
+	 * ```
  */
 export function Vector2Down(): TVector2 {
 	return [0, -1];
@@ -110,8 +120,10 @@ export function Vector2Down(): TVector2 {
  * @returns [0, -1, 0] - Unit vector in negative Y direction
  *
  * @example
- * const gravityForce = Vector3Down().map(c => c * 9.81);
- * const downwardRay = Vector3Down(); // Raycast downward
+	 * ```typescript
+	 * const gravityForce = Vector3Down().map(c => c * 9.81);
+	 * const downwardRay = Vector3Down(); // Raycast downward
+	 * ```
  */
 export function Vector3Down(): TVector3 {
 	return [0, -1, 0];
@@ -133,8 +145,10 @@ export function Vector4Down(): TVector4 {
  * @returns [-1, 0] - Unit vector in negative X direction
  *
  * @example
- * const leftMovement = Vector2Left().map(c => c * speed);
- * const leftDirection = Vector2Left(); // Character facing left
+	 * ```typescript
+	 * const leftMovement = Vector2Left().map(c => c * speed);
+	 * const leftDirection = Vector2Left(); // Character facing left
+	 * ```
  */
 export function Vector2Left(): TVector2 {
 	return [-1, 0];
@@ -147,7 +161,9 @@ export function Vector2Left(): TVector2 {
  * @returns [-1, 0, 0] - Unit vector in negative X direction
  *
  * @example
- * const strafeLeft = Vector3Left().map(c => c * strafeSpeed);
+	 * ```typescript
+	 * const strafeLeft = Vector3Left().map(c => c * strafeSpeed);
+	 * ```
  */
 export function Vector3Left(): TVector3 {
 	return [-1, 0, 0];
@@ -169,8 +185,10 @@ export function Vector4Left(): TVector4 {
  * @returns [1, 0] - Unit vector in positive X direction
  *
  * @example
- * const rightMovement = Vector2Right().map(c => c * speed);
- * const rightDirection = Vector2Right(); // Character facing right
+	 * ```typescript
+	 * const rightMovement = Vector2Right().map(c => c * speed);
+	 * const rightDirection = Vector2Right(); // Character facing right
+	 * ```
  */
 export function Vector2Right(): TVector2 {
 	return [1, 0];
@@ -183,7 +201,9 @@ export function Vector2Right(): TVector2 {
  * @returns [1, 0, 0] - Unit vector in positive X direction
  *
  * @example
- * const strafeRight = Vector3Right().map(c => c * strafeSpeed);
+	 * ```typescript
+	 * const strafeRight = Vector3Right().map(c => c * strafeSpeed);
+	 * ```
  */
 export function Vector3Right(): TVector3 {
 	return [1, 0, 0];
@@ -206,8 +226,10 @@ export function Vector4Right(): TVector4 {
  * @returns [0, 0, 1] - Unit vector in positive Z direction
  *
  * @example
- * const forwardMovement = Vector3Forward().map(c => c * speed);
- * const cameraForward = Vector3Forward(); // Camera looking direction
+	 * ```typescript
+	 * const forwardMovement = Vector3Forward().map(c => c * speed);
+	 * const cameraForward = Vector3Forward(); // Camera looking direction
+	 * ```
  */
 export function Vector3Forward(): TVector3 {
 	return [0, 0, 1];
@@ -230,8 +252,10 @@ export function Vector4Forward(): TVector4 {
  * @returns [0, 0, -1] - Unit vector in negative Z direction
  *
  * @example
- * const backwardMovement = Vector3Backward().map(c => c * speed);
- * const reverseDirection = Vector3Backward(); // Moving away from target
+	 * ```typescript
+	 * const backwardMovement = Vector3Backward().map(c => c * speed);
+	 * const reverseDirection = Vector3Backward(); // Moving away from target
+	 * ```
  */
 export function Vector3Backward(): TVector3 {
 	return [0, 0, -1];

@@ -1,7 +1,7 @@
 import {
 	DegreesToRadians, RadiansToDegrees, FormatRadians,
 	NormalizeRadians, NormalizeDegrees,
-} from './angles.ts';
+} from './angles.js';
 
 describe('Math Extended > Angles', () => {
 	test('Degrees to Radians', () => {

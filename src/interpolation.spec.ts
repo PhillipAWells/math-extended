@@ -32,7 +32,7 @@ import {
 	CircularEaseInOut,
 	StepInterpolation,
 	SphericalLinearInterpolation,
-} from './interpolation.ts';
+} from './interpolation.js';
 
 describe('Interpolation', () => {
 	const tolerance = 0.0001;

@@ -20,7 +20,7 @@ describe('Quaternions Assertions', () => {
 		});
 
 		test('should create a QuaternionError without message', () => {
-			const error = new QuaternionError();
+			const error = new QuaternionError('');
 			expect(error).toBeInstanceOf(Error);
 			expect(error).toBeInstanceOf(QuaternionError);
 			expect(error.name).toBe('QuaternionError');

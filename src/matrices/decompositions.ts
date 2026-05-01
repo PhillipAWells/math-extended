@@ -3,7 +3,7 @@ import { MatrixMultiply } from './arithmetic.js';
 import { AssertMatrix, AssertMatrixRow, AssertMatrixValue, AssertMatrix1, AssertMatrix2, MatrixError } from './asserts.js';
 import { MatrixSize, MatrixCreate, MatrixClone, MatrixIdentity, MatrixTranspose } from './core.js';
 import { MatrixGramSchmidt } from './linear-algebra.js';
-import { IMatrix } from './types.js';
+import { TMatrix } from './types.js';
 
 const MATRIX_NUMERICAL_TOLERANCE = 1e-12;
 const EIGEN_CONVERGENCE_TOLERANCE = 1e-10;
@@ -19,7 +19,7 @@ type TEigenDecompositionResult = {
 	/** Array of eigenvalues λ in descending order */
 	eigenvalues: number[];
 	/** Matrix where each column is an eigenvector corresponding to the eigenvalue at the same index */
-	eigenvectors: IMatrix;
+	eigenvectors: TMatrix;
 };
 /**
  * Result of LU decomposition with partial pivoting where P × A = L × U.
@@ -32,10 +32,10 @@ type TEigenDecompositionResult = {
 type TLUDecompositionResult = {
 	/** Lower triangular matrix with 1's on the diagonal */
 
-	readonly L: IMatrix;
+	readonly L: TMatrix;
 	/** Upper triangular matrix containing the pivots */
 
-	readonly U: IMatrix;
+	readonly U: TMatrix;
 	/** Permutation vector: P[i] is the original row index that now occupies row i */
 
 	readonly P: number[];
@@ -50,10 +50,10 @@ type TLUDecompositionResult = {
 type TQRDecompositionResult = {
 	/** Orthogonal matrix where Q^T × Q = I */
 
-	readonly Q: IMatrix;
+	readonly Q: TMatrix;
 	/** Upper triangular matrix */
 
-	readonly R: IMatrix;
+	readonly R: TMatrix;
 };
 /**
  * Result of Singular Value Decomposition (SVD) where A = U × Σ × V^T.
@@ -66,13 +66,13 @@ type TQRDecompositionResult = {
 type TSVDDecompositionResult = {
 	/** Matrix of left singular vectors (orthogonal columns) */
 
-	readonly U: IMatrix;
+	readonly U: TMatrix;
 	/** Array of singular values σ in descending order (diagonal elements of Σ matrix) */
 
 	readonly S: number[];
 	/** Transpose of the matrix of right singular vectors (V^T where V has orthogonal columns) */
 
-	readonly VT: IMatrix;
+	readonly VT: TMatrix;
 };
 
 /**
@@ -95,22 +95,22 @@ type TSVDDecompositionResult = {
  * @throws {Error} If matrix is not square, not symmetric, or not positive definite
  *
  * @example
- * ```ts
- * // Symmetric positive definite matrix
- * const A = [[4, 2], [2, 3]];
- * const L = MatrixCholesky(A);
- * // L = [[2, 0], [1, √2]] ≈ [[2, 0], [1, 1.414]]
- *
- * // Verify: L × L^T should equal A
- * const LT = MatrixTranspose(L);
- * const reconstructed = MatrixMultiply(L, LT);
- * // reconstructed ≈ [[4, 2], [2, 3]]
- * ```
- *
- * @complexity Time: O(n³/3), Space: O(n²) - About 2x faster than general LU decomposition
- * @see {@link MatrixLU} For general square matrices that may not be positive definite
+	 * ```typescript
+	 * ```ts
+	 * // Symmetric positive definite matrix
+	 * const A = [[4, 2], [2, 3]];
+	 * const L = MatrixCholesky(A);
+	 * // L = [[2, 0], [1, √2]] ≈ [[2, 0], [1, 1.414]]
+	 * // Verify: L × L^T should equal A
+	 * const LT = MatrixTranspose(L);
+	 * const reconstructed = MatrixMultiply(L, LT);
+	 * // reconstructed ≈ [[4, 2], [2, 3]]
+	 * ```
+	 * @complexity Time: O(n³/3), Space: O(n²) - About 2x faster than general LU decomposition
+	 * @see {@link MatrixLU} For general square matrices that may not be positive definite
+	 * ```
  */
-export function MatrixCholesky(matrix: IMatrix): IMatrix {
+export function MatrixCholesky(matrix: TMatrix): TMatrix {
 	AssertMatrix(matrix, { square: true });
 
 	const [n] = MatrixSize(matrix);
@@ -203,24 +203,24 @@ export function MatrixCholesky(matrix: IMatrix): IMatrix {
  * @throws {Error} If matrix is not square, contains invalid values, or has complex eigenvalues
  *
  * @example
- * ```ts
- * // Simple 2x2 matrix
- * const A = [[3, 1], [0, 2]];
- * const { eigenvalues, eigenvectors } = MatrixEigen(A);
- * // eigenvalues: [3, 2]
- * // eigenvectors: matrix where each column corresponds to an eigenvalue
- *
- * // Verify eigenvalue equation: A × v = λ × v
- * const v = Matrix_GetColumn(eigenvectors, 0); // First eigenvector
- * const Av = MatrixMultiplyVector(A, v);
- * const lambdaV = Matrix_ScaleVector(v, eigenvalues[0]);
- * // Av should approximately equal lambdaV
- * ```
- *
- * @complexity O(n³) time for an n×n matrix
- * @see {@link MatrixEigenQRIteration} For the iterative algorithm used for larger matrices
+	 * ```typescript
+	 * ```ts
+	 * // Simple 2x2 matrix
+	 * const A = [[3, 1], [0, 2]];
+	 * const { eigenvalues, eigenvectors } = MatrixEigen(A);
+	 * // eigenvalues: [3, 2]
+	 * // eigenvectors: matrix where each column corresponds to an eigenvalue
+	 * // Verify eigenvalue equation: A × v = λ × v
+	 * const v = Matrix_GetColumn(eigenvectors, 0); // First eigenvector
+	 * const Av = MatrixMultiplyVector(A, v);
+	 * const lambdaV = Matrix_ScaleVector(v, eigenvalues[0]);
+	 * // Av should approximately equal lambdaV
+	 * ```
+	 * @complexity O(n³) time for an n×n matrix
+	 * @see {@link MatrixEigenQRIteration} For the iterative algorithm used for larger matrices
+	 * ```
  */
-export function MatrixEigen(matrix: IMatrix): TEigenDecompositionResult {
+export function MatrixEigen(matrix: TMatrix): TEigenDecompositionResult {
 	AssertMatrix(matrix, { square: true });
 
 	const [n] = MatrixSize(matrix);
@@ -360,7 +360,7 @@ export function MatrixEigen(matrix: IMatrix): TEigenDecompositionResult {
  * @complexity O(n³) per iteration, typically converges in O(n) iterations
  * @see {@link MatrixQR} For the QR decomposition used in each iteration
  */
-export function MatrixEigenQRIteration(matrix: IMatrix, iterations: number = 50): TEigenDecompositionResult {
+export function MatrixEigenQRIteration(matrix: TMatrix, iterations: number = 50): TEigenDecompositionResult {
 	const [n] = MatrixSize(matrix);
 
 	// Copy matrix for iteration to avoid modifying the original
@@ -369,7 +369,7 @@ export function MatrixEigenQRIteration(matrix: IMatrix, iterations: number = 50)
 
 	for (let iter = 0; iter < iterations; iter++) {
 		// Try/catch to allow fallback for rank-deficient matrices
-		let Q: IMatrix; let R: IMatrix;
+		let Q: TMatrix; let R: TMatrix;
 
 		try {
 			({ Q, R } = MatrixQR(A));
@@ -448,21 +448,21 @@ export function MatrixEigenQRIteration(matrix: IMatrix, iterations: number = 50)
  * @throws {MatrixError} If matrix is not square, singular (zero pivot), or contains invalid values
  *
  * @example
- * ```ts
- * const A = [[2, 1], [1, 1]];
- * const { L, U, P } = MatrixLU(A);
- * // L = [[1, 0], [0.5, 1]], U = [[2, 1], [0, 0.5]], P = [0, 1]
- *
- * // Verify: L × U should equal P-permuted A
- * const product = MatrixMultiply(L, U);
- * // product ≈ [[2, 1], [1, 1]]
- * ```
- *
- * @complexity Time: O(n³/3), Space: O(n²)
- * @see {@link MatrixCholesky} For symmetric positive definite matrices (more efficient)
- * @see {@link MatrixSolve} For solving Ax = b directly
+	 * ```typescript
+	 * ```ts
+	 * const A = [[2, 1], [1, 1]];
+	 * const { L, U, P } = MatrixLU(A);
+	 * // L = [[1, 0], [0.5, 1]], U = [[2, 1], [0, 0.5]], P = [0, 1]
+	 * // Verify: L × U should equal P-permuted A
+	 * const product = MatrixMultiply(L, U);
+	 * // product ≈ [[2, 1], [1, 1]]
+	 * ```
+	 * @complexity Time: O(n³/3), Space: O(n²)
+	 * @see {@link MatrixCholesky} For symmetric positive definite matrices (more efficient)
+	 * @see {@link MatrixSolve} For solving Ax = b directly
+	 * ```
  */
-export function MatrixLU(matrix: IMatrix): TLUDecompositionResult {
+export function MatrixLU(matrix: TMatrix): TLUDecompositionResult {
 	AssertMatrix(matrix, { square: true });
 
 	const [n] = MatrixSize(matrix);
@@ -562,25 +562,24 @@ export function MatrixLU(matrix: IMatrix): TLUDecompositionResult {
  * @throws {Error} If matrix has more columns than rows or columns are linearly dependent
  *
  * @example
- * ```ts
- * const A = [[1, 1], [1, 0], [0, 1]]; // 3×2 matrix
- * const { Q, R } = MatrixQR(A);
- * // Q: 3×2 orthogonal matrix with Q^T × Q = I₂
- * // R: 2×2 upper triangular matrix
- *
- * // Verify: Q × R should equal A
- * const reconstructed = MatrixMultiply(Q, R);
- * // reconstructed ≈ A
- *
- * // Check orthogonality: Q^T × Q should be identity
- * const QT = MatrixTranspose(Q);
- * const identity = MatrixMultiply(QT, Q);
- * ```
- *
- * @complexity Time: O(mn²), Space: O(mn) where m ≥ n
- * @see {@link MatrixGramSchmidt} {@link MatrixLU} {@link MatrixEigenQRIteration}
+	 * ```typescript
+	 * ```ts
+	 * const A = [[1, 1], [1, 0], [0, 1]]; // 3×2 matrix
+	 * const { Q, R } = MatrixQR(A);
+	 * // Q: 3×2 orthogonal matrix with Q^T × Q = I₂
+	 * // R: 2×2 upper triangular matrix
+	 * // Verify: Q × R should equal A
+	 * const reconstructed = MatrixMultiply(Q, R);
+	 * // reconstructed ≈ A
+	 * // Check orthogonality: Q^T × Q should be identity
+	 * const QT = MatrixTranspose(Q);
+	 * const identity = MatrixMultiply(QT, Q);
+	 * ```
+	 * @complexity Time: O(mn²), Space: O(mn) where m ≥ n
+	 * @see {@link MatrixGramSchmidt} {@link MatrixLU} {@link MatrixEigenQRIteration}
+	 * ```
  */
-export function MatrixQR(matrix: IMatrix, allowDependentColumns = false): TQRDecompositionResult {
+export function MatrixQR(matrix: TMatrix, allowDependentColumns = false): TQRDecompositionResult {
 	AssertMatrix(matrix);
 
 	const [m, n] = MatrixSize(matrix);
@@ -743,28 +742,26 @@ export function MatrixQR(matrix: IMatrix, allowDependentColumns = false): TQRDec
  * @throws {Error} If matrix contains invalid values (NaN, Infinity)
  *
  * @example
- * ```ts
- * const A = [[1, 2], [3, 4], [5, 6]]; // 3×2 matrix
- * const { U, S, VT } = MatrixSVD(A);
- * // U: 3×2 matrix with orthonormal columns
- * // S: [σ₁, σ₂] singular values in descending order
- * // VT: 2×2 orthogonal matrix (V transposed)
- *
- * // Verify reconstruction: U × diag(S) × VT ≈ A
- * const Sigma = Matrix_Diagonal(S);
- * const reconstructed = MatrixMultiply(MatrixMultiply(U, Sigma), VT);
- *
- * // Matrix rank from singular values (count non-zero values)
- * const rank = S.filter(s => s > 1e-10).length;
- *
- * // Condition number for stability analysis
- * const conditionNumber = S[0] / S[S.length - 1];
- * ```
- *
- * @complexity Time: O(min(m²n, mn²)), Space: O(m² + n²)
- * @see {@link MatrixQR} {@link MatrixEigenQRIteration} {@link Matrix_PseudoInverse}
+	 * ```typescript
+	 * ```ts
+	 * const A = [[1, 2], [3, 4], [5, 6]]; // 3×2 matrix
+	 * const { U, S, VT } = MatrixSVD(A);
+	 * // U: 3×2 matrix with orthonormal columns
+	 * // S: [σ₁, σ₂] singular values in descending order
+	 * // VT: 2×2 orthogonal matrix (V transposed)
+	 * // Verify reconstruction: U × diag(S) × VT ≈ A
+	 * const Sigma = Matrix_Diagonal(S);
+	 * const reconstructed = MatrixMultiply(MatrixMultiply(U, Sigma), VT);
+	 * // Matrix rank from singular values (count non-zero values)
+	 * const rank = S.filter(s => s > 1e-10).length;
+	 * // Condition number for stability analysis
+	 * const conditionNumber = S[0] / S[S.length - 1];
+	 * ```
+	 * @complexity Time: O(min(m²n, mn²)), Space: O(m² + n²)
+	 * @see {@link MatrixQR} {@link MatrixEigenQRIteration} {@link Matrix_PseudoInverse}
+	 * ```
  */
-export function MatrixSVD(matrix: IMatrix): TSVDDecompositionResult {
+export function MatrixSVD(matrix: TMatrix): TSVDDecompositionResult {
 	AssertMatrix(matrix);
 
 	const [m, n] = MatrixSize(matrix);
@@ -820,19 +817,19 @@ export function MatrixSVD(matrix: IMatrix): TSVDDecompositionResult {
 
 	// vMat: n × n matrix where each row is a right singular vector
 	const vColLength = V.length > 0 ? (V[0] as number[]).length : 0;
-	const vMat: IMatrix = Array.from({ length: vColLength }, (_, rowIdx) =>
+	const vMat: TMatrix = Array.from({ length: vColLength }, (_, rowIdx) =>
 		V.map((col) => (col as number[])[rowIdx] as number),
 	);
 
 	// Step 3: Compute U = AVΣ⁻¹ (m × n)
-	const U: IMatrix = MatrixCreate(m, n);
+	const U: TMatrix = MatrixCreate(m, n);
 
 	for (let j = 0; j < n; j++) {
 		const sigma = sSorted[j] as number;
 
 		if (sigma > MATRIX_NUMERICAL_TOLERANCE) {
 			// Multiply A by the j-th right singular vector (n×1 column)
-			const vjCol: IMatrix = vMat.map((row) => [(row as number[])[j] as number]);
+			const vjCol: TMatrix = vMat.map((row) => [(row as number[])[j] as number]);
 			const av = MatrixMultiply(matrix, vjCol); // m×1
 
 			for (let i = 0; i < m; i++) {
@@ -870,17 +867,18 @@ export function MatrixSVD(matrix: IMatrix): TSVDDecompositionResult {
  * @throws {MatrixError} If A is not square, singular, or b has the wrong length
  *
  * @example
- * // 2x + y = 8
- * // 5x + 3y = 20
- * MatrixSolve([[2, 1], [5, 3]], [8, 20]); // [4, 0]
- *
- * @example
- * // Solve a 3×3 system
- * const A = [[1, 2, -1], [2, 1, 1], [3, -1, 2]];
- * const b = [4, 7, 2];
- * MatrixSolve(A, b); // solution vector x
+	 * ```typescript
+	 * // 2x + y = 8
+	 * // 5x + 3y = 20
+	 * MatrixSolve([[2, 1], [5, 3]], [8, 20]); // [4, 0]
+	 * @example
+	 * // Solve a 3×3 system
+	 * const A = [[1, 2, -1], [2, 1, 1], [3, -1, 2]];
+	 * const b = [4, 7, 2];
+	 * MatrixSolve(A, b); // solution vector x
+	 * ```
  */
-export function MatrixSolve(a: IMatrix, b: number[]): number[] {
+export function MatrixSolve(a: TMatrix, b: number[]): number[] {
 	AssertMatrix(a, { square: true });
 
 	const [n] = MatrixSize(a);

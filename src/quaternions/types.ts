@@ -5,7 +5,7 @@
  */
 
 import { TVector3, TVector4 } from '../vectors/types.js';
-import { IMatrix3 } from '../matrices/types.js';
+import { TMatrix3 } from '../matrices/types.js';
 
 /**
  * Quaternion type representing a rotation in 3D space as [x, y, z, w].
@@ -42,7 +42,7 @@ export type TAxisAngle = TVector4;
 
 /**
  * Rotation matrix representation as a 3x3 matrix.
- * Uses the standard IMatrix3 type for better integration with matrix operations.
+ * Uses the standard TMatrix3 type for better integration with matrix operations.
  *
  * @example
  * const identity: IRotationMatrix = [
@@ -51,7 +51,7 @@ export type TAxisAngle = TVector4;
  *   [0, 0, 1]   // Third row
  * ];
  */
-export type TRotationMatrix = IMatrix3;
+export type TRotationMatrix = TMatrix3;
 
 /**
  * Union type representing any supported rotation representation.

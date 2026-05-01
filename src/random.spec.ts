@@ -6,7 +6,7 @@ import {
 	RandomShuffle,
 	RandomBool,
 	RandomNormal,
-} from './random.ts';
+} from './random.js';
 
 describe('Math > Random ', () => {
 	describe('RandomInt', () => {

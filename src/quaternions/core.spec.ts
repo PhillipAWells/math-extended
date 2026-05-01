@@ -1,7 +1,7 @@
 import { QuaternionIdentity, QuaternionClone, QuaternionEquals, QuaternionMagnitude, QuaternionNormalize, QuaternionConjugate, QuaternionInverse, QuaternionMultiply, QuaternionFromAxisAngle, QuaternionFromAxisAngleVector, QuaternionToAxisAngle, QuaternionFromEuler, QuaternionToEuler, QuaternionRotateVector, QuaternionSLERP } from './core.js';
 import { QuaternionError } from './asserts.js';
 import { TQuaternion } from './types.js';
-import { TVector3, TVector4 } from '../vectors/types.ts';
+import { TVector3, TVector4 } from '../vectors/types.js';
 
 describe('Quaternion Core Functions', () => {
 	describe('QuaternionIdentity', () => {

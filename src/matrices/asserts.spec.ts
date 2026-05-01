@@ -13,7 +13,7 @@ import {
 describe('Matrix Assertions', () => {
 	describe('MatrixError', () => {
 		test('should create MatrixError with default message', () => {
-			const error = new MatrixError();
+			const error = new MatrixError('');
 			expect(error.name).toBe('MatrixError');
 			expect(error.message).toBe('');
 			expect(error instanceof Error).toBe(true);

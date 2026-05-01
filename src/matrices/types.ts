@@ -12,7 +12,7 @@
  * const square: IMatrix = [[1, 2], [3, 4]]; // 2×2 square matrix
  */
  
-export type IMatrix = number[][];
+export type TMatrix = number[][];
 
 /**
  * 1×1 matrix type for scalar operations in matrix form.
@@ -22,7 +22,7 @@ export type IMatrix = number[][];
  * const scalar: IMatrix1 = [[5]]; // Single value in matrix format
  */
  
-export type IMatrix1 = [[number]];
+export type TMatrix1 = [[number]];
 
 /**
  * 2×2 matrix type commonly used for 2D transformations.
@@ -33,7 +33,7 @@ export type IMatrix1 = [[number]];
  * const scale2D: IMatrix2 = [[2, 0], [0, 3]]; // Scale transformation
  */
  
-export type IMatrix2 = [
+export type TMatrix2 = [
 	[number, number],
 	[number, number],
 ];
@@ -43,11 +43,11 @@ export type IMatrix2 = [
  * or 3D rotations. Standard size for homogeneous 2D coordinates.
  *
  * @example
- * const transform2D: IMatrix3 = [[1, 0, 5], [0, 1, 10], [0, 0, 1]]; // Translation
- * const rotation3D: IMatrix3 = [[1, 0, 0], [0, 0, -1], [0, 1, 0]]; // X-axis rotation
+ * const transform2D: TMatrix3|TMatrix4 = [[1, 0, 5], [0, 1, 10], [0, 0, 1]]; // Translation
+ * const rotation3D: TMatrix3|TMatrix4 = [[1, 0, 0], [0, 0, -1], [0, 1, 0]]; // X-axis rotation
  */
  
-export type IMatrix3 = [
+export type TMatrix3 = [
 	[number, number, number],
 	[number, number, number],
 	[number, number, number],
@@ -58,7 +58,7 @@ export type IMatrix3 = [
  * Standard size for homogeneous 3D coordinates and transformation pipelines.
  *
  * @example
- * const transform3D: IMatrix4 = [
+ * const transform3D: TMatrix3|TMatrix4 = [
  *   [1, 0, 0, 5],  // Translation in X
  *   [0, 1, 0, 10], // Translation in Y
  *   [0, 0, 1, 15], // Translation in Z
@@ -66,7 +66,7 @@ export type IMatrix3 = [
  * ];
  */
  
-export type IMatrix4 = [
+export type TMatrix4 = [
 	[number, number, number, number],
 	[number, number, number, number],
 	[number, number, number, number],
@@ -93,16 +93,16 @@ export interface IMatrixOperationOptions {
  *   // Can handle any matrix size
  * }
  */
-export type TMatrix = IMatrix | IMatrix1 | IMatrix2 | IMatrix3 | IMatrix4;
+export type TMatrixAll = TMatrix1 | TMatrix2 | TMatrix3 | TMatrix4 | TMatrix;
 
 /**
  * Conditional type that preserves the specific matrix type through operations.
  * Ensures type safety by returning the same specific matrix type as the input.
  *
- * @template T - The input matrix type extending IMatrix
+ * @template T - The input matrix type extending TMatrix
  * @example
- * function operation<T extends IMatrix>(matrix: T): TMatrixResult<T> {
+ * function operation<T extends TMatrix>(matrix: T): TMatrixResult<T> {
  *   // Returns same specific type as input
  * }
  */
-export type TMatrixResult<T extends IMatrix> = T extends IMatrix1 ? IMatrix1 : T extends IMatrix2 ? IMatrix2 : T extends IMatrix3 ? IMatrix3 : T extends IMatrix4 ? IMatrix4 : IMatrix;
+export type TMatrixResult<T extends TMatrix> = T extends TMatrix1 ? TMatrix1 : T extends TMatrix2 ? TMatrix2 : T extends TMatrix3 ? TMatrix3 : T extends TMatrix4 ? TMatrix4 : TMatrix;

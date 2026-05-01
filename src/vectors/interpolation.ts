@@ -51,10 +51,12 @@ function vectorInterpolate<T extends TVector>(a: T, b: T, t: number, interpolati
  * @returns Linearly interpolated vector
  *
  * @example
- * const start = [0, 0, 0];
- * const end = [10, 20, 30];
- * const halfway = VectorLERP(start, end, 0.5); // [5, 10, 15]
- * const quarter = VectorLERP(start, end, 0.25); // [2.5, 5, 7.5]
+	 * ```typescript
+	 * const start = [0, 0, 0];
+	 * const end = [10, 20, 30];
+	 * const halfway = VectorLERP(start, end, 0.5); // [5, 10, 15]
+	 * const quarter = VectorLERP(start, end, 0.25); // [2.5, 5, 7.5]
+	 * ```
  */
 export function VectorLERP<T extends TVector>(a: T, b: T, t: number): TVectorResult<T> {
 	AssertVectors([a, b], { minSize: 1, finite: true });
@@ -85,9 +87,11 @@ export function VectorLERP<T extends TVector>(a: T, b: T, t: number): TVectorRes
  * @returns Smoothly interpolated vector with smooth start and end
  *
  * @example
- * const start = [0, 0];
- * const end = [100, 200];
- * const smooth = VectorSmoothStep(start, end, 0.5); // Smooth transition
+	 * ```typescript
+	 * const start = [0, 0];
+	 * const end = [100, 200];
+	 * const smooth = VectorSmoothStep(start, end, 0.5); // Smooth transition
+	 * ```
  */
 export function VectorSmoothStep<T extends TVector>(a: T, b: T, t: number): TVectorResult<T> {
 	AssertVectors([a, b], { minSize: 1, finite: true });
@@ -302,13 +306,15 @@ export function VectorBounceEaseOut<T extends TVector>(a: T, b: T, t: number): T
  * @returns Smoothly interpolated vector using Catmull-Rom spline
  *
  * @example
- * const path = [
- *   [0, 0],   // p0 - previous point
- *   [10, 0],  // p1 - start
- *   [20, 10], // p2 - end
- *   [30, 10]  // p3 - next point
- * ];
- * const smooth = VectorCatmullRomInterpolation(...path, 0.5);
+	 * ```typescript
+	 * const path = [
+	 *   [0, 0],   // p0 - previous point
+	 *   [10, 0],  // p1 - start
+	 *   [20, 10], // p2 - end
+	 *   [30, 10]  // p3 - next point
+	 * ];
+	 * const smooth = VectorCatmullRomInterpolation(...path, 0.5);
+	 * ```
  */
 export function VectorCatmullRomInterpolation<T extends TVector>(p0: T, p1: T, p2: T, p3: T, t: number): TVectorResult<T> {
 	AssertVectors([p0, p1, p2, p3], { minSize: 1, finite: true });
@@ -348,11 +354,13 @@ export function VectorCatmullRomInterpolation<T extends TVector>(p0: T, p1: T, p
  * @returns Vector interpolated using Hermite spline with tangent control
  *
  * @example
- * const start = [0, 0];
- * const end = [10, 10];
- * const startTangent = [5, 0]; // Horizontal tangent at start
- * const endTangent = [0, 5];   // Vertical tangent at end
- * const curved = VectorHermiteInterpolation(start, end, startTangent, endTangent, 0.5);
+	 * ```typescript
+	 * const start = [0, 0];
+	 * const end = [10, 10];
+	 * const startTangent = [5, 0]; // Horizontal tangent at start
+	 * const endTangent = [0, 5];   // Vertical tangent at end
+	 * const curved = VectorHermiteInterpolation(start, end, startTangent, endTangent, 0.5);
+	 * ```
  */
 export function VectorHermiteInterpolation<T extends TVector>(p0: T, p1: T, t0: T, t1: T, t: number): TVectorResult<T> {
 	AssertVectors([p0, p1, t0, t1], { minSize: 1, finite: true });
@@ -421,10 +429,12 @@ export function VectorCircularEaseOut<T extends TVector>(a: T, b: T, t: number):
  * @returns Either the start or end vector based on threshold comparison
  *
  * @example
- * const off = [0, 0];
- * const on = [1, 1];
- * const result1 = VectorStepInterpolation(off, on, 0.3); // [0, 0] (< 0.5)
- * const result2 = VectorStepInterpolation(off, on, 0.7); // [1, 1] (>= 0.5)
+	 * ```typescript
+	 * const off = [0, 0];
+	 * const on = [1, 1];
+	 * const result1 = VectorStepInterpolation(off, on, 0.3); // [0, 0] (< 0.5)
+	 * const result2 = VectorStepInterpolation(off, on, 0.7); // [1, 1] (>= 0.5)
+	 * ```
  */
 export function VectorStepInterpolation<T extends TVector>(a: T, b: T, t: number, threshold: number = 0.5): TVectorResult<T> {
 	AssertVectors([a, b], { minSize: 1, finite: true });
@@ -614,10 +624,12 @@ const SLERP_LINEARITY_THRESHOLD = 0.001;
  * @returns Spherically interpolated vector maintaining unit length
  *
  * @example
- * const dir1 = [1, 0, 0];
- * const dir2 = [0, 1, 0];
- * const slerp = VectorSphericalLinearInterpolation(dir1, dir2, 0.5);
- * // Result maintains unit length and follows shortest spherical path
+	 * ```typescript
+	 * const dir1 = [1, 0, 0];
+	 * const dir2 = [0, 1, 0];
+	 * const slerp = VectorSphericalLinearInterpolation(dir1, dir2, 0.5);
+	 * // Result maintains unit length and follows shortest spherical path
+	 * ```
  */
 export function VectorSphericalLinearInterpolation<T extends TVector>(a: T, b: T, t: number): TVectorResult<T> {
 	AssertVectors([a, b], { minSize: 2, finite: true });
