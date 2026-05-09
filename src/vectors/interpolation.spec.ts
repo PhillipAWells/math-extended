@@ -1,4 +1,4 @@
-import { VectorLERP, VectorSmoothStep, VectorSmootherStep, VectorQuadraticEaseIn, VectorQuadraticEaseOut, VectorCubicEaseIn, VectorCubicEaseOut, VectorCosineInterpolation, VectorSineEaseIn, VectorSineEaseOut, VectorExponentialEaseIn, VectorExponentialEaseOut, VectorElasticEaseOut, VectorBackEaseOut, VectorBounceEaseOut, VectorCatmullRomInterpolation, VectorHermiteInterpolation, VectorCircularEaseIn, VectorCircularEaseOut, VectorStepInterpolation, VectorSphericalLinearInterpolation } from './interpolation.js';
+import { VectorLERP, VectorSmoothStep, VectorSmootherStep, VectorQuadraticEaseIn, VectorQuadraticEaseOut, VectorCubicEaseIn, VectorCubicEaseOut, VectorCosineInterpolation, VectorSineEaseIn, VectorSineEaseOut, VectorExponentialEaseIn, VectorExponentialEaseOut, VectorExponentialEaseInOut, VectorElasticEaseIn, VectorElasticEaseInOut, VectorElasticEaseOut, VectorBackEaseIn, VectorBackEaseInOut, VectorBackEaseOut, VectorBounceEaseIn, VectorBounceEaseInOut, VectorBounceEaseOut, VectorCatmullRomInterpolation, VectorHermiteInterpolation, VectorCircularEaseIn, VectorCircularEaseOut, VectorStepInterpolation, VectorSphericalLinearInterpolation } from './interpolation.js';
 import { VectorError } from './asserts.js';
 import { TVector2, TVector3, TVector4 } from './types.js';
 
@@ -412,6 +412,18 @@ describe('Vector Interpolation', () => {
 			{ name: 'SineEaseOut', fn: VectorSineEaseOut },
 			{ name: 'CircularEaseIn', fn: VectorCircularEaseIn },
 			{ name: 'CircularEaseOut', fn: VectorCircularEaseOut },
+			{ name: 'BackEaseIn', fn: VectorBackEaseIn },
+			{ name: 'BackEaseInOut', fn: VectorBackEaseInOut },
+			{ name: 'BackEaseOut', fn: VectorBackEaseOut },
+			{ name: 'BounceEaseIn', fn: VectorBounceEaseIn },
+			{ name: 'BounceEaseInOut', fn: VectorBounceEaseInOut },
+			{ name: 'BounceEaseOut', fn: VectorBounceEaseOut },
+			{ name: 'ElasticEaseIn', fn: VectorElasticEaseIn },
+			{ name: 'ElasticEaseInOut', fn: VectorElasticEaseInOut },
+			{ name: 'ElasticEaseOut', fn: VectorElasticEaseOut },
+			{ name: 'ExponentialEaseIn', fn: VectorExponentialEaseIn },
+			{ name: 'ExponentialEaseInOut', fn: VectorExponentialEaseInOut },
+			{ name: 'ExponentialEaseOut', fn: VectorExponentialEaseOut },
 		];
 		interpolationFunctions.forEach(({ name, fn }) => {
 			describe(`${name}`, () => {

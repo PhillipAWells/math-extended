@@ -1,4 +1,3 @@
-// Named re-exports for direct access
 export * from './types.js';
 export * from './core.js';
 export * from './arithmetic.js';
@@ -7,6 +6,3 @@ export * from './decompositions.js';
 export * from './linear-algebra.js';
 export * from './normalization.js';
 export * from './transformations.js';
-
-// Namespace re-exports for grouped access
-export * as MatrixNamespace from './_exports.js';

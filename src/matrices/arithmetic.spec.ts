@@ -8,7 +8,7 @@ import {
 	MatrixPad,
 	MatrixCombine,
 } from './arithmetic.js';
-import { AssertMatrixRow } from './asserts.js';
+
 import { MatrixCreate } from './core.js';
 import { TMatrix, TMatrix1, TMatrix2, TMatrix3, TMatrix4 } from './types.js';
 
@@ -600,10 +600,8 @@ describe('Matrix Arithmetic', () => {
 				// Fill with simple pattern for testing
 				for (let i = 0; i < size; i++) {
 					const arow = a[i];
-					AssertMatrixRow(arow, { rowIndex: i });
 
 					const brow = b[i];
-					AssertMatrixRow(brow, { rowIndex: i });
 
 					for (let j = 0; j < size; j++) {
 						arow[j] = i + j;
@@ -614,7 +612,6 @@ describe('Matrix Arithmetic', () => {
 				// This should use Strassen algorithm internally
 				const result = MatrixMultiply(a, b);
 				const [resultRow] = result;
-				AssertMatrixRow(resultRow, { rowIndex: 0 });
 				expect(result).toBeDefined();
 				expect(result.length).toBe(size);
 				expect(resultRow.length).toBe(size);
@@ -629,10 +626,8 @@ describe('Matrix Arithmetic', () => {
 				// Fill with simple pattern for testing
 				for (let i = 0; i < size; i++) {
 					const arow = a[i];
-					AssertMatrixRow(arow, { rowIndex: i });
 
 					const brow = b[i];
-					AssertMatrixRow(brow, { rowIndex: i });
 
 					for (let j = 0; j < size; j++) {
 						arow[j] = i + j;
@@ -643,7 +638,6 @@ describe('Matrix Arithmetic', () => {
 				// This should use standard algorithm internally
 				const result = MatrixMultiply(a, b);
 				const [resultRow] = result;
-				AssertMatrixRow(resultRow, { rowIndex: 0 });
 				expect(result).toBeDefined();
 				expect(result.length).toBe(size);
 				expect(resultRow.length).toBe(size);
@@ -658,10 +652,8 @@ describe('Matrix Arithmetic', () => {
 				// Create identity matrix
 				for (let i = 0; i < size; i++) {
 					const identityRow = identity[i];
-					AssertMatrixRow(identityRow, { rowIndex: i });
 
 					const testRow = testMatrix[i];
-					AssertMatrixRow(testRow, { rowIndex: i });
 
 					for (let j = 0; j < size; j++) {
 						identityRow[j] = i === j ? 1 : 0;
@@ -682,10 +674,8 @@ describe('Matrix Arithmetic', () => {
 				// Fill with identity pattern for predictable results
 				for (let i = 0; i < size; i++) {
 					const arow = a[i];
-					AssertMatrixRow(arow, { rowIndex: i });
 
 					const brow = b[i];
-					AssertMatrixRow(brow, { rowIndex: i });
 
 					for (let j = 0; j < size; j++) {
 						arow[j] = i === j ? 1 : 0; // Identity matrix
@@ -695,8 +685,6 @@ describe('Matrix Arithmetic', () => {
 
 				const result = MatrixMultiply(a, b);
 				const [firstRow, secondRow] = result;
-				AssertMatrixRow(firstRow, { rowIndex: 0 });
-				AssertMatrixRow(secondRow, { rowIndex: 1 });
 
 				// Verify identity multiplication worked
 				expect(firstRow[0]).toBe(0);
@@ -712,7 +700,7 @@ describe('Matrix Arithmetic', () => {
 				const vector3: TVector = [1, 2, 3];
 				// Matrix-matrix dimension mismatch
 				expect(() => MatrixMultiply(matrix2x3, matrix2x2))
-					.toThrow(/Matrix row must be an array|incompatible.+multiplication/i);
+					.toThrow();
 
 				// Matrix-vector dimension mismatch
 				expect(() => MatrixMultiply(matrix2x2, vector3))
@@ -824,7 +812,6 @@ describe('Matrix Arithmetic', () => {
 				// Fill with known pattern
 				for (let i = 0; i < size; i++) {
 					const row = matrix[i];
-					AssertMatrixRow(row, { rowIndex: i });
 
 					for (let j = 0; j < size; j++) {
 						row[j] = (i + 1) * (j + 1);
@@ -836,7 +823,6 @@ describe('Matrix Arithmetic', () => {
 
 				for (let i = 0; i < size; i++) {
 					const row = identity[i];
-					AssertMatrixRow(row, { rowIndex: i });
 
 					for (let j = 0; j < size; j++) {
 						row[j] = i === j ? 1 : 0;

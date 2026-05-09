@@ -4,78 +4,27 @@
  * and catch errors early in mathematical operations.
  */
 
-import { IAssertException, IAssertNumberArgs, IAssertArrayArgs, SetExceptionMessage, ThrowException } from '@pawells/typescript-common';
-import { TVector, TVector2, TVector3, TVector4 } from './types.js';
+import { VECTOR2_SCHEMA, VECTOR3_SCHEMA, VECTOR4_SCHEMA, VECTOR_SCHEMA, type TVector, type TVector2, type TVector3, type TVector4 } from './types.js';
+import z from 'zod';
 
 /**
- * Configuration options for vector assertion functions.
- * Allows flexible validation of vector properties and constraints.
- */
-export type TAssertVectorArgs = IAssertNumberArgs & IAssertArrayArgs;
-
-/**
- * Extended configuration for validating multiple vectors.
- * Includes all single vector options plus multi-vector constraints.
- */
-export interface IAssertVectorsArgs extends TAssertVectorArgs {
-	/**
-	 * Minimum vector size allowed.
-	 * If specified, vectors must have at least this many components.
-	 */
-	minSize?: number;
-	/**
-	 * Whether all vectors must have the same size.
-	 * Default: true when using individual arguments, configurable when using array syntax.
-	 */
-	sameSize?: boolean;
-	/**
-	 * Whether all vector elements must be finite numbers.
-	 * If true, validates that each element is not Infinity or -Infinity.
-	 */
-	finite?: boolean;
-}
-/**
- * Extended exception interface for vector-specific error information.
- * Provides additional context about which vector component caused the error.
- */
-interface IAssertVectorException extends IAssertException {
-	/**
-	 * Index of the vector component that caused the validation failure.
-	 * Useful for debugging which specific element is invalid.
-	 */
-	index?: number;
-}
-type TAssertVectorValueArgs = IAssertNumberArgs;
-
-/**
- * Specialized error class for vector-related operations and validations.
- * Thrown when vector assertions fail or vector operations encounter invalid data.
+ * Vector error class for validation failures and vector operations.
+ * Extends Error to provide detailed error information with optional cause chain.
  *
  * @example
-	 * ```typescript
-	 * try {
-	 *   AssertVector("not a vector");
-	 * } catch (error) {
-	 *   if (error instanceof VectorError) {
-	 *     console.log("Vector validation failed:", error.message);
-	 *   }
-	 * }
-	 * ```
+ * ```typescript
+ * throw new VectorError('Invalid vector dimensions', { cause: originalError });
+ * ```
  */
 export class VectorError extends Error {
 	public readonly code: string = 'VECTOR_ERROR';
 
-	/**
-	 * Creates a new VectorError instance.
-	 *
-	 * @param message - Error message describing the validation failure
-	 * @param options - Optional error context
-	 * @param options.cause - Original error that caused this error
-	 */
 	constructor(message: string, options?: { cause?: unknown }) {
-		super(message, options);
+		super(message);
 		this.name = 'VectorError';
-		Object.setPrototypeOf(this, new.target.prototype);
+		if (options?.cause) {
+			this.cause = options.cause;
+		}
 	}
 }
 
@@ -91,61 +40,31 @@ export class VectorError extends Error {
  * @throws {VectorError} If the value is not a valid vector meeting all constraints
  *
  * @example
-	 * ```typescript
-	 * ```typescript
-	 * // Basic validation — passes silently for a valid vector
-	 * AssertVector([1, 2, 3]);
-	 * // Validate with size constraint
-	 * AssertVector([1, 2], { size: 2 });
-	 * // Throws VectorError for non-array input
-	 * AssertVector("not a vector"); // throws VectorError
-	 * ```
-	 * ```
+ * ```typescript
+ * // Basic validation — passes silently for a valid vector
+ * AssertVector([1, 2, 3]);
+ * // Validate with size constraint
+ * AssertVector([1, 2], { size: 2 });
+ * // Throws VectorError for non-array input
+ * AssertVector("not a vector"); // throws VectorError
+ * ```
  */
-export function AssertVector(vector: unknown, args: TAssertVectorArgs = {}, exception: IAssertVectorException = {}): asserts vector is TVector {
-	// Initialize exception configuration with defaults
-	const exc: IAssertVectorException = exception ?? {};
-	exc.class ??= VectorError;
-
-	// First validate that it's an array
-	if (!Array.isArray(vector)) {
-		SetExceptionMessage(exc, 'Not a Valid Vector');
-		ThrowException(exc);
+export function AssertVector(vector: unknown): asserts vector is TVector {
+	try {
+		VECTOR_SCHEMA.parse(vector);
+	} catch (error) {
+		const message = error instanceof Error ? error.message : String(error);
+		throw new VectorError(`Invalid vector: ${message}`, {
+			cause: error instanceof Error ? error : undefined,
+		});
 	}
-
-	// Type cast is safe after array validation
-	const array = vector as unknown[];
-
-	// Validate array size constraints (inherited from AssertArrayArgs)
-	if (args.size !== undefined && array.length !== args.size) {
-		SetExceptionMessage(exc, `Vector does not match expected size. (size: ${args.size})`);
-		ThrowException(exc);
-	}
-
-	if (args.minSize !== undefined && array.length < args.minSize) {
-		SetExceptionMessage(exc, `Vector is less than minimum size. (min: ${args.minSize})`);
-		ThrowException(exc);
-	}
-
-	if (args.maxSize !== undefined && array.length > args.maxSize) {
-		SetExceptionMessage(exc, `Vector exceeds maximum size. (max: ${args.maxSize})`);
-		ThrowException(exc);
-	}
-
-	// Validate each element is a valid number using AssertVectorValue
-	for (let i = 0; i < array.length; i++) {
-		try {
-			AssertVectorValue(array[i], args, { ...exc, index: i });
-		} catch (error) {
-			// Re-throw with vector context if it's our error type
-			if (error instanceof VectorError) {
-				throw error;
-			}
-			// Wrap other errors in VectorError
-			SetExceptionMessage(exc, `Invalid Vector Element${exc.index ? `[${exc.index}]` : ''}: ${(error as Error).message}`);
-			exc.index = i;
-			ThrowException(exc);
-		}
+}
+export function ValidateVector(vector: unknown): boolean {
+	try {
+		AssertVector(vector);
+		return true;
+	} catch {
+		return false;
 	}
 }
 
@@ -157,16 +76,29 @@ export function AssertVector(vector: unknown, args: TAssertVectorArgs = {}, exce
  * @throws {VectorError} If the value is not a 2-component vector
  *
  * @example
-	 * ```typescript
-	 * ```typescript
-	 * AssertVector2([1, 2]);       // passes
-	 * AssertVector2([1, 2, 3]);    // throws — too many components
-	 * AssertVector2("not a vec");  // throws
-	 * ```
-	 * ```
+ * ```typescript
+ * AssertVector2([1, 2]);       // passes
+ * AssertVector2([1, 2, 3]);    // throws — too many components
+ * AssertVector2("not a vec");  // throws
+ * ```
  */
-export function AssertVector2(vector: unknown, exception: IAssertVectorException = {}): asserts vector is TVector2 {
-	AssertVector(vector, { size: 2 }, exception);
+export function AssertVector2(vector: unknown): asserts vector is TVector2 {
+	try {
+		VECTOR2_SCHEMA.parse(vector);
+	} catch (error) {
+		const message = error instanceof Error ? error.message : String(error);
+		throw new VectorError(`Invalid 2D vector: ${message}`, {
+			cause: error instanceof Error ? error : undefined,
+		});
+	}
+}
+export function ValidateVector2(vector: unknown): boolean {
+	try {
+		AssertVector2(vector);
+		return true;
+	} catch {
+		return false;
+	}
 }
 
 /**
@@ -177,16 +109,29 @@ export function AssertVector2(vector: unknown, exception: IAssertVectorException
  * @throws {VectorError} If the value is not a 3-component vector
  *
  * @example
-	 * ```typescript
-	 * ```typescript
-	 * AssertVector3([1, 2, 3]);    // passes
-	 * AssertVector3([1, 2]);       // throws — too few components
-	 * AssertVector3(null);         // throws
-	 * ```
-	 * ```
+ * ```typescript
+ * AssertVector3([1, 2, 3]);    // passes
+ * AssertVector3([1, 2]);       // throws — too few components
+ * AssertVector3(null);         // throws
+ * ```
  */
-export function AssertVector3(vector: unknown, exception: IAssertVectorException = {}): asserts vector is TVector3 {
-	AssertVector(vector, { size: 3 }, exception);
+export function AssertVector3(vector: unknown): asserts vector is TVector3 {
+	try {
+		VECTOR3_SCHEMA.parse(vector);
+	} catch (error) {
+		const message = error instanceof Error ? error.message : String(error);
+		throw new VectorError(`Invalid 3D vector: ${message}`, {
+			cause: error instanceof Error ? error : undefined,
+		});
+	}
+}
+export function ValidateVector3(vector: unknown): boolean {
+	try {
+		AssertVector3(vector);
+		return true;
+	} catch {
+		return false;
+	}
 }
 
 /**
@@ -197,257 +142,23 @@ export function AssertVector3(vector: unknown, exception: IAssertVectorException
  * @throws {VectorError} If the value is not a 4-component vector
  *
  * @example
-	 * ```typescript
-	 * ```typescript
-	 * AssertVector4([1, 2, 3, 4]); // passes
-	 * AssertVector4([1, 2, 3]);    // throws — too few components
-	 * AssertVector4(undefined);    // throws
-	 * ```
-	 * ```
- */
-export function AssertVector4(vector: unknown, exception: IAssertVectorException = {}): asserts vector is TVector4 {
-	AssertVector(vector, { size: 4 }, exception);
-}
-
-/**
- * Validates that an unknown value is a valid vector element (a finite, non-NaN number).
- *
- * Supports optional numeric constraints such as range bounds, integer enforcement,
- * and finiteness checks. Throws `VectorError` with the component index when available.
- *
- * @param value - The value to validate as a vector element
- * @param args - Numeric constraints (finite, integer, gt, gte, lt, lte, eq)
- * @param exception - Custom exception details, optionally including a component `index`
- * @throws {VectorError} If the value is not a valid number or violates any constraint
- *
- * @example
-	 * ```typescript
-	 * ```typescript
-	 * AssertVectorValue(3.14);                       // passes
-	 * AssertVectorValue(3.14, { finite: true });      // passes
-	 * AssertVectorValue(Infinity, { finite: true });  // throws
-	 * AssertVectorValue(NaN);                         // throws
-	 * AssertVectorValue(5, { gte: 0, lte: 10 });     // passes
-	 * ```
-	 * ```
- */
-export function AssertVectorValue(value: unknown, args: TAssertVectorValueArgs = {}, exception: IAssertVectorException = {}): asserts value is number {
-	// Initialize exception configuration with defaults
-	const exc: IAssertVectorException = exception ?? {};
-	exc.class ??= VectorError;
-
-	// Validate that the value is a number (and not NaN)
-	if (typeof value !== 'number' || Number.isNaN(value)) {
-		if (exc.index !== undefined) {
-			SetExceptionMessage(exc, `Vector[${exc.index}] Not a Number`);
-		} else {
-			SetExceptionMessage(exc, `Vector element must be a number, got ${typeof value}`);
-		}
-		ThrowException(exc);
-	}
-
-	// Type cast is safe after number validation
-	const numValue = value as number;
-
-	// Apply all number validation constraints using the same logic as AssertNumber
-	// but with VectorError as the default error class instead of NumberError
-
-	// Validate finite constraint (if specified, value must be finite)
-	if (args.finite === true && !Number.isFinite(numValue)) {
-		SetExceptionMessage(exc, `Vector${exc.index ? `[${exc.index}]` : ''} Must be Finite`);
-		ThrowException(exc);
-	}
-
-	// Validate integer constraint (if specified, value must be an integer)
-	if (args.integer === true && !Number.isInteger(numValue)) {
-		SetExceptionMessage(exc, `Vector${exc.index ? `[${exc.index}]` : ''} Must be an Integer`);
-		ThrowException(exc);
-	}
-
-	// Validate equality constraint (if specified, value must exactly match)
-	if (args.eq !== undefined && numValue !== args.eq) {
-		SetExceptionMessage(exc, `Vector${exc.index ? `[${exc.index}]` : ''} Must be equal to ${args.eq}`);
-		ThrowException(exc);
-	}
-
-	// Validate greater than constraint (exclusive - value must be strictly greater)
-	if (args.gt !== undefined && numValue <= args.gt) {
-		SetExceptionMessage(exc, `Vector${exc.index ? `[${exc.index}]` : ''} Must be greater than ${args.gt}`);
-		ThrowException(exc);
-	}
-
-	// Validate greater than or equal constraint (inclusive - value can equal the bound)
-	if (args.gte !== undefined && numValue < args.gte) {
-		SetExceptionMessage(exc, `Vector${exc.index ? `[${exc.index}]` : ''} Must be greater than or equal to ${args.gte}`);
-		ThrowException(exc);
-	}
-
-	// Validate less than constraint (exclusive - value must be strictly less)
-	if (args.lt !== undefined && numValue >= args.lt) {
-		SetExceptionMessage(exc, `Vector${exc.index ? `[${exc.index}]` : ''} Must be less than ${args.lt}`);
-		ThrowException(exc);
-	}
-
-	// Validate less than or equal constraint (inclusive - value can equal the bound)
-	if (args.lte !== undefined && numValue > args.lte) {
-		SetExceptionMessage(exc, `Vector${exc.index ? `[${exc.index}]` : ''} Must be less than or equal to ${args.lte}`);
-		ThrowException(exc);
-	}
-}
-
-/**
- * Validates an array of vectors, ensuring each vector is valid and optionally
- * enforcing that all vectors share the same size.
- *
- * @param vectors - The array of vectors to validate (must be non-empty)
- * @param args - Validation constraints applied to each vector; set `sameSize: true`
- *   to require all vectors to have identical lengths
- * @param exception - Custom exception details if validation fails
- * @throws {VectorError} If the array is empty, any vector is invalid, or sizes
- *   differ when `sameSize` is `true`
- *
- * @example
-	 * ```typescript
-	 * // Validate an array of 3D vectors
-	 * AssertVectors([[1, 2, 3], [4, 5, 6]]);
-	 * // Require all vectors to share the same length
-	 * AssertVectors([[1, 2], [3, 4]], { sameSize: true });
-	 * // Throws because vectors have different sizes
-	 * AssertVectors([[1, 2], [1, 2, 3]], { sameSize: true }); // throws
-	 * ```
- */
-export function AssertVectors(vectors: unknown[], args?: IAssertVectorsArgs, exception?: IAssertVectorException): void {
-	const exc: IAssertVectorException = exception ?? {};
-	exc.class ??= VectorError;
-
-	// Validate that vectors is an array of arrays
-	if (!Array.isArray(vectors)) {
-		SetExceptionMessage(exc, 'Vectors argument must be an array of vectors');
-		ThrowException(exc);
-	}
-
-	if (vectors.length === 0) {
-		SetExceptionMessage(exc, 'Vectors array is empty');
-		ThrowException(exc);
-	}
-
-	// Validate each vector and collect their sizes
-	const sizes: number[] = [];
-
-	for (let i = 0; i < vectors.length; i++) {
-		try {
-			AssertVector(vectors[i], args, { ...exc, index: i });
-			sizes.push((vectors[i] as unknown[]).length);
-		} catch (error) {
-			if (error instanceof VectorError) {
-				throw error;
-			}
-			SetExceptionMessage(exc, `Invalid vector at index ${i}: ${(error as Error).message}`);
-			exc.index = i;
-			ThrowException(exc);
-		}
-	}
-
-	// Check if all vectors have the same size if required
-	const requireSameSize = args?.sameSize ?? true;
-	if (requireSameSize) {
-		const [firstSize] = sizes;
-
-		for (let i = 1; i < sizes.length; i++) {
-			if (sizes[i] !== firstSize) {
-				SetExceptionMessage(exc, `Vectors at index 0 and ${i} do not have the same size (${firstSize} vs ${sizes[i]})`);
-				exc.index = i;
-				ThrowException(exc);
-			}
-		}
-	}
-}
-
-/**
- * Validates that an unknown value is a valid vector without throwing an error.
- *
- * This function performs the same validation as AssertVector but returns
- * a boolean instead of throwing an exception, making it suitable for
- * conditional logic where exceptions are not desired.
- *
- * @param vector - The value to validate as a vector
- * @param args - Validation configuration options
- * @returns true if the vector is valid, false otherwise
- *
- * @example
  * ```typescript
- * if (ValidateVector([1, 2, 3])) {
- *   // Process the valid vector
- * }
+ * AssertVector4([1, 2, 3, 4]); // passes
+ * AssertVector4([1, 2, 3]);    // throws — too few components
+ * AssertVector4(undefined);    // throws
  * ```
  */
-export function ValidateVector(vector: unknown, args: TAssertVectorArgs = {}): vector is TVector {
+export function AssertVector4(vector: unknown): asserts vector is TVector4 {
 	try {
-		AssertVector(vector, args);
-		return true;
-	} catch {
-		return false;
+		VECTOR4_SCHEMA.parse(vector);
+	} catch (error) {
+		const message = error instanceof Error ? error.message : String(error);
+		throw new VectorError(`Invalid 4D vector: ${message}`, {
+			cause: error instanceof Error ? error : undefined,
+		});
 	}
 }
-
-/**
- * Validates that an unknown value is a valid 2D vector without throwing an error.
- *
- * @param vector - The value to validate as a 2D vector
- * @returns true if the vector is valid, false otherwise
- *
- * @example
- * ```typescript
- * if (ValidateVector2([1, 2])) {
- *   // Process the valid 2D vector
- * }
- * ```
- */
-export function ValidateVector2(vector: unknown): vector is TVector2 {
-	try {
-		AssertVector2(vector);
-		return true;
-	} catch {
-		return false;
-	}
-}
-
-/**
- * Validates that an unknown value is a valid 3D vector without throwing an error.
- *
- * @param vector - The value to validate as a 3D vector
- * @returns true if the vector is valid, false otherwise
- *
- * @example
- * ```typescript
- * if (ValidateVector3([1, 2, 3])) {
- *   // Process the valid 3D vector
- * }
- * ```
- */
-export function ValidateVector3(vector: unknown): vector is TVector3 {
-	try {
-		AssertVector3(vector);
-		return true;
-	} catch {
-		return false;
-	}
-}
-
-/**
- * Validates that an unknown value is a valid 4D vector without throwing an error.
- *
- * @param vector - The value to validate as a 4D vector
- * @returns true if the vector is valid, false otherwise
- *
- * @example
- * ```typescript
- * if (ValidateVector4([1, 2, 3, 4])) {
- *   // Process the valid 4D vector
- * }
- * ```
- */
-export function ValidateVector4(vector: unknown): vector is TVector4 {
+export function ValidateVector4(vector: unknown): boolean {
 	try {
 		AssertVector4(vector);
 		return true;
@@ -456,23 +167,56 @@ export function ValidateVector4(vector: unknown): vector is TVector4 {
 	}
 }
 
-/**
- * Validates that an unknown value is a valid vector element without throwing an error.
- *
- * @param value - The value to validate as a vector element
- * @param args - Validation configuration options
- * @returns true if the value is valid, false otherwise
- *
- * @example
- * ```typescript
- * if (ValidateVectorValue(1.5)) {
- *   // Process the valid element
- * }
- * ```
- */
-export function ValidateVectorValue(value: unknown, args: TAssertVectorValueArgs = {}): value is number {
+export const VECTOR_SAME_SIZE_SCHEMA = z.array(VECTOR_SCHEMA).superRefine((vectors, ctx) => {
+	if (!Array.isArray(vectors) || vectors.length === 0) {
+		ctx.addIssue({
+			code: 'custom',
+			message: 'Input must be a non-empty array of vectors',
+		});
+		return;
+	}
+
+	const [firstVector] = vectors;
+	if (!Array.isArray(firstVector)) {
+		ctx.addIssue({
+			code: 'custom',
+			message: 'Each item must be an array representing a vector',
+		});
+		return;
+	}
+
+	const size = firstVector.length;
+	for (const vector of vectors) {
+		if (!Array.isArray(vector)) {
+			ctx.addIssue({
+				code: 'custom',
+				message: 'Each item must be an array representing a vector',
+			});
+			return;
+		}
+		if (vector.length !== size) {
+			ctx.addIssue({
+				code: 'custom',
+				message: `All vectors must have the same size. Expected size: ${size}, but got: ${vector.length}`,
+			});
+			return;
+		}
+	}
+});
+export type TVectorSameSize = z.infer<typeof VECTOR_SAME_SIZE_SCHEMA>;
+export function AssertVectorSameSize(vectors: unknown[]): asserts vectors is TVectorSameSize {
 	try {
-		AssertVectorValue(value, args);
+		VECTOR_SAME_SIZE_SCHEMA.parse(vectors);
+	} catch (error) {
+		const message = error instanceof Error ? error.message : String(error);
+		throw new VectorError(`Vectors must have same size: ${message}`, {
+			cause: error instanceof Error ? error : undefined,
+		});
+	}
+}
+export function ValidateVectorSameSize(vectors: unknown[]): boolean {
+	try {
+		AssertVectorSameSize(vectors);
 		return true;
 	} catch {
 		return false;
@@ -480,24 +224,27 @@ export function ValidateVectorValue(value: unknown, args: TAssertVectorValueArgs
 }
 
 /**
- * Validates that an unknown value is an array of valid vectors without throwing an error.
+ * Validates that the given vector is not a zero vector (all components are not zero).
+ * Throws a VectorError if the vector is zero.
  *
- * @param vectors - The value to validate as an array of vectors
- * @param args - Validation configuration options
- * @returns true if all vectors are valid, false otherwise
+ * @param vector - The vector to validate
+ * @param label - The label for the vector used in the error message (default: 'Vector')
+ * @throws {VectorError} If the vector is a zero vector
  *
  * @example
  * ```typescript
- * if (ValidateVectors([v1, v2, v3])) {
- *   // Process the valid vector array
- * }
+ * const v = [1, 2, 3];
+ * AssertVectorNonZero(v); // Valid
+ *
+ * const zero = [0, 0, 0];
+ * AssertVectorNonZero(zero, 'Direction'); // Throws VectorError: Direction must not be zero
  * ```
  */
-export function ValidateVectors(vectors: unknown[], args?: IAssertVectorsArgs): boolean {
-	try {
-		AssertVectors(vectors, args);
-		return true;
-	} catch {
-		return false;
+export function AssertVectorNonZero(vector: TVector, label: string = 'Vector'): void {
+	AssertVector(vector);
+	// Check if vector is zero (all components are 0)
+	const isZero = vector.every((v) => v === 0);
+	if (isZero) {
+		throw new VectorError(`${label} must not be zero`);
 	}
 }

@@ -3,7 +3,7 @@
  * Provides convenient constants for frequently used quaternion values.
  */
 
-import { TQuaternion } from './types.js';
+import type { TQuaternion } from './types.js';
 import { QuaternionFromAxisAngle } from './core.js';
 
 /**
@@ -13,9 +13,9 @@ import { QuaternionFromAxisAngle } from './core.js';
  * @returns Quaternion representing rotation around X-axis
  *
  * @example
-	 * ```typescript
-	 * const q = QuaternionRotationX(Math.PI / 2); // 90° rotation around X-axis
-	 * ```
+ * ```typescript
+ * const q = QuaternionRotationX(Math.PI / 2); // 90° rotation around X-axis
+ * ```
  */
 export function QuaternionRotationX(angle: number): TQuaternion {
 	return QuaternionFromAxisAngle([1, 0, 0], angle);
@@ -28,9 +28,9 @@ export function QuaternionRotationX(angle: number): TQuaternion {
  * @returns Quaternion representing rotation around Y-axis
  *
  * @example
-	 * ```typescript
-	 * const q = QuaternionRotationY(Math.PI / 4); // 45° rotation around Y-axis
-	 * ```
+ * ```typescript
+ * const q = QuaternionRotationY(Math.PI / 4); // 45° rotation around Y-axis
+ * ```
  */
 export function QuaternionRotationY(angle: number): TQuaternion {
 	return QuaternionFromAxisAngle([0, 1, 0], angle);
@@ -43,9 +43,9 @@ export function QuaternionRotationY(angle: number): TQuaternion {
  * @returns Quaternion representing rotation around Z-axis
  *
  * @example
-	 * ```typescript
-	 * const q = QuaternionRotationZ(Math.PI); // 180° rotation around Z-axis
-	 * ```
+ * ```typescript
+ * const q = QuaternionRotationZ(Math.PI); // 180° rotation around Z-axis
+ * ```
  */
 export function QuaternionRotationZ(angle: number): TQuaternion {
 	return QuaternionFromAxisAngle([0, 0, 1], angle);

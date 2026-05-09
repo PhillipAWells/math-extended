@@ -9,11 +9,11 @@
  * @returns The clamped value in the range [min, max]
  *
  * @example
-	 * ```typescript
-	 * Clamp(5, 0, 10)   // 5 (within range)
-	 * Clamp(-3, 0, 10)  // 0 (below min)
-	 * Clamp(15, 0, 10)  // 10 (above max)
-	 * ```
+ * ```typescript
+ * Clamp(5, 0, 10)   // 5 (within range)
+ * Clamp(-3, 0, 10)  // 0 (below min)
+ * Clamp(15, 0, 10)  // 10 (above max)
+ * ```
  */
 export function Clamp(x: number, min: number, max: number): number {
 	return Math.max(min, Math.min(x, max));

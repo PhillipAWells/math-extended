@@ -30,6 +30,7 @@ const EASE_INOUT_HALF = 0.5;        // t threshold separating ease-in phase from
 const ELASTIC_INOUT_PHASE = 11.125;  // phase offset in ElasticEaseInOut: 2*EXP_SCALE*t − 11.125
 const ELASTIC_INOUT_PERIOD = 4.5;   // period divisor for ElasticEaseInOut: 2π / 4.5
 const BACK_INOUT_SCALE = 1.525;     // scale factor for back ease-in-out overshoot (c2 = c1 * 1.525)
+const BACK_EASE_OVERSHOOT_AMPLITUDE = 1.70158;
 
 /**
  * Linear interpolation (LERP) between two scalar values.
@@ -42,12 +43,12 @@ const BACK_INOUT_SCALE = 1.525;     // scale factor for back ease-in-out oversho
  * @returns `a + (b - a) * t`
  *
  * @example
-	 * ```typescript
-	 * LinearInterpolation(0, 100, 0.5)  // 50
-	 * LinearInterpolation(0, 100, 0)    // 0
-	 * LinearInterpolation(0, 100, 1)    // 100
-	 * LinearInterpolation(0, 100, 1.5)  // 150 (extrapolation)
-	 * ```
+ * ```typescript
+ * LinearInterpolation(0, 100, 0.5)  // 50
+ * LinearInterpolation(0, 100, 0)    // 0
+ * LinearInterpolation(0, 100, 1)    // 100
+ * LinearInterpolation(0, 100, 1.5)  // 150 (extrapolation)
+ * ```
  */
 export function LinearInterpolation(a: number, b: number, t: number): number {
 	// Do not clamp t, allow extrapolation for LERP
@@ -64,11 +65,11 @@ export function LinearInterpolation(a: number, b: number, t: number): number {
  * @returns Interpolated value using cubic smooth-step curve
  *
  * @example
-	 * ```typescript
-	 * SmoothStep(0, 10, 0)    // 0
-	 * SmoothStep(0, 10, 1)    // 10
-	 * SmoothStep(0, 10, 0.25) // 1.5625 (slower start than LinearInterpolation's 2.5)
-	 * ```
+ * ```typescript
+ * SmoothStep(0, 10, 0)    // 0
+ * SmoothStep(0, 10, 1)    // 10
+ * SmoothStep(0, 10, 0.25) // 1.5625 (slower start than LinearInterpolation's 2.5)
+ * ```
  */
 export function SmoothStep(a: number, b: number, t: number): number {
 	// Allow extrapolation by not clamping t
@@ -88,11 +89,11 @@ export function SmoothStep(a: number, b: number, t: number): number {
  * @returns Interpolated value using quintic smoother-step curve
  *
  * @example
-	 * ```typescript
-	 * SmootherStep(0, 10, 0)    // 0
-	 * SmootherStep(0, 10, 1)    // 10
-	 * SmootherStep(0, 10, 0.25) // ~1.04 (smoother start than SmoothStep)
-	 * ```
+ * ```typescript
+ * SmootherStep(0, 10, 0)    // 0
+ * SmootherStep(0, 10, 1)    // 10
+ * SmootherStep(0, 10, 0.25) // ~1.04 (smoother start than SmoothStep)
+ * ```
  */
 export function SmootherStep(a: number, b: number, t: number): number {
 	// Allow extrapolation by not clamping t
@@ -111,11 +112,11 @@ export function SmootherStep(a: number, b: number, t: number): number {
  * @returns Interpolated value with quadratic acceleration from start
  *
  * @example
-	 * ```typescript
-	 * QuadraticEaseIn(0, 10, 0)    // 0
-	 * QuadraticEaseIn(0, 10, 1)    // 10
-	 * QuadraticEaseIn(0, 10, 0.5)  // 2.5 (only 25% progress at the midpoint)
-	 * ```
+ * ```typescript
+ * QuadraticEaseIn(0, 10, 0)    // 0
+ * QuadraticEaseIn(0, 10, 1)    // 10
+ * QuadraticEaseIn(0, 10, 0.5)  // 2.5 (only 25% progress at the midpoint)
+ * ```
  */
 export function QuadraticEaseIn(a: number, b: number, t: number): number {
 	// Allow extrapolation by not clamping t
@@ -132,11 +133,11 @@ export function QuadraticEaseIn(a: number, b: number, t: number): number {
  * @returns Interpolated value with quadratic deceleration toward end
  *
  * @example
-	 * ```typescript
-	 * QuadraticEaseOut(0, 10, 0)   // 0
-	 * QuadraticEaseOut(0, 10, 1)   // 10
-	 * QuadraticEaseOut(0, 10, 0.5) // 7.5 (already 75% progress at the midpoint)
-	 * ```
+ * ```typescript
+ * QuadraticEaseOut(0, 10, 0)   // 0
+ * QuadraticEaseOut(0, 10, 1)   // 10
+ * QuadraticEaseOut(0, 10, 0.5) // 7.5 (already 75% progress at the midpoint)
+ * ```
  */
 export function QuadraticEaseOut(a: number, b: number, t: number): number {
 	// Allow extrapolation by not clamping t
@@ -153,11 +154,11 @@ export function QuadraticEaseOut(a: number, b: number, t: number): number {
  * @returns Interpolated value with cubic acceleration from start
  *
  * @example
-	 * ```typescript
-	 * CubicEaseIn(0, 10, 0)    // 0
-	 * CubicEaseIn(0, 10, 1)    // 10
-	 * CubicEaseIn(0, 10, 0.5)  // 1.25 (only 12.5% progress at the midpoint)
-	 * ```
+ * ```typescript
+ * CubicEaseIn(0, 10, 0)    // 0
+ * CubicEaseIn(0, 10, 1)    // 10
+ * CubicEaseIn(0, 10, 0.5)  // 1.25 (only 12.5% progress at the midpoint)
+ * ```
  */
 export function CubicEaseIn(a: number, b: number, t: number): number {
 	// Allow extrapolation by not clamping t
@@ -174,11 +175,11 @@ export function CubicEaseIn(a: number, b: number, t: number): number {
  * @returns Interpolated value with cubic deceleration toward end
  *
  * @example
-	 * ```typescript
-	 * CubicEaseOut(0, 10, 0)   // 0
-	 * CubicEaseOut(0, 10, 1)   // 10
-	 * CubicEaseOut(0, 10, 0.5) // 8.75 (already 87.5% progress at the midpoint)
-	 * ```
+ * ```typescript
+ * CubicEaseOut(0, 10, 0)   // 0
+ * CubicEaseOut(0, 10, 1)   // 10
+ * CubicEaseOut(0, 10, 0.5) // 8.75 (already 87.5% progress at the midpoint)
+ * ```
  */
 export function CubicEaseOut(a: number, b: number, t: number): number {
 	// Allow extrapolation by not clamping t
@@ -195,11 +196,11 @@ export function CubicEaseOut(a: number, b: number, t: number): number {
  * @returns Interpolated value using cosine-based easing curve
  *
  * @example
-	 * ```typescript
-	 * CosineInterpolation(0, 10, 0)   // 0
-	 * CosineInterpolation(0, 10, 1)   // 10
-	 * CosineInterpolation(0, 10, 0.5) // 5 (same as LERP at midpoint; smooth near endpoints)
-	 * ```
+ * ```typescript
+ * CosineInterpolation(0, 10, 0)   // 0
+ * CosineInterpolation(0, 10, 1)   // 10
+ * CosineInterpolation(0, 10, 0.5) // 5 (same as LERP at midpoint; smooth near endpoints)
+ * ```
  */
 export function CosineInterpolation(a: number, b: number, t: number): number {
 	// Allow extrapolation by not clamping t
@@ -218,11 +219,11 @@ export function CosineInterpolation(a: number, b: number, t: number): number {
  * @returns Interpolated value with sine-based acceleration from start
  *
  * @example
-	 * ```typescript
-	 * SineEaseIn(0, 10, 0)   // 0
-	 * SineEaseIn(0, 10, 1)   // 10
-	 * SineEaseIn(0, 10, 0.5) // ~2.93 (slower than LinearInterpolation's 5 at midpoint)
-	 * ```
+ * ```typescript
+ * SineEaseIn(0, 10, 0)   // 0
+ * SineEaseIn(0, 10, 1)   // 10
+ * SineEaseIn(0, 10, 0.5) // ~2.93 (slower than LinearInterpolation's 5 at midpoint)
+ * ```
  */
 export function SineEaseIn(a: number, b: number, t: number): number {
 	// Allow extrapolation by not clamping t
@@ -239,11 +240,11 @@ export function SineEaseIn(a: number, b: number, t: number): number {
  * @returns Interpolated value with sine-based deceleration toward end
  *
  * @example
-	 * ```typescript
-	 * SineEaseOut(0, 10, 0)   // 0
-	 * SineEaseOut(0, 10, 1)   // 10
-	 * SineEaseOut(0, 10, 0.5) // ~7.07 (faster than LinearInterpolation's 5 at midpoint)
-	 * ```
+ * ```typescript
+ * SineEaseOut(0, 10, 0)   // 0
+ * SineEaseOut(0, 10, 1)   // 10
+ * SineEaseOut(0, 10, 0.5) // ~7.07 (faster than LinearInterpolation's 5 at midpoint)
+ * ```
  */
 export function SineEaseOut(a: number, b: number, t: number): number {
 	// Allow extrapolation by not clamping t
@@ -260,11 +261,11 @@ export function SineEaseOut(a: number, b: number, t: number): number {
  * @returns Interpolated value with exponential acceleration from start
  *
  * @example
-	 * ```typescript
-	 * ExponentialEaseIn(0, 10, 0)    // 0
-	 * ExponentialEaseIn(0, 10, 1)    // 10
-	 * ExponentialEaseIn(0, 10, 0.5)  // ~0.31 (barely moved at midpoint)
-	 * ```
+ * ```typescript
+ * ExponentialEaseIn(0, 10, 0)    // 0
+ * ExponentialEaseIn(0, 10, 1)    // 10
+ * ExponentialEaseIn(0, 10, 0.5)  // ~0.31 (barely moved at midpoint)
+ * ```
  */
 export function ExponentialEaseIn(a: number, b: number, t: number): number {
 	// Allow extrapolation by not clamping t
@@ -283,11 +284,11 @@ export function ExponentialEaseIn(a: number, b: number, t: number): number {
  * @returns Interpolated value with exponential deceleration toward end
  *
  * @example
-	 * ```typescript
-	 * ExponentialEaseOut(0, 10, 0)   // 0
-	 * ExponentialEaseOut(0, 10, 1)   // 10
-	 * ExponentialEaseOut(0, 10, 0.5) // ~9.69 (nearly done at midpoint)
-	 * ```
+ * ```typescript
+ * ExponentialEaseOut(0, 10, 0)   // 0
+ * ExponentialEaseOut(0, 10, 1)   // 10
+ * ExponentialEaseOut(0, 10, 0.5) // ~9.69 (nearly done at midpoint)
+ * ```
  */
 export function ExponentialEaseOut(a: number, b: number, t: number): number {
 	// Allow extrapolation by not clamping t
@@ -306,11 +307,11 @@ export function ExponentialEaseOut(a: number, b: number, t: number): number {
  * @returns Interpolated value with elastic overshoot effect toward end
  *
  * @example
-	 * ```typescript
-	 * ElasticEaseOut(0, 10, 0)   // 0
-	 * ElasticEaseOut(0, 10, 1)   // 10
-	 * ElasticEaseOut(0, 10, 0.8) // ~10.86 (overshoots target before settling)
-	 * ```
+ * ```typescript
+ * ElasticEaseOut(0, 10, 0)   // 0
+ * ElasticEaseOut(0, 10, 1)   // 10
+ * ElasticEaseOut(0, 10, 0.8) // ~10.86 (overshoots target before settling)
+ * ```
  */
 export function ElasticEaseOut(a: number, b: number, t: number): number {
 	// Allow extrapolation by not clamping t
@@ -334,11 +335,11 @@ export function ElasticEaseOut(a: number, b: number, t: number): number {
  * @returns Interpolated value with back overshoot effect toward end
  *
  * @example
-	 * ```typescript
-	 * BackEaseOut(0, 10, 0)    // 0
-	 * BackEaseOut(0, 10, 1)    // 10
-	 * BackEaseOut(0, 10, 0.75) // ~10.88 (overshoots before settling)
-	 * ```
+ * ```typescript
+ * BackEaseOut(0, 10, 0)    // 0
+ * BackEaseOut(0, 10, 1)    // 10
+ * BackEaseOut(0, 10, 0.75) // ~10.88 (overshoots before settling)
+ * ```
  */
 export function BackEaseOut(a: number, b: number, t: number): number {
 	// Allow extrapolation by not clamping t
@@ -359,11 +360,11 @@ export function BackEaseOut(a: number, b: number, t: number): number {
  * @returns Interpolated value with bouncing effect toward end
  *
  * @example
-	 * ```typescript
-	 * BounceEaseOut(0, 10, 0)   // 0
-	 * BounceEaseOut(0, 10, 1)   // 10
-	 * BounceEaseOut(0, 10, 0.5) // ~7.65 (mid-bounce)
-	 * ```
+ * ```typescript
+ * BounceEaseOut(0, 10, 0)   // 0
+ * BounceEaseOut(0, 10, 1)   // 10
+ * BounceEaseOut(0, 10, 0.5) // ~7.65 (mid-bounce)
+ * ```
  */
 export function BounceEaseOut(a: number, b: number, t: number): number {
 	// Allow extrapolation by not clamping t
@@ -400,11 +401,11 @@ export function BounceEaseOut(a: number, b: number, t: number): number {
  * @returns Smoothly interpolated value along the Catmull-Rom spline
  *
  * @example
-	 * ```typescript
-	 * CatmullRomInterpolation(0, 5, 10, 15, 0)   // 5  (at p1)
-	 * CatmullRomInterpolation(0, 5, 10, 15, 1)   // 10 (at p2)
-	 * CatmullRomInterpolation(0, 5, 10, 15, 0.5) // 7.5
-	 * ```
+ * ```typescript
+ * CatmullRomInterpolation(0, 5, 10, 15, 0)   // 5  (at p1)
+ * CatmullRomInterpolation(0, 5, 10, 15, 1)   // 10 (at p2)
+ * CatmullRomInterpolation(0, 5, 10, 15, 0.5) // 7.5
+ * ```
  */
 export function CatmullRomInterpolation(p0: number,	p1: number,	p2: number,	p3: number,	t: number): number {
 	// Allow extrapolation by not clamping t
@@ -428,11 +429,11 @@ export function CatmullRomInterpolation(p0: number,	p1: number,	p2: number,	p3: 
  * @returns Interpolated value along the Hermite spline
  *
  * @example
-	 * ```typescript
-	 * HermiteInterpolation(0, 10, 0, 0, 0)   // 0  (at start)
-	 * HermiteInterpolation(0, 10, 0, 0, 1)   // 10 (at end)
-	 * HermiteInterpolation(0, 10, 0, 0, 0.5) // 5  (flat tangents → same as LERP at midpoint)
-	 * ```
+ * ```typescript
+ * HermiteInterpolation(0, 10, 0, 0, 0)   // 0  (at start)
+ * HermiteInterpolation(0, 10, 0, 0, 1)   // 10 (at end)
+ * HermiteInterpolation(0, 10, 0, 0, 0.5) // 5  (flat tangents → same as LERP at midpoint)
+ * ```
  */
 export function HermiteInterpolation(p0: number,	p1: number,	t0: number,	t1: number,	t: number): number {
 	// Allow extrapolation by not clamping t
@@ -457,11 +458,11 @@ export function HermiteInterpolation(p0: number,	p1: number,	t0: number,	t1: num
  * @returns Interpolated value with circular acceleration from start
  *
  * @example
-	 * ```typescript
-	 * CircularEaseIn(0, 10, 0)   // 0
-	 * CircularEaseIn(0, 10, 1)   // 10
-	 * CircularEaseIn(0, 10, 0.5) // ~1.34 (very slow start along circular arc)
-	 * ```
+ * ```typescript
+ * CircularEaseIn(0, 10, 0)   // 0
+ * CircularEaseIn(0, 10, 1)   // 10
+ * CircularEaseIn(0, 10, 0.5) // ~1.34 (very slow start along circular arc)
+ * ```
  */
 export function CircularEaseIn(a: number, b: number, t: number): number {
 	// Allow extrapolation by not clamping t
@@ -478,11 +479,11 @@ export function CircularEaseIn(a: number, b: number, t: number): number {
  * @returns Interpolated value with circular deceleration toward end
  *
  * @example
-	 * ```typescript
-	 * CircularEaseOut(0, 10, 0)   // 0
-	 * CircularEaseOut(0, 10, 1)   // 10
-	 * CircularEaseOut(0, 10, 0.5) // ~8.66 (very fast start along circular arc)
-	 * ```
+ * ```typescript
+ * CircularEaseOut(0, 10, 0)   // 0
+ * CircularEaseOut(0, 10, 1)   // 10
+ * CircularEaseOut(0, 10, 0.5) // ~8.66 (very fast start along circular arc)
+ * ```
  */
 export function CircularEaseOut(a: number, b: number, t: number): number {
 	// Allow extrapolation by not clamping t
@@ -499,12 +500,12 @@ export function CircularEaseOut(a: number, b: number, t: number): number {
  * @returns Interpolated value with quadratic symmetric easing
  *
  * @example
-	 * ```typescript
-	 * QuadraticEaseInOut(0, 10, 0)    // 0
-	 * QuadraticEaseInOut(0, 10, 1)    // 10
-	 * QuadraticEaseInOut(0, 10, 0.25) // 1.25 (slow start)
-	 * QuadraticEaseInOut(0, 10, 0.75) // 8.75 (slow end)
-	 * ```
+ * ```typescript
+ * QuadraticEaseInOut(0, 10, 0)    // 0
+ * QuadraticEaseInOut(0, 10, 1)    // 10
+ * QuadraticEaseInOut(0, 10, 0.25) // 1.25 (slow start)
+ * QuadraticEaseInOut(0, 10, 0.75) // 8.75 (slow end)
+ * ```
  */
 export function QuadraticEaseInOut(a: number, b: number, t: number): number {
 	const smoothT = t < EASE_INOUT_HALF
@@ -523,12 +524,12 @@ export function QuadraticEaseInOut(a: number, b: number, t: number): number {
  * @returns Interpolated value with cubic symmetric easing
  *
  * @example
-	 * ```typescript
-	 * CubicEaseInOut(0, 10, 0)    // 0
-	 * CubicEaseInOut(0, 10, 1)    // 10
-	 * CubicEaseInOut(0, 10, 0.25) // 0.625 (very slow start)
-	 * CubicEaseInOut(0, 10, 0.75) // 9.375 (very slow end)
-	 * ```
+ * ```typescript
+ * CubicEaseInOut(0, 10, 0)    // 0
+ * CubicEaseInOut(0, 10, 1)    // 10
+ * CubicEaseInOut(0, 10, 0.25) // 0.625 (very slow start)
+ * CubicEaseInOut(0, 10, 0.75) // 9.375 (very slow end)
+ * ```
  */
 export function CubicEaseInOut(a: number, b: number, t: number): number {
 	const smoothT = t < EASE_INOUT_HALF
@@ -547,11 +548,11 @@ export function CubicEaseInOut(a: number, b: number, t: number): number {
  * @returns Interpolated value with sine-based symmetric easing
  *
  * @example
-	 * ```typescript
-	 * SineEaseInOut(0, 10, 0)   // 0
-	 * SineEaseInOut(0, 10, 1)   // 10
-	 * SineEaseInOut(0, 10, 0.5) // 5 (symmetric midpoint)
-	 * ```
+ * ```typescript
+ * SineEaseInOut(0, 10, 0)   // 0
+ * SineEaseInOut(0, 10, 1)   // 10
+ * SineEaseInOut(0, 10, 0.5) // 5 (symmetric midpoint)
+ * ```
  */
 export function SineEaseInOut(a: number, b: number, t: number): number {
 	const smoothT = -(Math.cos(t * Math.PI) - 1) / 2;
@@ -568,11 +569,11 @@ export function SineEaseInOut(a: number, b: number, t: number): number {
  * @returns Interpolated value with exponential symmetric easing
  *
  * @example
-	 * ```typescript
-	 * ExponentialEaseInOut(0, 10, 0)    // 0
-	 * ExponentialEaseInOut(0, 10, 1)    // 10
-	 * ExponentialEaseInOut(0, 10, 0.25) // ~0.16 (barely moving in the first quarter)
-	 * ```
+ * ```typescript
+ * ExponentialEaseInOut(0, 10, 0)    // 0
+ * ExponentialEaseInOut(0, 10, 1)    // 10
+ * ExponentialEaseInOut(0, 10, 0.25) // ~0.16 (barely moving in the first quarter)
+ * ```
  */
 export function ExponentialEaseInOut(a: number, b: number, t: number): number {
 	if (t === 0) return a;
@@ -593,11 +594,11 @@ export function ExponentialEaseInOut(a: number, b: number, t: number): number {
  * @returns Interpolated value with circular symmetric easing
  *
  * @example
-	 * ```typescript
-	 * CircularEaseInOut(0, 10, 0)    // 0
-	 * CircularEaseInOut(0, 10, 1)    // 10
-	 * CircularEaseInOut(0, 10, 0.25) // ~0.67 (very slow circular start)
-	 * ```
+ * ```typescript
+ * CircularEaseInOut(0, 10, 0)    // 0
+ * CircularEaseInOut(0, 10, 1)    // 10
+ * CircularEaseInOut(0, 10, 0.25) // ~0.67 (very slow circular start)
+ * ```
  */
 export function CircularEaseInOut(a: number, b: number, t: number): number {
 	const smoothT = t < EASE_INOUT_HALF
@@ -616,11 +617,11 @@ export function CircularEaseInOut(a: number, b: number, t: number): number {
  * @returns Interpolated value with elastic spring acceleration from start
  *
  * @example
-	 * ```typescript
-	 * ElasticEaseIn(0, 10, 0)   // 0
-	 * ElasticEaseIn(0, 10, 1)   // 10
-	 * ElasticEaseIn(0, 10, 0.5) // ~-0.16 (backward oscillation at midpoint before launching)
-	 * ```
+ * ```typescript
+ * ElasticEaseIn(0, 10, 0)   // 0
+ * ElasticEaseIn(0, 10, 1)   // 10
+ * ElasticEaseIn(0, 10, 0.5) // ~-0.16 (backward oscillation at midpoint before launching)
+ * ```
  */
 export function ElasticEaseIn(a: number, b: number, t: number): number {
 	if (t === 0 || t === 1) return t === 0 ? a : b;
@@ -639,11 +640,11 @@ export function ElasticEaseIn(a: number, b: number, t: number): number {
  * @returns Interpolated value with elastic oscillation at both ends
  *
  * @example
-	 * ```typescript
-	 * ElasticEaseInOut(0, 10, 0)   // 0
-	 * ElasticEaseInOut(0, 10, 1)   // 10
-	 * ElasticEaseInOut(0, 10, 0.4) // ~-1.17 (backward oscillation before midpoint)
-	 * ```
+ * ```typescript
+ * ElasticEaseInOut(0, 10, 0)   // 0
+ * ElasticEaseInOut(0, 10, 1)   // 10
+ * ElasticEaseInOut(0, 10, 0.4) // ~-1.17 (backward oscillation before midpoint)
+ * ```
  */
 export function ElasticEaseInOut(a: number, b: number, t: number): number {
 	if (t === 0 || t === 1) return t === 0 ? a : b;
@@ -664,16 +665,15 @@ export function ElasticEaseInOut(a: number, b: number, t: number): number {
  * @returns Interpolated value with back overshoot at start
  *
  * @example
-	 * ```typescript
-	 * BackEaseIn(0, 10, 0)    // 0
-	 * BackEaseIn(0, 10, 1)    // 10
-	 * BackEaseIn(0, 10, 0.25) // ~-0.64 (dips below start before accelerating forward)
-	 * ```
+ * ```typescript
+ * BackEaseIn(0, 10, 0)    // 0
+ * BackEaseIn(0, 10, 1)    // 10
+ * BackEaseIn(0, 10, 0.25) // ~-0.64 (dips below start before accelerating forward)
+ * ```
  */
 export function BackEaseIn(a: number, b: number, t: number): number {
-	const c1 = 1.70158;
-	const c3 = c1 + 1;
-	const backT = (c3 * t * t * t) - (c1 * t * t);
+	const c3 = BACK_EASE_OVERSHOOT_AMPLITUDE + 1;
+	const backT = (c3 * t * t * t) - (BACK_EASE_OVERSHOOT_AMPLITUDE * t * t);
 	return a + ((b - a) * backT);
 }
 
@@ -687,15 +687,14 @@ export function BackEaseIn(a: number, b: number, t: number): number {
  * @returns Interpolated value with back overshoot at both start and end
  *
  * @example
-	 * ```typescript
-	 * BackEaseInOut(0, 10, 0)    // 0
-	 * BackEaseInOut(0, 10, 1)    // 10
-	 * BackEaseInOut(0, 10, 0.25) // ~-1.00 (dips backward at start)
-	 * ```
+ * ```typescript
+ * BackEaseInOut(0, 10, 0)    // 0
+ * BackEaseInOut(0, 10, 1)    // 10
+ * BackEaseInOut(0, 10, 0.25) // ~-1.00 (dips backward at start)
+ * ```
  */
 export function BackEaseInOut(a: number, b: number, t: number): number {
-	const c1 = 1.70158;
-	const c2 = c1 * BACK_INOUT_SCALE;
+	const c2 = BACK_EASE_OVERSHOOT_AMPLITUDE * BACK_INOUT_SCALE;
 	const backT = t < EASE_INOUT_HALF
 		? Math.pow(2 * t, 2) * (((c2 + 1) * 2 * t) - c2) / 2
 		: (Math.pow((2 * t) - 2, 2) * (((c2 + 1) * ((2 * t) - 2)) + c2) + 2) / 2;
@@ -712,11 +711,11 @@ export function BackEaseInOut(a: number, b: number, t: number): number {
  * @returns Interpolated value with bounce effect at start
  *
  * @example
-	 * ```typescript
-	 * BounceEaseIn(0, 10, 0)   // 0
-	 * BounceEaseIn(0, 10, 1)   // 10
-	 * BounceEaseIn(0, 10, 0.5) // ~2.34 (still bouncing at midpoint)
-	 * ```
+ * ```typescript
+ * BounceEaseIn(0, 10, 0)   // 0
+ * BounceEaseIn(0, 10, 1)   // 10
+ * BounceEaseIn(0, 10, 0.5) // ~2.34 (still bouncing at midpoint)
+ * ```
  */
 export function BounceEaseIn(a: number, b: number, t: number): number {
 	return a + ((b - a) * (1 - BounceEaseOut(0, 1, 1 - t)));
@@ -732,11 +731,11 @@ export function BounceEaseIn(a: number, b: number, t: number): number {
  * @returns Interpolated value with bounce effect at both start and end
  *
  * @example
-	 * ```typescript
-	 * BounceEaseInOut(0, 10, 0)    // 0
-	 * BounceEaseInOut(0, 10, 1)    // 10
-	 * BounceEaseInOut(0, 10, 0.25) // ~1.17 (bouncing at start quarter)
-	 * ```
+ * ```typescript
+ * BounceEaseInOut(0, 10, 0)    // 0
+ * BounceEaseInOut(0, 10, 1)    // 10
+ * BounceEaseInOut(0, 10, 0.25) // ~1.17 (bouncing at start quarter)
+ * ```
  */
 export function BounceEaseInOut(a: number, b: number, t: number): number {
 	const bounceT = t < EASE_INOUT_HALF
@@ -757,34 +756,15 @@ export function BounceEaseInOut(a: number, b: number, t: number): number {
  * @returns Either `a` or `b` depending on `t` relative to `threshold`
  *
  * @example
-	 * ```typescript
-	 * StepInterpolation(0, 10, 0.3)        // 0  (below default threshold of 0.5)
-	 * StepInterpolation(0, 10, 0.7)        // 10 (at or above default threshold of 0.5)
-	 * StepInterpolation(0, 10, 0.3, 0.25)  // 10 (above custom threshold of 0.25)
-	 * ```
+ * ```typescript
+ * StepInterpolation(0, 10, 0.3)        // 0  (below default threshold of 0.5)
+ * StepInterpolation(0, 10, 0.7)        // 10 (at or above default threshold of 0.5)
+ * StepInterpolation(0, 10, 0.3, 0.25)  // 10 (above custom threshold of 0.25)
+ * ```
  */
 export function StepInterpolation(a: number, b: number, t: number, threshold: number = 0.5): number {
 	const clampedT = Clamp(t, 0, 1);
 	const clampedThreshold = Clamp(threshold, 0, 1);
 
 	return clampedT < clampedThreshold ? a : b;
-}
-
-/**
- * Spherical linear interpolation for scalar values.
- * For scalar inputs, this is mathematically equivalent to {@link LinearInterpolation}.
- * For true spherical rotation interpolation, use `QuaternionSLERP` from the quaternions module.
- *
- * @param a - Start value (result when t = 0)
- * @param b - End value (result when t = 1)
- * @param t - Interpolation parameter — unclamped, allowing extrapolation
- * @returns Linearly interpolated value (identical to `LinearInterpolation(a, b, t)`)
- *
- * @deprecated This function is identical to LinearInterpolation and is not a true spherical interpolation. For quaternion spherical interpolation, use QuaternionSLERP from the quaternions module.
- */
-export function SphericalLinearInterpolation(a: number, b: number, t: number): number {
-	// Allow extrapolation by not clamping t
-	// For scalar values, SLERP reduces to linear interpolation
-	// This is a placeholder implementation for scalar compatibility
-	return LinearInterpolation(a, b, t);
 }

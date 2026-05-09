@@ -27,6 +27,7 @@ import {
 	VectorReflect,
 	VectorNegate,
 	VectorGramSchmidt,
+	VectorLimit,
 } from './core.js';
 import { VectorError } from './asserts.js';
 import { TVector2 } from './types.js';
@@ -153,7 +154,7 @@ describe('Vector Core', () => {
 		});
 
 		it('should throw error for mismatched vector sizes', () => {
-			expect(() => VectorMultiply([1, 2], [1, 2, 3])).toThrow('Vector Size Mismatch');
+			expect(() => VectorMultiply([1, 2], [1, 2, 3])).toThrow(VectorError);
 		});
 	});
 
@@ -359,12 +360,50 @@ describe('Vector Core', () => {
 		});
 	});
 
-	describe.skip('VectorLimit', () => {
-		// TODO: VectorLimit not yet exported from core.ts
-	});
+	describe('VectorLimit', () => {
+		it('should limit vector magnitude when it exceeds max', () => {
+			const result = VectorLimit([3, 4], 3);
+			expect(VectorMagnitude(result)).toBeCloseTo(3);
+			// Direction should be preserved
+			const expected = [1.8, 2.4];
+			expect(result[0]).toBeCloseTo(expected[0]);
+			expect(result[1]).toBeCloseTo(expected[1]);
+		});
 
-	describe.skip('VectorIsValid', () => {
-		// TODO: VectorIsValid not yet exported from core.ts
+		it('should return unchanged vector when magnitude is within limit', () => {
+			const v = [1, 2, 3];
+			const result = VectorLimit(v, 10);
+			expect(result).toEqual(v);
+		});
+
+		it('should return unchanged vector when magnitude equals max', () => {
+			const v = [3, 4]; // magnitude 5
+			const result = VectorLimit(v, 5);
+			expect(result).toEqual(v);
+		});
+
+		it('should return zero vector unchanged', () => {
+			const result = VectorLimit([0, 0, 0], 5);
+			expect(result).toEqual([0, 0, 0]);
+		});
+
+		it('should handle multidimensional vectors', () => {
+			const v = [2, 2, 2, 2]; // magnitude 4
+			const result = VectorLimit(v, 2);
+			expect(VectorMagnitude(result)).toBeCloseTo(2);
+		});
+
+		it('should throw error for negative maxMagnitude', () => {
+			expect(() => VectorLimit([1, 2, 3], -1)).toThrow(VectorError);
+		});
+
+		it('should throw error for invalid vector input', () => {
+			expect(() => VectorLimit('invalid' as any, 5)).toThrow(VectorError);
+		});
+
+		it('should throw error for non-numeric array elements', () => {
+			expect(() => VectorLimit([1, 'two' as any, 3], 5)).toThrow(VectorError);
+		});
 	});
 
 	describe('VectorGramSchmidt', () => {

@@ -1,8 +1,8 @@
 import { AssertNumber } from '@pawells/typescript-common';
-import { AssertMatrices, AssertMatrix, AssertMatrix1, AssertMatrix2, AssertMatrix3, AssertMatrix4, AssertMatrixRow, AssertMatrixValue } from './asserts.js';
-import { MatrixCreate, MatrixIsSquare, MatrixSize } from './core.js';
-import { TMatrix, TMatrix1, TMatrix2, TMatrix3, TMatrix4, TMatrixResult } from './types.js';
-import { TVector, TVector2, TVector3, TVector4 } from '../vectors/types.js';
+import { AssertMatricesCompatible, AssertMatrix, AssertMatrix1, AssertMatrix2, AssertMatrix3, AssertMatrix4, AssertMatrixSquare, MatrixError } from './asserts.js';
+import { MatrixCreate, MatrixSize } from './core.js';
+import type { TMatrix, TMatrix1, TMatrix2, TMatrix3, TMatrix4, TMatrixResult } from './types.js';
+import type { TVector, TVector2, TVector3, TVector4 } from '../vectors/types.js';
 import { ValidateVector, AssertVector } from '../vectors/asserts.js';
 
 /**
@@ -31,48 +31,45 @@ import { ValidateVector, AssertVector } from '../vectors/asserts.js';
  * @throws {Error} If matrices have different dimensions or contain invalid values
  *
  * @example
-	 * ```typescript
-	 * ```typescript
-	 * // Adding 2×2 matrices
-	 * MatrixAdd([[1, 2], [3, 4]], [[5, 6], [7, 8]]) // Returns [[6, 8], [10, 12]]
-	 * // Adding 1×3 row vectors
-	 * MatrixAdd([[1, 2, 3]], [[4, 5, 6]]) // Returns [[5, 7, 9]]
-	 * // Type-safe matrix addition with specific matrix types
-	 * const matrixA: TMatrix2 = [[1, 2], [3, 4]];
-	 * const matrixB: TMatrix2 = [[5, 6], [7, 8]];
-	 * const result: TMatrix2 = MatrixAdd(matrixA, matrixB);
-	 * ```
-	 * ```
+ * ```typescript
+ * ```typescript
+ * // Adding 2×2 matrices
+ * MatrixAdd([[1, 2], [3, 4]], [[5, 6], [7, 8]]) // Returns [[6, 8], [10, 12]]
+ * // Adding 1×3 row vectors
+ * MatrixAdd([[1, 2, 3]], [[4, 5, 6]]) // Returns [[5, 7, 9]]
+ * // Type-safe matrix addition with specific matrix types
+ * const matrixA: TMatrix2 = [[1, 2], [3, 4]];
+ * const matrixB: TMatrix2 = [[5, 6], [7, 8]];
+ * const result: TMatrix2 = MatrixAdd(matrixA, matrixB);
+ * ```
+ * ```
  */
 export function MatrixAdd<T extends TMatrix>(a: T, b: T): TMatrixResult<T> {
 	// Validate matrices have compatible dimensions for addition
-	AssertMatrices(a, b);
+	AssertMatrix(a);
+	AssertMatrix(b);
+	AssertMatricesCompatible(a, b);
+
+	// Ensure matrices have the same dimensions
+	const [arows, acols] = MatrixSize(a as TMatrix);
 
 	// Initialize result matrix with same dimensions as inputs
-	const [arows, acols] = MatrixSize(a as TMatrix);
 	const result = MatrixCreate(arows, acols);
 
 	// Perform element-wise addition: C[i,j] = A[i,j] + B[i,j]
 	for (let row = 0; row < arows; row++) {
 		// Get row references for both input matrices
 		const aRow = (a as TMatrix)[row];
-		AssertMatrixRow(aRow);
-
 		const bRow = (b as TMatrix)[row];
-		AssertMatrixRow(bRow);
 
 		// Get reference to result row for efficient access
 		const resultRow = result[row];
-		AssertMatrixRow(resultRow);
 
 		// Add corresponding elements column by column
 		for (let col = 0; col < acols; col++) {
 			// Validate and extract values from both matrices
 			const aVal = aRow[col];
-			AssertMatrixValue(aVal, { rowIndex: row, columnIndex: col });
-
 			const bVal = bRow[col];
-			AssertMatrixValue(bVal, { rowIndex: row, columnIndex: col });
 
 			// Store sum in result matrix
 			resultRow[col] = aVal + bVal;
@@ -108,21 +105,23 @@ export function MatrixAdd<T extends TMatrix>(a: T, b: T): TMatrixResult<T> {
  * @throws {Error} If matrices have different dimensions or contain invalid values
  *
  * @example
-	 * ```typescript
-	 * ```typescript
-	 * // Subtracting 2×2 matrices
-	 * MatrixSubtract([[10, 8], [6, 4]], [[3, 2], [1, 1]]) // Returns [[7, 6], [5, 3]]
-	 * // Order matters: A - B ≠ B - A
-	 * MatrixSubtract([[1, 2]], [[3, 4]]) // Returns [[-2, -2]]
-	 * MatrixSubtract([[3, 4]], [[1, 2]]) // Returns [[2, 2]]
-	 * // Self-subtraction produces zero matrix
-	 * MatrixSubtract([[5, 6]], [[5, 6]]) // Returns [[0, 0]]
-	 * ```
-	 * ```
+ * ```typescript
+ * ```typescript
+ * // Subtracting 2×2 matrices
+ * MatrixSubtract([[10, 8], [6, 4]], [[3, 2], [1, 1]]) // Returns [[7, 6], [5, 3]]
+ * // Order matters: A - B ≠ B - A
+ * MatrixSubtract([[1, 2]], [[3, 4]]) // Returns [[-2, -2]]
+ * MatrixSubtract([[3, 4]], [[1, 2]]) // Returns [[2, 2]]
+ * // Self-subtraction produces zero matrix
+ * MatrixSubtract([[5, 6]], [[5, 6]]) // Returns [[0, 0]]
+ * ```
+ * ```
  */
 export function MatrixSubtract<T extends TMatrix>(a: T, b: T): TMatrixResult<T> {
 	// Validate matrices have compatible dimensions for subtraction
-	AssertMatrices(a, b);
+	AssertMatrix(a);
+	AssertMatrix(b);
+	AssertMatricesCompatible(a, b);
 
 	// Initialize result matrix with same dimensions as inputs
 	const [arows, acols] = MatrixSize(a);
@@ -132,22 +131,15 @@ export function MatrixSubtract<T extends TMatrix>(a: T, b: T): TMatrixResult<T> 
 	for (let row = 0; row < arows; row++) {
 		// Get row references for both input matrices
 		const aRow = a[row];
-		AssertMatrixRow(aRow);
-
 		const bRow = b[row];
-		AssertMatrixRow(bRow);
 
 		// Get reference to result row for efficient access
 		const resultRow = result[row];
-		AssertMatrixRow(resultRow);
 
 		// Subtract corresponding elements column by column
 		for (let col = 0; col < acols; col++) {
 			const aVal = aRow[col];
-			AssertMatrixValue(aVal, { rowIndex: row, columnIndex: col });
-
 			const bVal = bRow[col];
-			AssertMatrixValue(bVal, { rowIndex: row, columnIndex: col });
 
 			// Store difference in result matrix
 			resultRow[col] = aVal - bVal;
@@ -211,33 +203,33 @@ export function MatrixSubtract<T extends TMatrix>(a: T, b: T): TMatrixResult<T> 
  * @throws {Error} If matrix dimensions are incompatible for multiplication
  *
  * @example
-	 * ```typescript
-	 * ```typescript
-	 * // Type-safe scalar multiplication with specific matrix types
-	 * const matrix2: TMatrix2 = [[1, 2], [3, 4]];
-	 * const scalar2Result: TMatrix2 = MatrixMultiply(matrix2, 2); // [[2, 4], [6, 8]]
-	 * const matrix3: TMatrix3 = [[1, 0, 0], [0, 1, 0], [0, 0, 1]];
-	 * const scalar3Result: TMatrix3 = MatrixMultiply(matrix3, 5); // Identity × 5
-	 * // Type-safe vector multiplication with specific matrix/vector types
-	 * const matrix2x2: TMatrix2 = [[1, 2], [3, 4]];
-	 * const vector2: TVector2 = [5, 6];
-	 * const vectorResult: TVector2 = MatrixMultiply(matrix2x2, vector2); // [17, 39]
-	 * const matrix4x4: TMatrix4 = [[1,0,0,0], [0,1,0,0], [0,0,1,0], [0,0,0,1]];
-	 * const vector4: TVector4 = [1, 2, 3, 4];
-	 * const vector4Result: TVector4 = MatrixMultiply(matrix4x4, vector4); // [1, 2, 3, 4]
-	 * // Type-safe matrix multiplication with specific matrix types
-	 * const matrixA: TMatrix2 = [[1, 2], [3, 4]];
-	 * const matrixB: TMatrix2 = [[5, 6], [7, 8]];
-	 * const matrixResult: TMatrix2 = MatrixMultiply(matrixA, matrixB); // [[19, 22], [43, 50]]
-	 * // General matrix operations (fallback to generic types)
-	 * MatrixMultiply([[1, 2]], [[3], [4]]) // Returns [[11]]
-	 * MatrixMultiply([[1], [2]], [[3, 4]]) // Returns [[3, 4], [6, 8]]
-	 * // Type detection is automatic - no need to specify operation type
-	 * const scalarResult = MatrixMultiply(matrixA, 5);        // Scalar multiplication
-	 * const vectorResult2 = MatrixMultiply(matrixA, vector2);  // Vector multiplication
-	 * const matrixResult2 = MatrixMultiply(matrixA, matrixB); // Matrix multiplication
-	 * ```
-	 * ```
+ * ```typescript
+ * ```typescript
+ * // Type-safe scalar multiplication with specific matrix types
+ * const matrix2: TMatrix2 = [[1, 2], [3, 4]];
+ * const scalar2Result: TMatrix2 = MatrixMultiply(matrix2, 2); // [[2, 4], [6, 8]]
+ * const matrix3: TMatrix3 = [[1, 0, 0], [0, 1, 0], [0, 0, 1]];
+ * const scalar3Result: TMatrix3 = MatrixMultiply(matrix3, 5); // Identity × 5
+ * // Type-safe vector multiplication with specific matrix/vector types
+ * const matrix2x2: TMatrix2 = [[1, 2], [3, 4]];
+ * const vector2: TVector2 = [5, 6];
+ * const vectorResult: TVector2 = MatrixMultiply(matrix2x2, vector2); // [17, 39]
+ * const matrix4x4: TMatrix4 = [[1,0,0,0], [0,1,0,0], [0,0,1,0], [0,0,0,1]];
+ * const vector4: TVector4 = [1, 2, 3, 4];
+ * const vector4Result: TVector4 = MatrixMultiply(matrix4x4, vector4); // [1, 2, 3, 4]
+ * // Type-safe matrix multiplication with specific matrix types
+ * const matrixA: TMatrix2 = [[1, 2], [3, 4]];
+ * const matrixB: TMatrix2 = [[5, 6], [7, 8]];
+ * const matrixResult: TMatrix2 = MatrixMultiply(matrixA, matrixB); // [[19, 22], [43, 50]]
+ * // General matrix operations (fallback to generic types)
+ * MatrixMultiply([[1, 2]], [[3], [4]]) // Returns [[11]]
+ * MatrixMultiply([[1], [2]], [[3, 4]]) // Returns [[3, 4], [6, 8]]
+ * // Type detection is automatic - no need to specify operation type
+ * const scalarResult = MatrixMultiply(matrixA, 5);        // Scalar multiplication
+ * const vectorResult2 = MatrixMultiply(matrixA, vector2);  // Vector multiplication
+ * const matrixResult2 = MatrixMultiply(matrixA, matrixB); // Matrix multiplication
+ * ```
+ * ```
  */
 
 export function MatrixMultiply(a: TMatrix1, b: number): TMatrix1;
@@ -310,8 +302,8 @@ export function MatrixMultiply(a: TMatrix, b: TMatrix | TVector | number): TMatr
  * @throws {Error} If matrix is invalid or scalar is not a valid number
  *
  * @example
-	 * ```typescript
-	 * ```typescript
+ * ```typescript
+ * ```typescript
 	 * // Type-safe scalar multiplication with specific matrix types
 	 * const matrix2: TMatrix2 = [[1, 2], [3, 4]];
 	 * const result2: TMatrix2 = matrixMultiplyScalar(matrix2, 3); // [[3, 6], [9, 12]]
@@ -325,8 +317,8 @@ export function MatrixMultiply(a: TMatrix, b: TMatrix | TVector | number): TMatr
 	 * matrixMultiplyScalar([[1, -2]], -1) // Returns [[-1, 2]]
 	 * // Identity scaling preserves matrix
 	 * matrixMultiplyScalar([[5, 7], [2, 9]], 1) // Returns [[5, 7], [2, 9]]
-	 * ```
-	 * ```
+ * ```
+ * ```
  */
 function matrixMultiplyScalar(matrix: TMatrix1, scalar: number): TMatrix1;
 function matrixMultiplyScalar(matrix: TMatrix2, scalar: number): TMatrix2;
@@ -344,15 +336,11 @@ function matrixMultiplyScalar(matrix: TMatrix, scalar: number): TMatrix {
 	// Apply scalar multiplication to each matrix element
 	for (let row = 0; row < rows; row++) {
 		const matrixRow = matrix[row];
-		AssertMatrixRow(matrixRow);
-
 		const resultRow = result[row];
-		AssertMatrixRow(resultRow);
 
 		// Multiply each element in the row by the scalar
 		for (let col = 0; col < cols; col++) {
 			const val = matrixRow[col];
-			AssertMatrixValue(val, { rowIndex: row, columnIndex: col });
 			resultRow[col] = val * scalar;
 		}
 	}
@@ -394,29 +382,29 @@ function matrixMultiplyScalar(matrix: TMatrix, scalar: number): TMatrix {
  * @throws {Error} If matrix columns don't match vector length or contain invalid values
  *
  * @example
-	 * ```typescript
-	 * ```typescript
-	 * // Type-safe matrix-vector multiplication with specific types
-	 * const matrix2: TMatrix2 = [[1, 2], [3, 4]];
-	 * const vector2: TVector2 = [5, 6];
-	 * const result2: TVector2 = matrixMultiplyVector(matrix2, vector2); // [17, 39]
-	 * const matrix3: TMatrix3 = [[1, 0, 0], [0, 1, 0], [0, 0, 1]];
-	 * const vector3: TVector3 = [2, 3, 4];
-	 * const result3: TVector3 = matrixMultiplyVector(matrix3, vector3); // [2, 3, 4]
-	 * // 2×3 matrix multiplied by 3D vector
-	 * matrixMultiplyVector(
-	 *   [[1, 2, 3], [4, 5, 6]],
-	 *   [7, 8, 9]
-	 * ) // Returns [50, 122]
-	 * // Calculation:
-	 * // [1*7+2*8+3*9, 4*7+5*8+6*9] = [7+16+27, 28+40+54] = [50, 122]
-	 * // Identity matrix preserves the vector
-	 * matrixMultiplyVector([[1, 0], [0, 1]], [5, 3]) // Returns [5, 3]
-	 * // 3×2 matrix with 2D vector
-	 * matrixMultiplyVector([[1, 2], [3, 4], [5, 6]], [10, 20])
-	 * // Returns [50, 110, 170]
-	 * ```
-	 * ```
+ * ```typescript
+ * ```typescript
+ * // Type-safe matrix-vector multiplication with specific types
+ * const matrix2: TMatrix2 = [[1, 2], [3, 4]];
+ * const vector2: TVector2 = [5, 6];
+ * const result2: TVector2 = matrixMultiplyVector(matrix2, vector2); // [17, 39]
+ * const matrix3: TMatrix3 = [[1, 0, 0], [0, 1, 0], [0, 0, 1]];
+ * const vector3: TVector3 = [2, 3, 4];
+ * const result3: TVector3 = matrixMultiplyVector(matrix3, vector3); // [2, 3, 4]
+ * // 2×3 matrix multiplied by 3D vector
+ * matrixMultiplyVector(
+ *   [[1, 2, 3], [4, 5, 6]],
+ *   [7, 8, 9]
+ * ) // Returns [50, 122]
+ * // Calculation:
+ * // [1*7+2*8+3*9, 4*7+5*8+6*9] = [7+16+27, 28+40+54] = [50, 122]
+ * // Identity matrix preserves the vector
+ * matrixMultiplyVector([[1, 0], [0, 1]], [5, 3]) // Returns [5, 3]
+ * // 3×2 matrix with 2D vector
+ * matrixMultiplyVector([[1, 2], [3, 4], [5, 6]], [10, 20])
+ * // Returns [50, 110, 170]
+ * ```
+ * ```
  */
 function matrixMultiplyVector(matrix: TMatrix2, vector: TVector2): TVector2;
 function matrixMultiplyVector(matrix: TMatrix3, vector: TVector3): TVector3;
@@ -432,9 +420,7 @@ function matrixMultiplyVector(matrix: TMatrix, vector: TVector): TVector {
 	const [matrixRows, matrixCols] = MatrixSize(matrix);
 
 	// Verify dimensional compatibility: matrix columns must equal vector length
-	if (matrixCols !== vector.length) {
-		throw new Error(`Matrix-vector multiplication requires matrix columns (${matrixCols}) to equal vector length (${vector.length})`);
-	}
+	if (matrixCols !== vector.length) throw new Error(`Matrix-vector multiplication requires matrix columns (${matrixCols}) to equal vector length (${vector.length})`);
 
 	// Initialize result vector with same length as matrix rows
 	const result: number[] = new Array(matrixRows);
@@ -443,7 +429,6 @@ function matrixMultiplyVector(matrix: TMatrix, vector: TVector): TVector {
 	for (let row = 0; row < matrixRows; row++) {
 		// Get matrix row reference
 		const matrixRow = matrix[row];
-		AssertMatrixRow(matrixRow);
 
 		// Compute dot product of matrix row with vector
 		let dotProduct = 0;
@@ -451,11 +436,9 @@ function matrixMultiplyVector(matrix: TMatrix, vector: TVector): TVector {
 		for (let col = 0; col < matrixCols; col++) {
 			// Validate matrix element
 			const matrixElement = matrixRow[col];
-			AssertMatrixValue(matrixElement, { rowIndex: row, columnIndex: col });
 
 			// Validate vector element
 			const vectorElement = vector[col];
-			AssertNumber(vectorElement);
 
 			// Add to dot product
 			dotProduct += matrixElement * vectorElement;
@@ -514,34 +497,34 @@ function matrixMultiplyVector(matrix: TMatrix, vector: TVector): TVector {
  * @throws {Error} If matrices have incompatible dimensions for multiplication
  *
  * @example
-	 * ```typescript
-	 * ```typescript
-	 * // Type-safe matrix multiplication with specific matrix types
-	 * const matrixA: TMatrix2 = [[1, 2], [3, 4]];
-	 * const matrixB: TMatrix2 = [[5, 6], [7, 8]];
-	 * const result2: TMatrix2 = matrixMultiplyMatrix(matrixA, matrixB); // [[19, 22], [43, 50]]
-	 * const matrix3A: TMatrix3 = [[1, 0, 0], [0, 1, 0], [0, 0, 1]];
-	 * const matrix3B: TMatrix3 = [[2, 3, 4], [5, 6, 7], [8, 9, 10]];
-	 * const result3: TMatrix3 = matrixMultiplyMatrix(matrix3A, matrix3B); // Identity × matrix3B
-	 * // 2×3 × 3×2 multiplication
-	 * matrixMultiplyMatrix(
-	 *   [[1, 2, 3], [4, 5, 6]],
-	 *   [[7, 8], [9, 10], [11, 12]]
-	 * ) // Returns [[58, 64], [139, 154]]
-	 * // Calculation:
-	 * // [1*7+2*9+3*11, 1*8+2*10+3*12] = [58, 64]
-	 * // [4*7+5*9+6*11, 4*8+5*10+6*12] = [139, 154]
-	 * // Square matrix multiplication (uses optimized algorithm for 2×2)
-	 * matrixMultiplyMatrix([[1, 2], [3, 4]], [[5, 6], [7, 8]])
-	 * // Returns [[19, 22], [43, 50]]
-	 * // Identity matrix multiplication (preserves input)
-	 * matrixMultiplyMatrix([[1, 2], [3, 4]], [[1, 0], [0, 1]])
-	 * // Returns [[1, 2], [3, 4]] (unchanged)
-	 * // Large matrix automatically uses Strassen algorithm
-	 * const large = MatrixCreate(64, 64); // 64×64 matrices
-	 * const result = matrixMultiplyMatrix(large, large); // Uses Strassen internally
-	 * ```
-	 * ```
+ * ```typescript
+ * ```typescript
+ * // Type-safe matrix multiplication with specific matrix types
+ * const matrixA: TMatrix2 = [[1, 2], [3, 4]];
+ * const matrixB: TMatrix2 = [[5, 6], [7, 8]];
+ * const result2: TMatrix2 = matrixMultiplyMatrix(matrixA, matrixB); // [[19, 22], [43, 50]]
+ * const matrix3A: TMatrix3 = [[1, 0, 0], [0, 1, 0], [0, 0, 1]];
+ * const matrix3B: TMatrix3 = [[2, 3, 4], [5, 6, 7], [8, 9, 10]];
+ * const result3: TMatrix3 = matrixMultiplyMatrix(matrix3A, matrix3B); // Identity × matrix3B
+ * // 2×3 × 3×2 multiplication
+ * matrixMultiplyMatrix(
+ *   [[1, 2, 3], [4, 5, 6]],
+ *   [[7, 8], [9, 10], [11, 12]]
+ * ) // Returns [[58, 64], [139, 154]]
+ * // Calculation:
+ * // [1*7+2*9+3*11, 1*8+2*10+3*12] = [58, 64]
+ * // [4*7+5*9+6*11, 4*8+5*10+6*12] = [139, 154]
+ * // Square matrix multiplication (uses optimized algorithm for 2×2)
+ * matrixMultiplyMatrix([[1, 2], [3, 4]], [[5, 6], [7, 8]])
+ * // Returns [[19, 22], [43, 50]]
+ * // Identity matrix multiplication (preserves input)
+ * matrixMultiplyMatrix([[1, 2], [3, 4]], [[1, 0], [0, 1]])
+ * // Returns [[1, 2], [3, 4]] (unchanged)
+ * // Large matrix automatically uses Strassen algorithm
+ * const large = MatrixCreate(64, 64); // 64×64 matrices
+ * const result = matrixMultiplyMatrix(large, large); // Uses Strassen internally
+ * ```
+ * ```
  */
 function matrixMultiplyMatrix(a: TMatrix1, b: TMatrix1): TMatrix1;
 function matrixMultiplyMatrix(a: TMatrix2, b: TMatrix2): TMatrix2;
@@ -551,15 +534,18 @@ function matrixMultiplyMatrix(a: TMatrix, b: TMatrix): TMatrix;
 
 function matrixMultiplyMatrix(a: TMatrix, b: TMatrix): TMatrix {
 	// Validate matrices are compatible for multiplication (a.columns === b.rows)
-	AssertMatrices(a, b, { transposition: true });
+	AssertMatrix(a);
+	AssertMatrix(b);
 
 	const [arows, acols] = MatrixSize(a);
-	const aSquare = MatrixIsSquare(a);
 	const [brows, bcols] = MatrixSize(b);
-	const bSquare = MatrixIsSquare(b);
+
+	if (acols !== brows) {
+		throw new MatrixError(`Cannot multiply matrices: [${arows}×${acols}] × [${brows}×${bcols}] - columns of first matrix must equal rows of second matrix`);
+	}
 
 	// Use optimized algorithms for specific square matrix sizes
-	if (aSquare && bSquare && arows === brows && acols === bcols) {
+	if (arows === acols && brows === bcols && arows === brows && acols === bcols) {
 		const aSizeSquare = arows;
 		if (aSizeSquare === 1) {
 			AssertMatrix1(a);
@@ -590,10 +576,7 @@ function matrixMultiplyMatrix(a: TMatrix, b: TMatrix): TMatrix {
 	// Iterate through each position in the result matrix
 	for (let row = 0; row < arows; row++) {
 		const aRow = a[row];
-		AssertMatrixRow(aRow);
-
 		const resultRow = result[row];
-		AssertMatrixRow(resultRow);
 
 		for (let col = 0; col < bcols; col++) {
 			let sum = 0;
@@ -601,13 +584,8 @@ function matrixMultiplyMatrix(a: TMatrix, b: TMatrix): TMatrix {
 			// Compute dot product of matrix A row with matrix B column
 			for (let k = 0; k < acols; k++) {
 				const aVal = aRow[k];
-				AssertMatrixValue(aVal, { rowIndex: row, columnIndex: k });
-
 				const bRow = b[k];
-				AssertMatrixRow(bRow);
-
 				const bVal = bRow[col];
-				AssertMatrixValue(bVal, { rowIndex: k, columnIndex: col });
 
 				// Skip multiplication if either operand is zero (performance optimization)
 				if (aVal === 0 || bVal === 0) continue;
@@ -642,8 +620,8 @@ function matrixMultiplyMatrix(a: TMatrix, b: TMatrix): TMatrix {
  * @returns {TMatrix1} The product as a 1×1 matrix [[a×b]]
  *
  * @example
-	 * ```typescript
-	 * ```typescript
+ * ```typescript
+ * ```typescript
 	 * // Simple scalar values in matrix form
 	 * matrixMultiplyMatrix1([[5]], [[3]]) // Returns [[15]]
 	 * // Decimal multiplication
@@ -652,8 +630,8 @@ function matrixMultiplyMatrix(a: TMatrix, b: TMatrix): TMatrix {
 	 * matrixMultiplyMatrix1([[-3]], [[7]]) // Returns [[-21]]
 	 * // Zero multiplication
 	 * matrixMultiplyMatrix1([[0]], [[999]]) // Returns [[0]]
-	 * ```
-	 * ```
+ * ```
+ * ```
  */
 function matrixMultiplyMatrix1(a: TMatrix1, b: TMatrix1): TMatrix1 {
 	return [[a[0][0] * b[0][0]]];
@@ -686,22 +664,22 @@ function matrixMultiplyMatrix1(a: TMatrix1, b: TMatrix1): TMatrix1 {
  * @param b - Second 2×2 matrix
  * @returns {TMatrix2} The product as a 2×2 matrix
  * @example
-	 * ```typescript
-	 * ```typescript
-	 * // Standard 2x2 multiplication
-	 * matrixMultiplyMatrix2([[1, 2], [3, 4]], [[5, 6], [7, 8]])
-	 * // Returns [[19, 22], [43, 50]]
-	 * // Calculation:
-	 * // [1*5+2*7, 1*6+2*8] = [19, 22]
-	 * // [3*5+4*7, 3*6+4*8] = [43, 50]
-	 * // 2D rotation by 90 degrees (rotation matrix)
-	 * matrixMultiplyMatrix2([[0, -1], [1, 0]], [[1, 0], [0, 1]])
-	 * // Returns [[0, -1], [1, 0]]
-	 * // Scaling transformation
-	 * matrixMultiplyMatrix2([[2, 0], [0, 3]], [[1, 2], [3, 4]])
-	 * // Returns [[2, 4], [9, 12]]
-	 * ```
-	 * ```
+ * ```typescript
+ * ```typescript
+ * // Standard 2x2 multiplication
+ * matrixMultiplyMatrix2([[1, 2], [3, 4]], [[5, 6], [7, 8]])
+ * // Returns [[19, 22], [43, 50]]
+ * // Calculation:
+ * // [1*5+2*7, 1*6+2*8] = [19, 22]
+ * // [3*5+4*7, 3*6+4*8] = [43, 50]
+ * // 2D rotation by 90 degrees (rotation matrix)
+ * matrixMultiplyMatrix2([[0, -1], [1, 0]], [[1, 0], [0, 1]])
+ * // Returns [[0, -1], [1, 0]]
+ * // Scaling transformation
+ * matrixMultiplyMatrix2([[2, 0], [0, 3]], [[1, 2], [3, 4]])
+ * // Returns [[2, 4], [9, 12]]
+ * ```
+ * ```
  */
 function matrixMultiplyMatrix2(a: TMatrix2, b: TMatrix2): TMatrix2 {
 	return [
@@ -746,20 +724,20 @@ function matrixMultiplyMatrix2(a: TMatrix2, b: TMatrix2): TMatrix2 {
  * @param b - Second 3×3 matrix
  * @returns {TMatrix3} The product as a 3×3 matrix
  * @example
-	 * ```typescript
-	 * ```typescript
-	 * // 3D rotation matrix multiplication (combining rotations)
-	 * const rotX = [[1, 0, 0], [0, 0.707, -0.707], [0, 0.707, 0.707]]; // X rotation
-	 * const rotY = [[0.707, 0, 0.707], [0, 1, 0], [-0.707, 0, 0.707]]; // Y rotation
-	 * matrixMultiplyMatrix3(rotX, rotY) // Combined X-Y rotation
-	 * // Identity matrix test
-	 * matrixMultiplyMatrix3([[1, 2, 3], [4, 5, 6], [7, 8, 9]], [[1, 0, 0], [0, 1, 0], [0, 0, 1]])
-	 * // Returns [[1, 2, 3], [4, 5, 6], [7, 8, 9]] (unchanged)
-	 * // Scaling transformation
-	 * matrixMultiplyMatrix3([[2, 0, 0], [0, 3, 0], [0, 0, 4]], [[1, 1, 1], [1, 1, 1], [1, 1, 1]])
-	 * // Returns [[2, 2, 2], [3, 3, 3], [4, 4, 4]]
-	 * ```
-	 * ```
+ * ```typescript
+ * ```typescript
+ * // 3D rotation matrix multiplication (combining rotations)
+ * const rotX = [[1, 0, 0], [0, 0.707, -0.707], [0, 0.707, 0.707]]; // X rotation
+ * const rotY = [[0.707, 0, 0.707], [0, 1, 0], [-0.707, 0, 0.707]]; // Y rotation
+ * matrixMultiplyMatrix3(rotX, rotY) // Combined X-Y rotation
+ * // Identity matrix test
+ * matrixMultiplyMatrix3([[1, 2, 3], [4, 5, 6], [7, 8, 9]], [[1, 0, 0], [0, 1, 0], [0, 0, 1]])
+ * // Returns [[1, 2, 3], [4, 5, 6], [7, 8, 9]] (unchanged)
+ * // Scaling transformation
+ * matrixMultiplyMatrix3([[2, 0, 0], [0, 3, 0], [0, 0, 4]], [[1, 1, 1], [1, 1, 1], [1, 1, 1]])
+ * // Returns [[2, 2, 2], [3, 3, 3], [4, 4, 4]]
+ * ```
+ * ```
  */
 function matrixMultiplyMatrix3(a: TMatrix3, b: TMatrix3): TMatrix3 {
 	return [
@@ -819,22 +797,22 @@ function matrixMultiplyMatrix3(a: TMatrix3, b: TMatrix3): TMatrix3 {
  * @param b - Second 4×4 matrix (typically another transformation matrix)
  * @returns {TMatrix4} The product as a 4×4 matrix (combined transformation)
  * @example
-	 * ```typescript
-	 * ```typescript
-	 * // Combine translation and rotation matrices (common in 3D graphics)
-	 * const translation = [[1,0,0,5], [0,1,0,3], [0,0,1,0], [0,0,0,1]]; // Translate by (5,3,0)
-	 * const rotation = [[0,-1,0,0], [1,0,0,0], [0,0,1,0], [0,0,0,1]];    // 90° Z rotation
-	 * matrixMultiplyMatrix4(translation, rotation); // Combined transform
-	 * // Identity matrix test (should return unchanged matrix)
-	 * const testMatrix = [[1,2,3,4], [5,6,7,8], [9,10,11,12], [13,14,15,16]];
-	 * const identity = [[1,0,0,0], [0,1,0,0], [0,0,1,0], [0,0,0,1]];
-	 * matrixMultiplyMatrix4(testMatrix, identity) // Returns testMatrix unchanged
-	 * // Perspective projection matrix combination
-	 * const projection = [[2,0,0,0], [0,2,0,0], [0,0,-1,-1], [0,0,-2,0]];
-	 * const view = [[1,0,0,0], [0,1,0,0], [0,0,1,-10], [0,0,0,1]];
-	 * matrixMultiplyMatrix4(projection, view); // Combined projection-view matrix
-	 * ```
-	 * ```
+ * ```typescript
+ * ```typescript
+ * // Combine translation and rotation matrices (common in 3D graphics)
+ * const translation = [[1,0,0,5], [0,1,0,3], [0,0,1,0], [0,0,0,1]]; // Translate by (5,3,0)
+ * const rotation = [[0,-1,0,0], [1,0,0,0], [0,0,1,0], [0,0,0,1]];    // 90° Z rotation
+ * matrixMultiplyMatrix4(translation, rotation); // Combined transform
+ * // Identity matrix test (should return unchanged matrix)
+ * const testMatrix = [[1,2,3,4], [5,6,7,8], [9,10,11,12], [13,14,15,16]];
+ * const identity = [[1,0,0,0], [0,1,0,0], [0,0,1,0], [0,0,0,1]];
+ * matrixMultiplyMatrix4(testMatrix, identity) // Returns testMatrix unchanged
+ * // Perspective projection matrix combination
+ * const projection = [[2,0,0,0], [0,2,0,0], [0,0,-1,-1], [0,0,-2,0]];
+ * const view = [[1,0,0,0], [0,1,0,0], [0,0,1,-10], [0,0,0,1]];
+ * matrixMultiplyMatrix4(projection, view); // Combined projection-view matrix
+ * ```
+ * ```
  */
 function matrixMultiplyMatrix4(a: TMatrix4, b: TMatrix4): TMatrix4 {
 	return [
@@ -919,36 +897,36 @@ function matrixMultiplyMatrix4(a: TMatrix4, b: TMatrix4): TMatrix4 {
  * @throws {Error} If matrices are not square or have incompatible dimensions
  *
  * @example
-	 * ```typescript
-	 * ```typescript
-	 * // Large matrix multiplication (automatically used for 32×32 and larger)
-	 * const size = 256;
-	 * const largeA = MatrixCreate(size, size); // Create 256×256 matrix
-	 * const largeB = MatrixCreate(size, size); // Create 256×256 matrix
-	 * // ... fill matrices with data ...
-	 * const result = matrixMultiplyStrassen(largeA, largeB); // Uses Strassen algorithm
-	 * // Performance comparison for large matrices:
-	 * // Standard O(n³): ~16.8M operations for 256×256
-	 * // Strassen O(n^2.807): ~11.2M operations for 256×256 (33% reduction)
-	 * // Odd-sized matrices are automatically handled with padding
-	 * const oddMatrix = MatrixCreate(127, 127); // Will be padded to 128×128 internally
-	 * const result2 = matrixMultiplyStrassen(oddMatrix, oddMatrix);
-	 * // Base case automatically falls back to standard algorithm
-	 * const small = MatrixCreate(16, 16); // Uses standard algorithm (< 32×32)
-	 * const result3 = matrixMultiplyStrassen(small, small);
-	 * ```
-	 * ```
+ * ```typescript
+ * ```typescript
+ * // Large matrix multiplication (automatically used for 32×32 and larger)
+ * const size = 256;
+ * const largeA = MatrixCreate(size, size); // Create 256×256 matrix
+ * const largeB = MatrixCreate(size, size); // Create 256×256 matrix
+ * // ... fill matrices with data ...
+ * const result = matrixMultiplyStrassen(largeA, largeB); // Uses Strassen algorithm
+ * // Performance comparison for large matrices:
+ * // Standard O(n³): ~16.8M operations for 256×256
+ * // Strassen O(n^2.807): ~11.2M operations for 256×256 (33% reduction)
+ * // Odd-sized matrices are automatically handled with padding
+ * const oddMatrix = MatrixCreate(127, 127); // Will be padded to 128×128 internally
+ * const result2 = matrixMultiplyStrassen(oddMatrix, oddMatrix);
+ * // Base case automatically falls back to standard algorithm
+ * const small = MatrixCreate(16, 16); // Uses standard algorithm (< 32×32)
+ * const result3 = matrixMultiplyStrassen(small, small);
+ * ```
+ * ```
  */
 function matrixMultiplyStrassen(a: TMatrix, b: TMatrix): TMatrix {
-	AssertMatrix(a, { square: true });
-	AssertMatrix(b, { square: true });
+	AssertMatrix(a);
+	AssertMatrixSquare(a);
+	AssertMatrix(b);
+	AssertMatrixSquare(b);
 
 	const [arows, _acols] = MatrixSize(a);
 	const [brows, _bcols] = MatrixSize(b);
 
-	if (arows !== brows) {
-		throw new Error(`Matrix dimensions incompatible for multiplication: ${arows}×${arows} and ${brows}×${brows}`);
-	}
+	if (arows !== brows) 		throw new Error(`Matrix dimensions incompatible for multiplication: ${arows}×${arows} and ${brows}×${brows}`);
 
 	const n = arows;
 
@@ -1044,29 +1022,29 @@ function matrixMultiplyStrassen(a: TMatrix, b: TMatrix): TMatrix {
  * @returns {TMatrix} The extracted submatrix with dimensions height×width
  * @throws {Error} If extraction bounds exceed matrix dimensions or contain invalid values
  * @example
-	 * ```typescript
-	 * ```typescript
-	 * const matrix = [
-	 *   [1,  2,  3,  4],
-	 *   [5,  6,  7,  8],
-	 *   [9, 10, 11, 12]
-	 * ]; // 3×4 matrix
-	 * // Extract 2×2 submatrix from top-left corner
-	 * MatrixSubmatrix(matrix, 0, 0, 2, 2) // Returns [[1, 2], [5, 6]]
-	 * // Extract 2×2 submatrix from center-right region
-	 * MatrixSubmatrix(matrix, 2, 1, 2, 2) // Returns [[7, 8], [11, 12]]
-	 * // Extract single column (column vector)
-	 * MatrixSubmatrix(matrix, 1, 0, 1, 3) // Returns [[2], [6], [10]]
-	 * // Extract single row (row vector)
-	 * MatrixSubmatrix(matrix, 0, 1, 4, 1) // Returns [[5, 6, 7, 8]]
-	 * // Block matrix partitioning for algorithms
-	 * const large = MatrixCreate(8, 8); // 8×8 matrix
-	 * const topLeft = MatrixSubmatrix(large, 0, 0, 4, 4);     // Top-left 4×4 block
-	 * const topRight = MatrixSubmatrix(large, 4, 0, 4, 4);    // Top-right 4×4 block
-	 * const bottomLeft = MatrixSubmatrix(large, 0, 4, 4, 4);  // Bottom-left 4×4 block
-	 * const bottomRight = MatrixSubmatrix(large, 4, 4, 4, 4); // Bottom-right 4×4 block
-	 * ```
-	 * ```
+ * ```typescript
+ * ```typescript
+ * const matrix = [
+ *   [1,  2,  3,  4],
+ *   [5,  6,  7,  8],
+ *   [9, 10, 11, 12]
+ * ]; // 3×4 matrix
+ * // Extract 2×2 submatrix from top-left corner
+ * MatrixSubmatrix(matrix, 0, 0, 2, 2) // Returns [[1, 2], [5, 6]]
+ * // Extract 2×2 submatrix from center-right region
+ * MatrixSubmatrix(matrix, 2, 1, 2, 2) // Returns [[7, 8], [11, 12]]
+ * // Extract single column (column vector)
+ * MatrixSubmatrix(matrix, 1, 0, 1, 3) // Returns [[2], [6], [10]]
+ * // Extract single row (row vector)
+ * MatrixSubmatrix(matrix, 0, 1, 4, 1) // Returns [[5, 6, 7, 8]]
+ * // Block matrix partitioning for algorithms
+ * const large = MatrixCreate(8, 8); // 8×8 matrix
+ * const topLeft = MatrixSubmatrix(large, 0, 0, 4, 4);     // Top-left 4×4 block
+ * const topRight = MatrixSubmatrix(large, 4, 0, 4, 4);    // Top-right 4×4 block
+ * const bottomLeft = MatrixSubmatrix(large, 0, 4, 4, 4);  // Bottom-left 4×4 block
+ * const bottomRight = MatrixSubmatrix(large, 4, 4, 4, 4); // Bottom-right 4×4 block
+ * ```
+ * ```
  */
 export function MatrixSubmatrix(matrix: TMatrix, startCol: number, startRow: number, width: number, height: number): TMatrix {
 	AssertMatrix(matrix);
@@ -1076,14 +1054,10 @@ export function MatrixSubmatrix(matrix: TMatrix, startCol: number, startRow: num
 	// Copy elements from specified source region to result matrix
 	for (let row = 0; row < height; row++) {
 		const sourceRow = matrix[startRow + row];
-		AssertMatrixRow(sourceRow);
-
 		const resultRow = result[row];
-		AssertMatrixRow(resultRow);
 
 		for (let col = 0; col < width; col++) {
 			const val = sourceRow[startCol + col];
-			AssertMatrixValue(val, { rowIndex: startRow + row, columnIndex: startCol + col });
 			resultRow[col] = val;
 		}
 	}
@@ -1132,33 +1106,33 @@ export function MatrixSubmatrix(matrix: TMatrix, startCol: number, startRow: num
  * @returns {TMatrix} The padded matrix with dimensions newRows×newCols
  * @throws {Error} If new dimensions are smaller than current dimensions
  * @example
-	 * ```typescript
-	 * ```typescript
-	 * const matrix = [[1, 2], [3, 4]]; // 2×2 matrix
-	 * // Pad to 4×4 matrix (symmetric padding)
-	 * MatrixPad(matrix, 4, 4)
-	 * // Returns:
-	 * // [[1, 2, 0, 0],
-	 * //  [3, 4, 0, 0],
-	 * //  [0, 0, 0, 0],
-	 * //  [0, 0, 0, 0]]
-	 * // Pad to 3×4 matrix (asymmetric padding)
-	 * MatrixPad(matrix, 3, 4)
-	 * // Returns:
-	 * // [[1, 2, 0, 0],
-	 * //  [3, 4, 0, 0],
-	 * //  [0, 0, 0, 0]]
-	 * // Prepare for power-of-2 algorithm (e.g., FFT-based convolution)
-	 * const data = [[1, 2, 3], [4, 5, 6]]; // 2×3 matrix
-	 * const powerOf2 = MatrixPad(data, 4, 4); // Pad to 4×4 for FFT
-	 * // Batch size alignment in machine learning
-	 * const features = MatrixCreate(7, 10); // 7 samples, 10 features
-	 * const aligned = MatrixPad(features, 8, 10); // Align to batch size 8
-	 * // Image border padding for convolution
-	 * const image = MatrixCreate(28, 28); // 28×28 image
-	 * const padded = MatrixPad(image, 32, 32); // Add border for valid convolution
-	 * ```
-	 * ```
+ * ```typescript
+ * ```typescript
+ * const matrix = [[1, 2], [3, 4]]; // 2×2 matrix
+ * // Pad to 4×4 matrix (symmetric padding)
+ * MatrixPad(matrix, 4, 4)
+ * // Returns:
+ * // [[1, 2, 0, 0],
+ * //  [3, 4, 0, 0],
+ * //  [0, 0, 0, 0],
+ * //  [0, 0, 0, 0]]
+ * // Pad to 3×4 matrix (asymmetric padding)
+ * MatrixPad(matrix, 3, 4)
+ * // Returns:
+ * // [[1, 2, 0, 0],
+ * //  [3, 4, 0, 0],
+ * //  [0, 0, 0, 0]]
+ * // Prepare for power-of-2 algorithm (e.g., FFT-based convolution)
+ * const data = [[1, 2, 3], [4, 5, 6]]; // 2×3 matrix
+ * const powerOf2 = MatrixPad(data, 4, 4); // Pad to 4×4 for FFT
+ * // Batch size alignment in machine learning
+ * const features = MatrixCreate(7, 10); // 7 samples, 10 features
+ * const aligned = MatrixPad(features, 8, 10); // Align to batch size 8
+ * // Image border padding for convolution
+ * const image = MatrixCreate(28, 28); // 28×28 image
+ * const padded = MatrixPad(image, 32, 32); // Add border for valid convolution
+ * ```
+ * ```
  */
 export function MatrixPad(matrix: TMatrix, newRows: number, newCols: number): TMatrix {
 	AssertMatrix(matrix);
@@ -1169,14 +1143,10 @@ export function MatrixPad(matrix: TMatrix, newRows: number, newCols: number): TM
 	// Copy existing values to top-left corner, zero-fill remaining positions
 	for (let row = 0; row < Math.min(currentRows, newRows); row++) {
 		const sourceRow = matrix[row];
-		AssertMatrixRow(sourceRow);
-
 		const resultRow = result[row];
-		AssertMatrixRow(resultRow);
 
 		for (let col = 0; col < Math.min(currentCols, newCols); col++) {
 			const val = sourceRow[col];
-			AssertMatrixValue(val, { rowIndex: row, columnIndex: col });
 			resultRow[col] = val;
 		}
 	}
@@ -1236,36 +1206,36 @@ export function MatrixPad(matrix: TMatrix, newRows: number, newCols: number): TM
  * @throws {Error} If quadrants have mismatched dimensions or invalid values
  *
  * @example
-	 * ```typescript
-	 * ```typescript
-	 * // Basic 2×2 quadrant combination
-	 * const topLeft = [[1, 2], [3, 4]];
-	 * const topRight = [[5, 6], [7, 8]];
-	 * const bottomLeft = [[9, 10], [11, 12]];
-	 * const bottomRight = [[13, 14], [15, 16]];
-	 * MatrixCombine(topLeft, topRight, bottomLeft, bottomRight)
-	 * // Returns:
-	 * // [[1,  2,  5,  6],
-	 * //  [3,  4,  7,  8],
-	 * //  [9, 10, 13, 14],
-	 * //  [11,12, 15, 16]]
-	 * // Strassen algorithm result reconstruction
-	 * const m1 = computeStrassenProduct1(); // Computed Strassen intermediate results
-	 * const m2 = computeStrassenProduct2();
-	 * const m3 = computeStrassenProduct3();
-	 * const m4 = computeStrassenProduct4();
-	 * const finalResult = MatrixCombine(m1, m2, m3, m4); // Assemble final result
-	 * // Image processing: combining processed quadrants
-	 * const processedTopLeft = processImageQuadrant(imageTopLeft);
-	 * const processedTopRight = processImageQuadrant(imageTopRight);
-	 * const processedBottomLeft = processImageQuadrant(imageBottomLeft);
-	 * const processedBottomRight = processImageQuadrant(imageBottomRight);
-	 * const reconstructedImage = MatrixCombine(
-	 *   processedTopLeft, processedTopRight,
-	 *   processedBottomLeft, processedBottomRight
-	 * );
-	 * ```
-	 * ```
+ * ```typescript
+ * ```typescript
+ * // Basic 2×2 quadrant combination
+ * const topLeft = [[1, 2], [3, 4]];
+ * const topRight = [[5, 6], [7, 8]];
+ * const bottomLeft = [[9, 10], [11, 12]];
+ * const bottomRight = [[13, 14], [15, 16]];
+ * MatrixCombine(topLeft, topRight, bottomLeft, bottomRight)
+ * // Returns:
+ * // [[1,  2,  5,  6],
+ * //  [3,  4,  7,  8],
+ * //  [9, 10, 13, 14],
+ * //  [11,12, 15, 16]]
+ * // Strassen algorithm result reconstruction
+ * const m1 = computeStrassenProduct1(); // Computed Strassen intermediate results
+ * const m2 = computeStrassenProduct2();
+ * const m3 = computeStrassenProduct3();
+ * const m4 = computeStrassenProduct4();
+ * const finalResult = MatrixCombine(m1, m2, m3, m4); // Assemble final result
+ * // Image processing: combining processed quadrants
+ * const processedTopLeft = processImageQuadrant(imageTopLeft);
+ * const processedTopRight = processImageQuadrant(imageTopRight);
+ * const processedBottomLeft = processImageQuadrant(imageBottomLeft);
+ * const processedBottomRight = processImageQuadrant(imageBottomRight);
+ * const reconstructedImage = MatrixCombine(
+ *   processedTopLeft, processedTopRight,
+ *   processedBottomLeft, processedBottomRight
+ * );
+ * ```
+ * ```
  */
 export function MatrixCombine(c11: TMatrix, c12: TMatrix, c21: TMatrix, c22: TMatrix): TMatrix {
 	AssertMatrix(c11);
@@ -1282,14 +1252,10 @@ export function MatrixCombine(c11: TMatrix, c12: TMatrix, c21: TMatrix, c22: TMa
 	// Copy c11 to top-left quadrant [0:n, 0:n]
 	for (let row = 0; row < halfSize; row++) {
 		const sourceRow = c11[row];
-		AssertMatrixRow(sourceRow);
-
 		const resultRow = result[row];
-		AssertMatrixRow(resultRow);
 
 		for (let col = 0; col < halfSize; col++) {
 			const val = sourceRow[col];
-			AssertMatrixValue(val, { rowIndex: row, columnIndex: col });
 			resultRow[col] = val;
 		}
 	}
@@ -1297,14 +1263,10 @@ export function MatrixCombine(c11: TMatrix, c12: TMatrix, c21: TMatrix, c22: TMa
 	// Copy c12 to top-right quadrant [0:n, n:2n]
 	for (let row = 0; row < halfSize; row++) {
 		const sourceRow = c12[row];
-		AssertMatrixRow(sourceRow);
-
 		const resultRow = result[row];
-		AssertMatrixRow(resultRow);
 
 		for (let col = 0; col < halfSize; col++) {
 			const val = sourceRow[col];
-			AssertMatrixValue(val, { rowIndex: row, columnIndex: col });
 			resultRow[col + halfSize] = val;
 		}
 	}
@@ -1312,14 +1274,10 @@ export function MatrixCombine(c11: TMatrix, c12: TMatrix, c21: TMatrix, c22: TMa
 	// Copy c21 to bottom-left quadrant [n:2n, 0:n]
 	for (let row = 0; row < halfSize; row++) {
 		const sourceRow = c21[row];
-		AssertMatrixRow(sourceRow);
-
 		const resultRow = result[row + halfSize];
-		AssertMatrixRow(resultRow);
 
 		for (let col = 0; col < halfSize; col++) {
 			const val = sourceRow[col];
-			AssertMatrixValue(val, { rowIndex: row, columnIndex: col });
 			resultRow[col] = val;
 		}
 	}
@@ -1327,14 +1285,10 @@ export function MatrixCombine(c11: TMatrix, c12: TMatrix, c21: TMatrix, c22: TMa
 	// Copy c22 to bottom-right quadrant [n:2n, n:2n]
 	for (let row = 0; row < halfSize; row++) {
 		const sourceRow = c22[row];
-		AssertMatrixRow(sourceRow);
-
 		const resultRow = result[row + halfSize];
-		AssertMatrixRow(resultRow);
 
 		for (let col = 0; col < halfSize; col++) {
 			const val = sourceRow[col];
-			AssertMatrixValue(val, { rowIndex: row, columnIndex: col });
 			resultRow[col + halfSize] = val;
 		}
 	}

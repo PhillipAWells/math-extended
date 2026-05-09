@@ -31,7 +31,6 @@ import {
 	CircularEaseOut,
 	CircularEaseInOut,
 	StepInterpolation,
-	SphericalLinearInterpolation,
 } from './interpolation.js';
 
 describe('Interpolation', () => {
@@ -470,27 +469,6 @@ describe('Interpolation', () => {
 			});
 		});
 
-		describe('SphericalLinearInterpolation', () => {
-			it('should behave like linear interpolation for scalars', () => {
-				const linear = LinearInterpolation(10, 20, 0.3);
-				const spherical = SphericalLinearInterpolation(10, 20, 0.3);
-				expect(spherical).toBeCloseTo(linear, tolerance);
-			});
-
-			it('should handle edge cases', () => {
-				expect(SphericalLinearInterpolation(0, 1, 0)).toBe(0);
-				expect(SphericalLinearInterpolation(0, 1, 1)).toBe(1);
-			});
-			it('should extrapolate for t < 0 and t > 1', () => {
-				const linearLow = LinearInterpolation(10, 20, -0.5);
-				const sphericalLow = SphericalLinearInterpolation(10, 20, -0.5);
-				expect(sphericalLow).toBeCloseTo(linearLow, tolerance);
-
-				const linearHigh = LinearInterpolation(10, 20, 1.5);
-				const sphericalHigh = SphericalLinearInterpolation(10, 20, 1.5);
-				expect(sphericalHigh).toBeCloseTo(linearHigh, tolerance);
-			});
-		});
 		describe('Parameter validation', () => {
 			it('should not clamp t parameter for extrapolating functions', () => {
 				const functions = [
@@ -511,7 +489,6 @@ describe('Interpolation', () => {
 					BounceEaseOut,
 					CircularEaseIn,
 					CircularEaseOut,
-					SphericalLinearInterpolation,
 				];
 				functions.forEach((func) => {
 					// Should extrapolate, not clamp
@@ -559,7 +536,6 @@ describe('Interpolation', () => {
 					CircularEaseIn,
 					CircularEaseOut,
 					CircularEaseInOut,
-					SphericalLinearInterpolation,
 				];
 				functions.forEach((func) => {
 					expect(func(5, 5, 0.5)).toBe(5);

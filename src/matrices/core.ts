@@ -1,6 +1,6 @@
 import { AssertNumber } from '@pawells/typescript-common';
-import { AssertMatrix, AssertMatrixRow, AssertMatrixValue } from './asserts.js';
-import { TMatrix, TMatrix1, TMatrix2, TMatrix3, TMatrix4, TMatrixResult } from './types.js';
+import { AssertMatrix, AssertMatrixSquare } from './asserts.js';
+import type { TMatrix, TMatrix1, TMatrix2, TMatrix3, TMatrix4, TMatrixResult } from './types.js';
 
 // Function overloads for specific matrix types
 
@@ -24,9 +24,18 @@ export function MatrixCreate(rows: number, cols: number): TMatrix;
  * @param cols - Number of columns (non-negative integer). Optional for square matrices.
  * @returns {TMatrix | TMatrix1 | TMatrix2 | TMatrix3 | TMatrix4} Zero-filled matrix with specified dimensions
  * @throws {Error} If rows or cols are negative or not integers
- * @example MatrixCreate() // [[0]] (1x1 matrix)
- * @example MatrixCreate(2) // [[0, 0], [0, 0]] (2x2 matrix)
- * @example MatrixCreate(2, 3) // [[0, 0, 0], [0, 0, 0]] (2x3 matrix)
+ * @example
+ * ```typescript
+ * MatrixCreate() // [[0]] (1x1 matrix)
+ * ```
+ * @example
+ * ```typescript
+ * MatrixCreate(2) // [[0, 0], [0, 0]] (2x2 matrix)
+ * ```
+ * @example
+ * ```typescript
+ * MatrixCreate(2, 3) // [[0, 0, 0], [0, 0, 0]] (2x3 matrix)
+ * ```
  */
 export function MatrixCreate(rows?: number, cols?: number): TMatrix | TMatrix1 | TMatrix2 | TMatrix3 | TMatrix4 {
 	// Handle no parameters - default to 1x1
@@ -81,13 +90,14 @@ export function MatrixCreate(rows?: number, cols?: number): TMatrix | TMatrix1 |
  * @param matrix - The matrix to measure
  * @returns {[number, number]} Tuple [rows, columns]. Returns [0, 0] for empty matrices.
  * @throws {Error} If the input is not a valid matrix
- * @example MatrixSize([[1, 2, 3], [4, 5, 6]]) // [2, 3]
+ * @example
+ * ```typescript
+ * MatrixSize([[1, 2, 3], [4, 5, 6]]) // [2, 3]
+ * ```
  */
 export function MatrixSize(matrix: TMatrix): [number, number] {
 	// Basic validation without calling AssertMatrix to avoid circular dependency
-	if (!Array.isArray(matrix)) {
-		throw new Error('Input must be an array');
-	}
+	if (!Array.isArray(matrix)) throw new Error('Input must be an array');
 
 	// Handle empty matrix or matrix with no columns
 	if (matrix.length === 0 || !Array.isArray(matrix[0])) return [0, 0];
@@ -99,45 +109,15 @@ export function MatrixSize(matrix: TMatrix): [number, number] {
  * @param matrix - The square matrix to measure
  * @returns {number} The size (n for an n×n matrix)
  * @throws {Error} If the matrix is not square
- * @example MatrixSizeSquare([[1, 2], [3, 4]]) // 2
+ * @example
+ * ```typescript
+ * MatrixSizeSquare([[1, 2], [3, 4]]) // 2
+ * ```
  */
 export function MatrixSizeSquare(matrix: TMatrix): number {
-	AssertMatrix(matrix, { square: true });
-
+	AssertMatrixSquare(matrix);
 	const [rows] = MatrixSize(matrix);
 	return rows;
-}
-
-/**
- * Validates that the input is a well-formed matrix.
- * @param matrix - The value to validate as a matrix
- * @returns {boolean} True if the input is a valid matrix, false otherwise
- * @example MatrixIsValid([[1, 2], [3, 4]]) // true
- * @example MatrixIsValid([[1, 'invalid'], [3, 4]]) // false
- */
-export function MatrixIsValid(matrix: unknown): boolean {
-	try {
-		AssertMatrix(matrix);
-		return true;
-	} catch {
-		return false;
-	}
-}
-
-/**
- * Checks if a matrix is square (equal number of rows and columns).
- * @param matrix - The matrix to check
- * @returns {boolean} True if the matrix is square, false otherwise
- * @example MatrixIsSquare([[1, 2], [3, 4]]) // true (2×2)
- * @example MatrixIsSquare([[1, 2, 3], [4, 5, 6]]) // false (3×2)
- */
-export function MatrixIsSquare(matrix: TMatrix): boolean {
-	try {
-		MatrixSizeSquare(matrix);
-		return true;
-	} catch {
-		return false;
-	}
 }
 
 /**
@@ -146,9 +126,18 @@ export function MatrixIsSquare(matrix: TMatrix): boolean {
  * @param threshold - Tolerance for considering values as zero (default: 1e-14)
  * @returns {boolean} True if all matrix elements are within threshold of zero
  * @throws {Error} If the input is not a valid matrix
- * @example MatrixIsZero([[0, 0], [0, 0]]) // true
- * @example MatrixIsZero([[1e-15, 0], [0, 0]]) // true (within default threshold)
- * @example MatrixIsZero([[0.1, 0], [0, 0]]) // false
+ * @example
+ * ```typescript
+ * MatrixIsZero([[0, 0], [0, 0]]) // true
+ * ```
+ * @example
+ * ```typescript
+ * MatrixIsZero([[1e-15, 0], [0, 0]]) // true (within default threshold)
+ * ```
+ * @example
+ * ```typescript
+ * MatrixIsZero([[0.1, 0], [0, 0]]) // false
+ * ```
  */
 export function MatrixIsZero(matrix: TMatrix, threshold: number = 1e-14): boolean {
 	AssertMatrix(matrix);
@@ -157,15 +146,11 @@ export function MatrixIsZero(matrix: TMatrix, threshold: number = 1e-14): boolea
 	if (rows === 0 || cols === 0) return true; // Empty matrix is considered zero
 	for (let row = 0; row < rows; row++) {
 		const matrixRow = matrix[row];
-		AssertMatrixRow(matrixRow, { rowIndex: row });
 
 		for (let col = 0; col < cols; col++) {
 			const value = matrixRow[col];
-			AssertMatrixValue(value, { rowIndex: row, columnIndex: col });
 
-			if (Math.abs(value) > threshold) {
-				return false; // Found a non-zero value
-			}
+			if (Math.abs(value) > threshold) return false;
 		}
 	}
 
@@ -178,9 +163,18 @@ export function MatrixIsZero(matrix: TMatrix, threshold: number = 1e-14): boolea
  * @param threshold - Tolerance for floating-point comparisons (default: 1e-14)
  * @returns {boolean} True if the matrix is an identity matrix within tolerance
  * @throws {Error} If the input is not a valid matrix
- * @example MatrixIsIdentity([[1, 0], [0, 1]]) // true
- * @example MatrixIsIdentity([[1, 0, 0], [0, 1, 0], [0, 0, 1]]) // true
- * @example MatrixIsIdentity([[1, 1], [0, 1]]) // false
+ * @example
+ * ```typescript
+ * MatrixIsIdentity([[1, 0], [0, 1]]) // true
+ * ```
+ * @example
+ * ```typescript
+ * MatrixIsIdentity([[1, 0, 0], [0, 1, 0], [0, 0, 1]]) // true
+ * ```
+ * @example
+ * ```typescript
+ * MatrixIsIdentity([[1, 1], [0, 1]]) // false
+ * ```
  */
 export function MatrixIsIdentity(matrix: TMatrix, threshold: number = 1e-14): boolean {
 	AssertMatrix(matrix);
@@ -190,11 +184,9 @@ export function MatrixIsIdentity(matrix: TMatrix, threshold: number = 1e-14): bo
 
 	for (let row = 0; row < rows; row++) {
 		const matrixRow = matrix[row];
-		AssertMatrixRow(matrixRow, { rowIndex: row });
 
 		for (let col = 0; col < cols; col++) {
 			const value = matrixRow[col];
-			AssertMatrixValue(value, { rowIndex: row, columnIndex: col });
 
 			const expected = row === col ? 1 : 0;
 			if (Math.abs(value - expected) > threshold) return false;
@@ -210,9 +202,18 @@ export function MatrixIsIdentity(matrix: TMatrix, threshold: number = 1e-14): bo
  * @param threshold - Tolerance for floating-point comparisons (default: 1e-14)
  * @returns {boolean} True if the matrix is symmetric within tolerance
  * @throws {Error} If the input is not a valid matrix
- * @example MatrixIsSymmetric([[1, 2], [2, 1]]) // true
- * @example MatrixIsSymmetric([[1, 2], [3, 4]]) // false
- * @example MatrixIsSymmetric([[1, 2, 3], [2, 5, 4], [3, 4, 6]]) // true
+ * @example
+ * ```typescript
+ * MatrixIsSymmetric([[1, 2], [2, 1]]) // true
+ * ```
+ * @example
+ * ```typescript
+ * MatrixIsSymmetric([[1, 2], [3, 4]]) // false
+ * ```
+ * @example
+ * ```typescript
+ * MatrixIsSymmetric([[1, 2, 3], [2, 5, 4], [3, 4, 6]]) // true
+ * ```
  */
 export function MatrixIsSymmetric(matrix: TMatrix, threshold: number = 1e-14): boolean {
 	AssertMatrix(matrix);
@@ -222,16 +223,12 @@ export function MatrixIsSymmetric(matrix: TMatrix, threshold: number = 1e-14): b
 
 	for (let row = 0; row < rows; row++) {
 		const matrixRow = matrix[row];
-		AssertMatrixRow(matrixRow, { rowIndex: row });
 
 		for (let col = row + 1; col < cols; col++) {
 			const upper = matrixRow[col];
-			AssertMatrixValue(upper, { rowIndex: row, columnIndex: col });
 
 			const lowerRow = matrix[col];
-			AssertMatrixRow(lowerRow, { rowIndex: col });
 			const lower = lowerRow[row];
-			AssertMatrixValue(lower, { rowIndex: col, columnIndex: row });
 
 			if (Math.abs(upper - lower) > threshold) return false;
 		}
@@ -247,9 +244,18 @@ export function MatrixIsSymmetric(matrix: TMatrix, threshold: number = 1e-14): b
  * @param threshold - Tolerance for considering values as zero (default: 1e-14)
  * @returns {boolean} True if the matrix is diagonal within tolerance
  * @throws {Error} If the input is not a valid matrix
- * @example MatrixIsDiagonal([[3, 0], [0, 7]]) // true
- * @example MatrixIsDiagonal([[1, 0, 0], [0, 5, 0], [0, 0, 2]]) // true
- * @example MatrixIsDiagonal([[1, 2], [0, 1]]) // false
+ * @example
+ * ```typescript
+ * MatrixIsDiagonal([[3, 0], [0, 7]]) // true
+ * ```
+ * @example
+ * ```typescript
+ * MatrixIsDiagonal([[1, 0, 0], [0, 5, 0], [0, 0, 2]]) // true
+ * ```
+ * @example
+ * ```typescript
+ * MatrixIsDiagonal([[1, 2], [0, 1]]) // false
+ * ```
  */
 export function MatrixIsDiagonal(matrix: TMatrix, threshold: number = 1e-14): boolean {
 	AssertMatrix(matrix);
@@ -259,13 +265,11 @@ export function MatrixIsDiagonal(matrix: TMatrix, threshold: number = 1e-14): bo
 
 	for (let row = 0; row < rows; row++) {
 		const matrixRow = matrix[row];
-		AssertMatrixRow(matrixRow, { rowIndex: row });
 
 		for (let col = 0; col < cols; col++) {
 			if (row === col) continue; // Skip diagonal elements
 
 			const value = matrixRow[col];
-			AssertMatrixValue(value, { rowIndex: row, columnIndex: col });
 
 			if (Math.abs(value) > threshold) return false;
 		}
@@ -279,8 +283,14 @@ export function MatrixIsDiagonal(matrix: TMatrix, threshold: number = 1e-14): bo
  * @param size - The dimensions of the square identity matrix (must be non-negative integer)
  * @returns {TMatrix} A square identity matrix of size n×n
  * @throws {Error} If size is negative or not an integer
- * @example MatrixIdentity(2) // [[1, 0], [0, 1]]
- * @example MatrixIdentity(3) // [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
+ * @example
+ * ```typescript
+ * MatrixIdentity(2) // [[1, 0], [0, 1]]
+ * ```
+ * @example
+ * ```typescript
+ * MatrixIdentity(3) // [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
+ * ```
  */
 
 export function MatrixIdentity(size: 0): TMatrix;
@@ -302,7 +312,6 @@ export function MatrixIdentity(size: number): TMatrix {
 	// Set diagonal elements to 1
 	for (let i = 0; i < size; i++) {
 		const row = result[i];
-		AssertMatrixRow(row, { rowIndex: i });
 		row[i] = 1;
 	}
 
@@ -314,7 +323,10 @@ export function MatrixIdentity(size: number): TMatrix {
  * @param matrix - The matrix to clone
  * @returns {TMatrixResult<T>} A new matrix with identical values but independent memory allocation
  * @throws {Error} If the input is not a valid matrix
- * @example MatrixClone([[1, 2], [3, 4]]) // [[1, 2], [3, 4]] (independent copy)
+ * @example
+ * ```typescript
+ * MatrixClone([[1, 2], [3, 4]]) // [[1, 2], [3, 4]] (independent copy)
+ * ```
  */
 export function MatrixClone<T extends TMatrix>(matrix: T): TMatrixResult<T> {
 	AssertMatrix(matrix);
@@ -329,8 +341,14 @@ export function MatrixClone<T extends TMatrix>(matrix: T): TMatrixResult<T> {
  * @param tolerance - Maximum allowed difference between corresponding elements (default: 1e-8)
  * @returns {boolean} True if matrices are equal within tolerance, false otherwise
  * @throws {Error} If either input is not a valid matrix or if matrix data is corrupted
- * @example MatrixEquals([[1, 2]], [[1.0001, 2]], 0.001) // true
- * @example MatrixEquals([[1, 2]], [[1, 3]]) // false
+ * @example
+ * ```typescript
+ * MatrixEquals([[1, 2]], [[1.0001, 2]], 0.001) // true
+ * ```
+ * @example
+ * ```typescript
+ * MatrixEquals([[1, 2]], [[1, 3]]) // false
+ * ```
  */
 export function MatrixEquals(a: TMatrix, b: TMatrix, tolerance: number = 1e-8): boolean {
 	AssertMatrix(a);
@@ -347,18 +365,12 @@ export function MatrixEquals(a: TMatrix, b: TMatrix, tolerance: number = 1e-8): 
 	for (let row = 0; row < rowsA; row++) {
 		const rowA = a[row];
 		const rowB = b[row];
-		AssertMatrixRow(rowA, { rowIndex: row });
-		AssertMatrixRow(rowB, { rowIndex: row });
 
 		for (let col = 0; col < colsA; col++) {
 			const valA = rowA[col];
 			const valB = rowB[col];
-			AssertMatrixValue(valA, { rowIndex: row, columnIndex: col });
-			AssertMatrixValue(valB, { rowIndex: row, columnIndex: col });
 
-			if (Math.abs(valA - valB) > tolerance) {
-				return false;
-			}
+			if (Math.abs(valA - valB) > tolerance) return false;
 		}
 	}
 
@@ -371,8 +383,14 @@ export function MatrixEquals(a: TMatrix, b: TMatrix, tolerance: number = 1e-8): 
  * @param precision - Number of decimal places for formatting (default: 2)
  * @returns {string} A formatted string representation of the matrix
  * @throws {Error} If the input is not a valid matrix
- * @example MatrixToString([[1.23, 2.7]]) // "[ 1.23, 2.70 ]"
- * @example MatrixToString([[1, 2], [3, 4]], 0) // "[ 1, 2 ]\n[ 3, 4 ]"
+ * @example
+ * ```typescript
+ * MatrixToString([[1.23, 2.7]]) // "[ 1.23, 2.70 ]"
+ * ```
+ * @example
+ * ```typescript
+ * MatrixToString([[1, 2], [3, 4]], 0) // "[ 1, 2 ]\n[ 3, 4 ]"
+ * ```
  */
 export function MatrixToString(matrix: TMatrix, precision: number = 2): string {
 	AssertMatrix(matrix);
@@ -381,7 +399,7 @@ export function MatrixToString(matrix: TMatrix, precision: number = 2): string {
 	return matrix
 		.map((row) => '[ ' + row
 			.map((val) => {
-				return typeof val === 'number' ? val.toFixed(precision) : String(val);
+				return val.toFixed(precision);
 			})
 			.join(', ') + ' ]')
 		.join('\n');
@@ -393,8 +411,14 @@ export function MatrixToString(matrix: TMatrix, precision: number = 2): string {
  * @param tolerance - Numerical tolerance for zero detection (default: 1e-10)
  * @returns {number} The rank of the matrix (0 ≤ rank ≤ min(rows, columns))
  * @throws {Error} If the matrix contains invalid values
- * @example MatrixRank([[1, 2], [2, 4]]) // 1 (second row = 2 × first row)
- * @example MatrixRank([[1, 0], [0, 1]]) // 2 (full rank)
+ * @example
+ * ```typescript
+ * MatrixRank([[1, 2], [2, 4]]) // 1 (second row = 2 × first row)
+ * ```
+ * @example
+ * ```typescript
+ * MatrixRank([[1, 0], [0, 1]]) // 2 (full rank)
+ * ```
  */
 export function MatrixRank(matrix: TMatrix, tolerance: number = 1e-10): number {
 	AssertMatrix(matrix);
@@ -413,10 +437,8 @@ export function MatrixRank(matrix: TMatrix, tolerance: number = 1e-10): number {
 
 		for (let row = 0; row < rows; row++) {
 			const matrixRow = mat[row];
-			AssertMatrixRow(matrixRow, { rowIndex: row });
 
 			const value = matrixRow[col];
-			AssertMatrixValue(value, { rowIndex: row, columnIndex: col });
 			if (!rowUsed[row] && Math.abs(value) > tolerance) {
 				pivotRow = row;
 				break;
@@ -432,26 +454,19 @@ export function MatrixRank(matrix: TMatrix, tolerance: number = 1e-10): number {
 			if (row !== pivotRow) {
 				const currentRow = mat[row];
 				const pivotRowData = mat[pivotRow];
-				AssertMatrixRow(currentRow, { rowIndex: row });
-				AssertMatrixRow(pivotRowData, { rowIndex: pivotRow });
 
 				const pivotValue = pivotRowData[col];
 				const currentValue = currentRow[col];
-				AssertMatrixValue(pivotValue, { rowIndex: pivotRow, columnIndex: col });
-				AssertMatrixValue(currentValue, { rowIndex: row, columnIndex: col });
 
 				const factor = currentValue / pivotValue;
 
 				for (let k = col; k < cols; k++) {
 					const pivotK = pivotRowData[k];
 					const currentK = currentRow[k];
-					AssertMatrixValue(pivotK, { rowIndex: pivotRow, columnIndex: k });
-					AssertMatrixValue(currentK, { rowIndex: row, columnIndex: k });
 
 					currentRow[k] = currentK - (factor * pivotK);
 
 					const updatedValue = currentRow[k];
-					AssertMatrixValue(updatedValue, { rowIndex: row, columnIndex: k });
 					if (Math.abs(updatedValue) < tolerance) {
 						currentRow[k] = 0;
 					}
@@ -468,8 +483,14 @@ export function MatrixRank(matrix: TMatrix, tolerance: number = 1e-10): number {
  * @param matrix - The input matrix (can be square or rectangular)
  * @returns {number} The trace value (sum of diagonal elements)
  * @throws {Error} If the matrix contains invalid values
- * @example MatrixTrace([[1, 2, 3], [4, 5, 6], [7, 8, 9]]) // 15 (1 + 5 + 9)
- * @example MatrixTrace([[1, 2], [3, 4], [5, 6]]) // 5 (1 + 4, rectangular matrix)
+ * @example
+ * ```typescript
+ * MatrixTrace([[1, 2, 3], [4, 5, 6], [7, 8, 9]]) // 15 (1 + 5 + 9)
+ * ```
+ * @example
+ * ```typescript
+ * MatrixTrace([[1, 2], [3, 4], [5, 6]]) // 5 (1 + 4, rectangular matrix)
+ * ```
  */
 export function MatrixTrace(matrix: TMatrix): number {
 	AssertMatrix(matrix);
@@ -482,10 +503,7 @@ export function MatrixTrace(matrix: TMatrix): number {
 
 	for (let i = 0; i < n; i++) {
 		const row = matrix[i];
-		AssertMatrixRow(row, { rowIndex: i });
-
 		const val = row[i];
-		AssertMatrixValue(val, { rowIndex: i, columnIndex: i });
 		trace += val;
 	}
 
@@ -497,8 +515,14 @@ export function MatrixTrace(matrix: TMatrix): number {
  * @param matrix - The matrix to transpose (can be any m×n matrix)
  * @returns {TMatrixResult<T>} The transposed matrix with dimensions n×m
  * @throws {Error} If the input is not a valid matrix
- * @example MatrixTranspose([[1, 2, 3], [4, 5, 6]]) // [[1, 4], [2, 5], [3, 6]]
- * @example MatrixTranspose([[1, 2], [3, 4]]) // [[1, 3], [2, 4]]
+ * @example
+ * ```typescript
+ * MatrixTranspose([[1, 2, 3], [4, 5, 6]]) // [[1, 4], [2, 5], [3, 6]]
+ * ```
+ * @example
+ * ```typescript
+ * MatrixTranspose([[1, 2], [3, 4]]) // [[1, 3], [2, 4]]
+ * ```
  */
 export function MatrixTranspose<T extends TMatrix>(matrix: T): TMatrixResult<T> {
 	AssertMatrix(matrix);
@@ -514,15 +538,12 @@ export function MatrixTranspose<T extends TMatrix>(matrix: T): TMatrixResult<T> 
 
 	for (let row = 0; row < rows; row++) {
 		const matrixRow = (matrix as TMatrix)[row];
-		AssertMatrixRow(matrixRow, { rowIndex: row });
 
 		for (let col = 0; col < cols; col++) {
 			const val = matrixRow[col];
-			AssertMatrixValue(val, { rowIndex: row, columnIndex: col });
 
 			// Swap row and column indices in the result
 			const resultCol = result[col];
-			AssertMatrixRow(resultCol, { rowIndex: col });
 			resultCol[row] = val;
 		}
 	}
@@ -536,8 +557,14 @@ export function MatrixTranspose<T extends TMatrix>(matrix: T): TMatrixResult<T> 
  * @param fn - Transformation function: (value, row, col) => transformedValue
  * @returns {TMatrixResult<T>} A new matrix with transformed values (same dimensions as input)
  * @throws {Error} If the input matrix is invalid or transformation function throws
- * @example MatrixMap([[1, 2], [3, 4]], (value) => value * value) // [[1, 4], [9, 16]]
- * @example MatrixMap([[1, 2], [3, 4]], (value, row, col) => value + row + col) // [[1, 3], [4, 6]]
+ * @example
+ * ```typescript
+ * MatrixMap([[1, 2], [3, 4]], (value) => value * value) // [[1, 4], [9, 16]]
+ * ```
+ * @example
+ * ```typescript
+ * MatrixMap([[1, 2], [3, 4]], (value, row, col) => value + row + col) // [[1, 3], [4, 6]]
+ * ```
  */
 export function MatrixMap<T extends TMatrix>(matrix: T, fn: (value: number, row: number, col: number) => number): TMatrixResult<T> {
 	AssertMatrix(matrix);
@@ -547,13 +574,11 @@ export function MatrixMap<T extends TMatrix>(matrix: T, fn: (value: number, row:
 
 	for (let row = 0; row < rows; row++) {
 		const matrixRow = matrix[row];
-		AssertMatrixRow(matrixRow, { rowIndex: row });
 
 		const newRow: number[] = [];
 
 		for (let col = 0; col < cols; col++) {
 			const val = matrixRow[col];
-			AssertMatrixValue(val, { rowIndex: row, columnIndex: col });
 			newRow.push(fn(val, row, col));
 		}
 		result.push(newRow);

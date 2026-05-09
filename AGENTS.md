@@ -4,7 +4,7 @@ This file provides guidance to AI coding agents when working with code in this r
 
 ## Project Overview
 
-`@pawells/math-extended` is a shared TypeScript math utility library published to npm. It targets ES2022, is distributed as ESM, and has one runtime dependency (`@pawells/typescript-common`). The library exports from a single entry point (`src/index.ts`) which re-exports from seven domain modules.
+`@pawells/math-extended` is a shared TypeScript math utility library published to npm. It targets ES2022, is distributed as ESM, and has two runtime dependencies (`@pawells/typescript-common` and `zod`). The library exports from a single entry point (`src/index.ts`) which re-exports from seven domain modules.
 
 ## Commands
 
@@ -30,19 +30,15 @@ To run a single test file: `yarn vitest run src/path/to/file.spec.ts`
 
 ## Architecture
 
-All source lives under `src/` and is compiled to `./build/` by `tsc`. The suite currently has **1080 tests**.
+All source lives under `src/` and is compiled to `./build/` by `tsc`. The suite currently has **1137 tests**.
 
-**Entry point** (`src/index.ts`): The single public export surface with both:
-- **Namespace exports** (`VectorUtils`, `MatrixUtils`, `QuaternionUtils`) for grouped imports
-- **Direct named exports** for tree-shaking optimization
-
-All utilities, helpers, and types intended for consumers must be re-exported from this file.
+**Entry point** (`src/index.ts`): The single public export surface with direct named exports for tree-shaking optimization. All utilities, helpers, and types intended for consumers must be re-exported from this file.
 
 ### Module structure
 
 | Module | Source files | Description |
 |--------|-------------|-------------|
-| `angles` | `src/angles.ts` | Degree/radian conversion and normalization |
+| `core` | `src/core.ts` | Core numeric utilities (cube root) |
 | `clamp` | `src/clamp.ts` | Numeric clamping |
 | `interpolation` | `src/interpolation.ts` | Scalar interpolation and 30+ easing functions |
 | `random` | `src/random.ts` | Random numbers, choices, sampling, shuffling |
@@ -58,11 +54,37 @@ All utilities, helpers, and types intended for consumers must be re-exported fro
 
 **Adding exports**: Implement new utilities in the relevant `src/` domain file and re-export from the domain `index.ts` (e.g., `src/vectors/index.ts`). The top-level `src/index.ts` already re-exports all domain indexes.
 
-**Runtime dependency**: `@pawells/typescript-common` provides shared assertion helpers (`AssertArray2D`, `SetExceptionMessage`, `ThrowException`, etc.). Add new assertions by composing these primitives. Do **not** add further runtime dependencies.
+**Runtime dependencies**:
+- `@pawells/typescript-common` provides shared assertion helpers (`AssertNumber`, `AssertArray`, `AssertInstanceOf`, `AssertNotEquals`, `ArraySortBy`). Add new assertions by composing these primitives.
+- `zod` v4.4.3+ provides schema validation. All assertion functions delegate to zod schemas (e.g., `VECTOR_SCHEMA.parse(x)`), catching `ZodError` and wrapping it in domain-specific error classes (`VectorError`, `MatrixError`, `QuaternionError`) for consistent error handling.
+
+Do **not** add further runtime dependencies.
 
 **ESM only**: The package is `"type": "module"`. Use ESM import/export syntax throughout; avoid CommonJS patterns.
 
 **JSDoc**: All exported functions, types, and classes must have complete JSDoc blocks including `@param`, `@returns`, `@throws`, and at least one `@example`.
+
+**Schema validation with zod**: Assertion functions use a two-layer pattern:
+1. **Zod schema definition** — Each domain (vectors, matrices, quaternions) defines type schemas (e.g., `VECTOR_SCHEMA`, `MATRIX_SCHEMA`)
+2. **Error wrapping** — Assert functions call `.parse()` or `.safeParse()` on the schema. If validation fails:
+   - `AssertVector()` catches `ZodError` and wraps it in a `VectorError` with a descriptive message
+   - `ValidateVector()` catches `ZodError` and returns `false`
+
+Example:
+```typescript
+import { AssertVector, VectorError } from '@pawells/math-extended';
+
+try {
+  AssertVector([1, 2, 3]); // Valid — passes
+  AssertVector('invalid');  // Throws VectorError (not ZodError) with wrapped validation details
+} catch (error) {
+  if (error instanceof VectorError) {
+    console.error('Vector validation failed:', error.message);
+  }
+}
+```
+
+When implementing new assertion functions, always use domain error classes as the public API — never expose `ZodError` directly to consumers.
 
 ## TypeScript Configuration
 

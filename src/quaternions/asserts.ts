@@ -3,28 +3,7 @@
  * Provides runtime type checking and validation for quaternion operations.
  */
 
-import { AssertVector, VectorError } from '../vectors/asserts.js';
-import { TQuaternion, TEulerAngles, TAxisAngle, TRotationMatrix } from './types.js';
-
-/**
- * Custom error class for quaternion-specific validation errors.
- * Extends the base VectorError to maintain consistency with vector operations.
- */
-export class QuaternionError extends VectorError {
-	public readonly code: string = 'QUATERNION_ERROR';
-
-	/**
-	 * Creates a new QuaternionError instance.
-	 *
-	 * @param message - Error message describing the validation failure
-	 * @param options - Optional error context
-	 * @param options.cause - Original error that caused this error
-	 */
-	constructor(message: string, options?: { cause?: unknown }) {
-		super(message, options);
-		this.name = 'QuaternionError';
-	}
-}
+import { type TQuaternion, type TEulerAngles, type TAxisAngle, type TRotationMatrix } from './types.js';
 
 /**
  * Validates that a value is a proper quaternion.
@@ -35,13 +14,28 @@ export class QuaternionError extends VectorError {
  * @throws {QuaternionError} If the quaternion is invalid
  *
  * @example
-	 * ```typescript
-	 * AssertQuaternion([0, 0, 0, 1]); // Valid - passes silently
-	 * AssertQuaternion([1, 2, 3]);    // Throws QuaternionError - wrong length
-	 * AssertQuaternion([1, 2, 3, NaN]); // Throws QuaternionError - contains NaN
-	 * ```
+ * ```typescript
+ * AssertQuaternion([0, 0, 0, 1]); // Valid - passes silently
+ * AssertQuaternion([1, 2, 3]);    // Throws QuaternionError - wrong length
+ * AssertQuaternion([1, 2, 3, NaN]); // Throws QuaternionError - contains NaN
+ * ```
  */
-export function AssertQuaternion(quaternion: unknown, options: Record<string, unknown> = {}): asserts quaternion is TQuaternion {
+/**
+ * Error thrown when quaternion validation fails.
+ */
+export class QuaternionError extends Error {
+	public readonly code: string = 'QUATERNION_ERROR';
+
+	constructor(message: string, options?: { cause?: unknown }) {
+		super(message);
+		this.name = 'QuaternionError';
+		if (options?.cause) {
+			this.cause = options.cause;
+		}
+	}
+}
+
+export function AssertQuaternion(quaternion: unknown): asserts quaternion is TQuaternion {
 	if (!Array.isArray(quaternion)) {
 		throw new QuaternionError('Quaternion must be an array');
 	}
@@ -50,14 +44,10 @@ export function AssertQuaternion(quaternion: unknown, options: Record<string, un
 		throw new QuaternionError(`Quaternion must have exactly 4 components, got ${quaternion.length}`);
 	}
 
-	// Use existing vector validation for number checking
-	try {
-		AssertVector(quaternion, options);
-	} catch (error) {
-		if (error instanceof VectorError) {
-			throw new QuaternionError(error.message);
+	for (let i = 0; i < 4; i++) {
+		if (typeof quaternion[i] !== 'number' || Number.isNaN(quaternion[i])) {
+			throw new QuaternionError(`Quaternion component ${i} must be a number (not ${typeof quaternion[i]})`);
 		}
-		throw error;
 	}
 }
 
@@ -70,15 +60,20 @@ export function AssertQuaternion(quaternion: unknown, options: Record<string, un
  * @throws {QuaternionError} If the quaternion is not normalized
  *
  * @example
-	 * ```typescript
-	 * AssertNormalizedQuaternion([0, 0, 0, 1]); // Valid unit quaternion
-	 * AssertNormalizedQuaternion([1, 1, 1, 1]); // Throws - not normalized
-	 * ```
+ * ```typescript
+ * AssertNormalizedQuaternion([0, 0, 0, 1]); // Valid unit quaternion
+ * AssertNormalizedQuaternion([1, 1, 1, 1]); // Throws - not normalized
+ * ```
  */
 export function AssertNormalizedQuaternion(quaternion: TQuaternion, tolerance: number = 1e-6): void {
 	AssertQuaternion(quaternion);
 
-	const [x, y, z, w] = quaternion;
+	// Type guard to establish type narrowing for TypeScript
+	if (!Array.isArray(quaternion) || quaternion.length !== 4) {
+		throw new QuaternionError('Quaternion must be an array of 4 numbers');
+	}
+
+	const [x, y, z, w] = quaternion as [number, number, number, number];
 	const magnitude = Math.sqrt((x * x) + (y * y) + (z * z) + (w * w));
 
 	if (Math.abs(magnitude - 1) > tolerance) {
@@ -94,7 +89,7 @@ export function AssertNormalizedQuaternion(quaternion: TQuaternion, tolerance: n
  * @param options - Validation options
  * @throws {QuaternionError} If the Euler angles are invalid
  */
-export function AssertEulerAngles(euler: unknown, options: Record<string, unknown> = {}): asserts euler is TEulerAngles {
+export function AssertEulerAngles(euler: unknown): asserts euler is TEulerAngles {
 	if (!Array.isArray(euler)) {
 		throw new QuaternionError('Euler angles must be an array');
 	}
@@ -103,13 +98,11 @@ export function AssertEulerAngles(euler: unknown, options: Record<string, unknow
 		throw new QuaternionError(`Euler angles must have exactly 3 components, got ${euler.length}`);
 	}
 
-	try {
-		AssertVector(euler, options);
-	} catch (error) {
-		if (error instanceof VectorError) {
-			throw new QuaternionError(`Invalid Euler angles: ${error.message}`);
+	// Validate each element is a number (NaN is rejected, but Infinity is allowed)
+	for (let i = 0; i < 3; i++) {
+		if (typeof euler[i] !== 'number' || Number.isNaN(euler[i])) {
+			throw new QuaternionError(`Invalid Euler angles: component ${i} must be a number (not ${typeof euler[i]})`);
 		}
-		throw error;
 	}
 }
 
@@ -121,7 +114,7 @@ export function AssertEulerAngles(euler: unknown, options: Record<string, unknow
  * @param options - Validation options
  * @throws {QuaternionError} If the axis-angle is invalid
  */
-export function AssertAxisAngle(axisAngle: unknown, options: Record<string, unknown> = {}): asserts axisAngle is TAxisAngle {
+export function AssertAxisAngle(axisAngle: unknown): asserts axisAngle is TAxisAngle {
 	if (!Array.isArray(axisAngle)) {
 		throw new QuaternionError('Axis-angle must be an array');
 	}
@@ -130,13 +123,11 @@ export function AssertAxisAngle(axisAngle: unknown, options: Record<string, unkn
 		throw new QuaternionError(`Axis-angle must have exactly 4 components, got ${axisAngle.length}`);
 	}
 
-	try {
-		AssertVector(axisAngle, options);
-	} catch (error) {
-		if (error instanceof VectorError) {
-			throw new QuaternionError(`Invalid axis-angle: ${error.message}`);
+	// Validate each element is a number (NaN is rejected, but Infinity is allowed)
+	for (let i = 0; i < 4; i++) {
+		if (typeof axisAngle[i] !== 'number' || Number.isNaN(axisAngle[i])) {
+			throw new QuaternionError(`Invalid axis-angle: component ${i} must be a number (not ${typeof axisAngle[i]})`);
 		}
-		throw error;
 	}
 }
 
@@ -148,7 +139,7 @@ export function AssertAxisAngle(axisAngle: unknown, options: Record<string, unkn
  * @param options - Validation options
  * @throws {QuaternionError} If the rotation matrix is invalid
  */
-export function AssertRotationMatrix(matrix: unknown, options: Record<string, unknown> = {}): asserts matrix is TRotationMatrix {
+export function AssertRotationMatrix(matrix: unknown): asserts matrix is TRotationMatrix {
 	if (!Array.isArray(matrix)) {
 		throw new QuaternionError('Rotation matrix must be an array');
 	}
@@ -162,16 +153,16 @@ export function AssertRotationMatrix(matrix: unknown, options: Record<string, un
 		if (!Array.isArray(matrix[i])) {
 			throw new QuaternionError(`Rotation matrix row ${i} must be an array`);
 		}
+
 		if (matrix[i].length !== 3) {
 			throw new QuaternionError(`Rotation matrix row ${i} must have exactly 3 elements, got ${matrix[i].length}`);
 		}
-		try {
-			AssertVector(matrix[i], options);
-		} catch (error) {
-			if (error instanceof VectorError) {
-				throw new QuaternionError(`Invalid rotation matrix row ${i}: ${error.message}`);
+
+		// Validate each element is a number (NaN is rejected, but Infinity is allowed)
+		for (let j = 0; j < 3; j++) {
+			if (typeof matrix[i][j] !== 'number' || Number.isNaN(matrix[i][j])) {
+				throw new QuaternionError(`Invalid rotation matrix row ${i}: component ${j} must be a number (not ${typeof matrix[i][j]})`);
 			}
-			throw error;
 		}
 	}
 }
@@ -184,19 +175,19 @@ export function AssertRotationMatrix(matrix: unknown, options: Record<string, un
  * @param options - Validation options
  * @throws {QuaternionError} If any quaternion is invalid
  */
-export function AssertQuaternions(quaternions: unknown[], options: Record<string, unknown> = {}): asserts quaternions is TQuaternion[] {
+export function AssertQuaternions(quaternions: unknown[]): asserts quaternions is TQuaternion[] {
 	if (!Array.isArray(quaternions)) {
 		throw new QuaternionError('Quaternions must be an array');
 	}
 
 	for (let i = 0; i < quaternions.length; i++) {
 		try {
-			AssertQuaternion(quaternions[i], options);
+			AssertQuaternion(quaternions[i]);
 		} catch (error) {
-			if (error instanceof QuaternionError) {
-				throw new QuaternionError(`Invalid quaternion at index ${i}: ${error.message}`);
-			}
-			throw error;
+			const message = error instanceof Error ? error.message : String(error);
+			throw new QuaternionError(`Invalid quaternion at index ${i}: ${message}`, { 
+				cause: error instanceof Error ? error : undefined,
+			});
 		}
 	}
 }
@@ -219,9 +210,9 @@ export function AssertQuaternions(quaternions: unknown[], options: Record<string
  * }
  * ```
  */
-export function ValidateQuaternion(quaternion: unknown, options: Record<string, unknown> = {}): quaternion is TQuaternion {
+export function ValidateQuaternion(quaternion: unknown): quaternion is TQuaternion {
 	try {
-		AssertQuaternion(quaternion, options);
+		AssertQuaternion(quaternion);
 		return true;
 	} catch {
 		return false;
@@ -265,9 +256,9 @@ export function ValidateNormalizedQuaternion(quaternion: TQuaternion, tolerance:
  * }
  * ```
  */
-export function ValidateEulerAngles(euler: unknown, options: Record<string, unknown> = {}): euler is TEulerAngles {
+export function ValidateEulerAngles(euler: unknown): euler is TEulerAngles {
 	try {
-		AssertEulerAngles(euler, options);
+		AssertEulerAngles(euler);
 		return true;
 	} catch {
 		return false;
@@ -288,9 +279,9 @@ export function ValidateEulerAngles(euler: unknown, options: Record<string, unkn
  * }
  * ```
  */
-export function ValidateAxisAngle(axisAngle: unknown, options: Record<string, unknown> = {}): axisAngle is TAxisAngle {
+export function ValidateAxisAngle(axisAngle: unknown): axisAngle is TAxisAngle {
 	try {
-		AssertAxisAngle(axisAngle, options);
+		AssertAxisAngle(axisAngle);
 		return true;
 	} catch {
 		return false;
@@ -311,9 +302,9 @@ export function ValidateAxisAngle(axisAngle: unknown, options: Record<string, un
  * }
  * ```
  */
-export function ValidateRotationMatrix(matrix: unknown, options: Record<string, unknown> = {}): matrix is TRotationMatrix {
+export function ValidateRotationMatrix(matrix: unknown): matrix is TRotationMatrix {
 	try {
-		AssertRotationMatrix(matrix, options);
+		AssertRotationMatrix(matrix);
 		return true;
 	} catch {
 		return false;
@@ -334,9 +325,9 @@ export function ValidateRotationMatrix(matrix: unknown, options: Record<string, 
  * }
  * ```
  */
-export function ValidateQuaternions(quaternions: unknown[], options: Record<string, unknown> = {}): quaternions is TQuaternion[] {
+export function ValidateQuaternions(quaternions: unknown[]): quaternions is TQuaternion[] {
 	try {
-		AssertQuaternions(quaternions, options);
+		AssertQuaternions(quaternions);
 		return true;
 	} catch {
 		return false;

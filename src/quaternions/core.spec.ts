@@ -1,6 +1,6 @@
 import { QuaternionIdentity, QuaternionClone, QuaternionEquals, QuaternionMagnitude, QuaternionNormalize, QuaternionConjugate, QuaternionInverse, QuaternionMultiply, QuaternionFromAxisAngle, QuaternionFromAxisAngleVector, QuaternionToAxisAngle, QuaternionFromEuler, QuaternionToEuler, QuaternionRotateVector, QuaternionSLERP } from './core.js';
 import { QuaternionError } from './asserts.js';
-import { TQuaternion } from './types.js';
+import type { TQuaternion, TEulerAngles, TAxisAngle } from './types.js';
 import { TVector3, TVector4 } from '../vectors/types.js';
 
 describe('Quaternion Core Functions', () => {
@@ -187,7 +187,7 @@ describe('Quaternion Core Functions', () => {
 	describe('QuaternionFromAxisAngleVector', () => {
 		test('should create quaternion from 4-component axis-angle', () => {
 			const axisAngle: TVector4 = [0, 0, 1, Math.PI / 2]; // 90° around Z
-			const q = QuaternionFromAxisAngleVector(axisAngle);
+			const q = QuaternionFromAxisAngleVector(axisAngle as TAxisAngle);
 			expect(q[0]).toBeCloseTo(0, 6);
 			expect(q[1]).toBeCloseTo(0, 6);
 			expect(q[2]).toBeCloseTo(0.7071067811865476, 6);
@@ -231,7 +231,7 @@ describe('Quaternion Core Functions', () => {
 	describe('QuaternionFromEuler', () => {
 		test('should create quaternion from Euler angles', () => {
 			const euler: TVector3 = [0, Math.PI / 2, 0]; // 90° pitch
-			const q = QuaternionFromEuler(euler);
+			const q = QuaternionFromEuler(euler as TEulerAngles);
 			// Should be roughly [0, sin(45°), 0, cos(45°)]
 			expect(q[0]).toBeCloseTo(0, 6);
 			expect(q[1]).toBeCloseTo(0.7071067811865476, 6);
@@ -241,7 +241,7 @@ describe('Quaternion Core Functions', () => {
 
 		test('should handle zero angles', () => {
 			const euler: TVector3 = [0, 0, 0];
-			const q = QuaternionFromEuler(euler);
+			const q = QuaternionFromEuler(euler as TEulerAngles);
 			expect(q).toEqual([0, 0, 0, 1]); // Identity
 		});
 	});

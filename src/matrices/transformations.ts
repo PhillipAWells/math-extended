@@ -18,8 +18,8 @@ import { AssertNumber, AssertNotEquals } from '@pawells/typescript-common';
 import { MatrixCreate } from './core.js';
 import { MatrixMultiply } from './arithmetic.js';
 import { AssertMatrix3, AssertMatrix4 } from './asserts.js';
-import { TMatrix3, TMatrix4 } from './types.js';
-import { TVector2, TVector3, TVector4 } from '../vectors/types.js';
+import type { TMatrix3, TMatrix4 } from './types.js';
+import type { TVector2, TVector3, TVector4 } from '../vectors/types.js';
 import { AssertVector2, AssertVector3, AssertVector4 } from '../vectors/asserts.js';
 import { VectorSubtract, VectorNormalize, Vector3Cross } from '../vectors/core.js';
 
@@ -49,14 +49,12 @@ const DEGREES_PER_HALF_REVOLUTION = 180;
  * @throws {Error} If radians is not a finite number
  *
  * @example
-	 * ```typescript
-	 * ```typescript
-	 * // 90-degree counterclockwise rotation
-	 * const matrix = MatrixRotation2D(Math.PI / 2);
-	 * // 45-degree clockwise rotation
-	 * const clockwise = MatrixRotation2D(-Math.PI / 4);
-	 * ```
-	 * ```
+ * ```typescript
+ * // 90-degree counterclockwise rotation
+ * const matrix = MatrixRotation2D(Math.PI / 2);
+ * // 45-degree clockwise rotation
+ * const clockwise = MatrixRotation2D(-Math.PI / 4);
+ * ```
  */
 export function MatrixRotation2D(radians: number): TMatrix3 {
 	AssertNumber(radians, { finite: true }, { message: 'Rotation angle must be a number' });
@@ -95,12 +93,10 @@ export function MatrixRotation2D(radians: number): TMatrix3 {
  * @throws {Error} If radians is not a finite number
  *
  * @example
-	 * ```typescript
-	 * ```typescript
-	 * // 45-degree roll (banking left in aviation)
-	 * const rollMatrix = MatrixRotation3DRoll(Math.PI / 4);
-	 * ```
-	 * ```
+ * ```typescript
+ * // 45-degree roll (banking left in aviation)
+ * const rollMatrix = MatrixRotation3DRoll(Math.PI / 4);
+ * ```
  */
 export function MatrixRotation3DRoll(radians: number): TMatrix4 {
 	AssertNumber(radians, { finite: true }, { message: 'Rotation angle must be a number' });
@@ -136,12 +132,10 @@ export function MatrixRotation3DRoll(radians: number): TMatrix4 {
  * @throws {Error} If radians is not a finite number
  *
  * @example
-	 * ```typescript
-	 * ```typescript
-	 * // 30-degree pitch up
-	 * const pitchMatrix = MatrixRotation3DPitch(Math.PI / 6);
-	 * ```
-	 * ```
+ * ```typescript
+ * // 30-degree pitch up
+ * const pitchMatrix = MatrixRotation3DPitch(Math.PI / 6);
+ * ```
  */
 export function MatrixRotation3DPitch(radians: number): TMatrix4 {
 	AssertNumber(radians, { finite: true }, { message: 'Rotation angle must be a number' });
@@ -177,12 +171,10 @@ export function MatrixRotation3DPitch(radians: number): TMatrix4 {
  * @throws {Error} If radians is not a finite number
  *
  * @example
-	 * ```typescript
-	 * ```typescript
-	 * // 60-degree yaw left
-	 * const yawMatrix = MatrixRotation3DYaw(Math.PI / 3);
-	 * ```
-	 * ```
+ * ```typescript
+ * // 60-degree yaw left
+ * const yawMatrix = MatrixRotation3DYaw(Math.PI / 3);
+ * ```
  */
 export function MatrixRotation3DYaw(radians: number): TMatrix4 {
 	AssertNumber(radians, { finite: true }, { message: 'Rotation angle must be a number' });
@@ -216,15 +208,13 @@ export function MatrixRotation3DYaw(radians: number): TMatrix4 {
  * @throws {Error} If any angle is not a finite number
  *
  * @example
-	 * ```typescript
-	 * ```typescript
-	 * // Using individual angles (banking, elevation, heading)
-	 * const rotationMatrix = MatrixRotation3D(0.1, 0.2, 0.3);
-	 * // Using vector input
-	 * const eulerAngles: TVector3 = [0.1, 0.2, 0.3];
-	 * const rotationMatrix2 = MatrixRotation3D(eulerAngles);
-	 * ```
-	 * ```
+ * ```typescript
+ * // Using individual angles (banking, elevation, heading)
+ * const rotationMatrix = MatrixRotation3D(0.1, 0.2, 0.3);
+ * // Using vector input
+ * const eulerAngles: TVector3 = [0.1, 0.2, 0.3];
+ * const rotationMatrix2 = MatrixRotation3D(eulerAngles);
+ * ```
  */
 
 export function MatrixRotation3D(roll: number, pitch: number, yaw: number): TMatrix4;
@@ -270,15 +260,13 @@ export function MatrixRotation3D(rollOrVector: number | TVector3, pitch?: number
  * @throws {Error} If any angle is not a finite number
  *
  * @example
-	 * ```typescript
-	 * ```typescript
-	 * // Using individual angles in degrees
-	 * const rotation = MatrixRotation3DEulerAngles(45, 30, 60);
-	 * // Using vector input in degrees
-	 * const angles: TVector3 = [45, 30, 60];
-	 * const rotation2 = MatrixRotation3DEulerAngles(angles);
-	 * ```
-	 * ```
+ * ```typescript
+ * // Using individual angles in degrees
+ * const rotation = MatrixRotation3DEulerAngles(45, 30, 60);
+ * // Using vector input in degrees
+ * const angles: TVector3 = [45, 30, 60];
+ * const rotation2 = MatrixRotation3DEulerAngles(angles);
+ * ```
  */
 
 export function MatrixRotation3DEulerAngles(roll: number, pitch: number, yaw: number): TMatrix4;
@@ -335,19 +323,17 @@ export function MatrixRotation3DEulerAngles(rollOrVector: number | TVector3, pit
  * @throws {Error} If any scale factor is not a finite number
  *
  * @example
-	 * ```typescript
-	 * ```typescript
-	 * // Uniform scaling (double size)
-	 * const uniform = MatrixScale2D(2.0);
-	 * // Independent scaling (stretch horizontally, compress vertically)
-	 * const stretch = MatrixScale2D(2.0, 0.5);
-	 * // Vector input
-	 * const scaleVector: TVector2 = [1.5, 0.8];
-	 * const vectorScale = MatrixScale2D(scaleVector);
-	 * // Flip horizontally
-	 * const flip = MatrixScale2D(-1, 1);
-	 * ```
-	 * ```
+ * ```typescript
+ * // Uniform scaling (double size)
+ * const uniform = MatrixScale2D(2.0);
+ * // Independent scaling (stretch horizontally, compress vertically)
+ * const stretch = MatrixScale2D(2.0, 0.5);
+ * // Vector input
+ * const scaleVector: TVector2 = [1.5, 0.8];
+ * const vectorScale = MatrixScale2D(scaleVector);
+ * // Flip horizontally
+ * const flip = MatrixScale2D(-1, 1);
+ * ```
  */
 
 export function MatrixScale2D(scale: number): TMatrix3;
@@ -412,19 +398,17 @@ export function MatrixScale2D(scaleOrX: number | TVector2, y?: number): TMatrix3
  * @throws {Error} If any scale factor is not a finite number
  *
  * @example
-	 * ```typescript
-	 * ```typescript
-	 * // Uniform scaling (triple size)
-	 * const uniform = MatrixScale3D(3.0);
-	 * // Independent scaling (stretch, compress, normal)
-	 * const stretch = MatrixScale3D(2.0, 0.5, 1.0);
-	 * // Vector input
-	 * const scaleVector: TVector3 = [1.5, 0.8, 2.0];
-	 * const vectorScale = MatrixScale3D(scaleVector);
-	 * // Mirror across XY plane
-	 * const mirror = MatrixScale3D(1, 1, -1);
-	 * ```
-	 * ```
+ * ```typescript
+ * // Uniform scaling (triple size)
+ * const uniform = MatrixScale3D(3.0);
+ * // Independent scaling (stretch, compress, normal)
+ * const stretch = MatrixScale3D(2.0, 0.5, 1.0);
+ * // Vector input
+ * const scaleVector: TVector3 = [1.5, 0.8, 2.0];
+ * const vectorScale = MatrixScale3D(scaleVector);
+ * // Mirror across XY plane
+ * const mirror = MatrixScale3D(1, 1, -1);
+ * ```
  */
 
 export function MatrixScale3D(scale: number): TMatrix4;
@@ -488,15 +472,13 @@ export function MatrixScale3D(scaleOrX: number | TVector3, y?: number, z?: numbe
  * @throws {Error} If the input is not a valid 2D vector
  *
  * @example
-	 * ```typescript
-	 * ```typescript
-	 * // Move 10 units right, 5 units up
-	 * const translation = MatrixTranslation2D(10, 5);
-	 * // Using vector input
-	 * const offset: TVector2 = [10, 5];
-	 * const translation2 = MatrixTranslation2D(...offset);
-	 * ```
-	 * ```
+ * ```typescript
+ * // Move 10 units right, 5 units up
+ * const translation = MatrixTranslation2D(10, 5);
+ * // Using vector input
+ * const offset: TVector2 = [10, 5];
+ * const translation2 = MatrixTranslation2D(...offset);
+ * ```
  */
 export function MatrixTranslation2D(...v: TVector2): TMatrix3 {
 	// Called with vector parameter using spread syntax
@@ -535,17 +517,15 @@ export function MatrixTranslation2D(...v: TVector2): TMatrix3 {
  * @throws {Error} If any translation distance is not a finite number
  *
  * @example
-	 * ```typescript
-	 * ```typescript
-	 * // Uniform translation (move 5 units in all directions)
-	 * const uniform = MatrixTranslation3D(5.0);
-	 * // Independent translation
-	 * const independent = MatrixTranslation3D(10, -5, 3);
-	 * // Vector input
-	 * const offset: TVector3 = [10, -5, 3];
-	 * const vectorTranslation = MatrixTranslation3D(...offset);
-	 * ```
-	 * ```
+ * ```typescript
+ * // Uniform translation (move 5 units in all directions)
+ * const uniform = MatrixTranslation3D(5.0);
+ * // Independent translation
+ * const independent = MatrixTranslation3D(10, -5, 3);
+ * // Vector input
+ * const offset: TVector3 = [10, -5, 3];
+ * const vectorTranslation = MatrixTranslation3D(...offset);
+ * ```
  */
 
 export function MatrixTranslation3D(translation: number): TMatrix4;
@@ -609,20 +589,18 @@ export function MatrixTranslation3D(translationOrX: number | TVector3, y?: numbe
  * @throws {Error} If inputs are not valid vector/matrix types
  *
  * @example
-	 * ```typescript
-	 * ```typescript
-	 * // Rotate a point 90 degrees counterclockwise
-	 * const rotationMatrix = MatrixRotation2D(Math.PI / 2);
-	 * const point: TVector2 = [1, 0];
-	 * const rotatedPoint = MatrixTransform2D(point, rotationMatrix);
-	 * // Result: approximately [0, 1]
-	 * // Chain multiple transformations
-	 * const scale = MatrixScale2D(2, 2);
-	 * const translate = MatrixTranslation2D(5, 3);
-	 * const combined = MatrixMultiply(translate, scale);
-	 * const transformedPoint = MatrixTransform2D(point, combined);
-	 * ```
-	 * ```
+ * ```typescript
+ * // Rotate a point 90 degrees counterclockwise
+ * const rotationMatrix = MatrixRotation2D(Math.PI / 2);
+ * const point: TVector2 = [1, 0];
+ * const rotatedPoint = MatrixTransform2D(point, rotationMatrix);
+ * // Result: approximately [0, 1]
+ * // Chain multiple transformations
+ * const scale = MatrixScale2D(2, 2);
+ * const translate = MatrixTranslation2D(5, 3);
+ * const combined = MatrixMultiply(translate, scale);
+ * const transformedPoint = MatrixTransform2D(point, combined);
+ * ```
  */
 export function MatrixTransform2D(vector: TVector2, matrix: TMatrix3): TVector2 {
 	AssertVector2(vector);
@@ -655,13 +633,11 @@ export function MatrixTransform2D(vector: TVector2, matrix: TMatrix3): TVector2 
  * @throws {Error} If the w component is near zero (degenerate transformation).
  *
  * @example
-	 * ```typescript
-	 * ```typescript
-	 * const rotationMatrix = MatrixRotation3DYaw(Math.PI / 4);
-	 * const point: TVector3 = [1, 0, 0];
-	 * const rotatedPoint = MatrixTransform3D(point, rotationMatrix);
-	 * ```
-	 * ```
+ * ```typescript
+ * const rotationMatrix = MatrixRotation3DYaw(Math.PI / 4);
+ * const point: TVector3 = [1, 0, 0];
+ * const rotatedPoint = MatrixTransform3D(point, rotationMatrix);
+ * ```
  */
 export function MatrixTransform3D(vector: TVector3, transform: TMatrix4): TVector3 {
 	AssertMatrix4(transform);
@@ -694,13 +670,11 @@ export function MatrixTransform3D(vector: TVector3, transform: TMatrix4): TVecto
  * @returns {TVector3} The transformed direction vector.
  *
  * @example
-	 * ```typescript
-	 * ```typescript
-	 * const rotationMatrix = MatrixRotation3DYaw(Math.PI / 4);
-	 * const normal: TVector3 = [0, 0, 1];
-	 * const rotatedNormal = MatrixDirection3D(normal, rotationMatrix);
-	 * ```
-	 * ```
+ * ```typescript
+ * const rotationMatrix = MatrixRotation3DYaw(Math.PI / 4);
+ * const normal: TVector3 = [0, 0, 1];
+ * const rotatedNormal = MatrixDirection3D(normal, rotationMatrix);
+ * ```
  */
 export function MatrixDirection3D(direction: TVector3, matrix: TMatrix3): TVector3 {
 	AssertMatrix3(matrix);
@@ -724,15 +698,13 @@ export function MatrixDirection3D(direction: TVector3, matrix: TMatrix3): TVecto
  * @returns {TMatrix4} A 4x4 view transformation matrix.
  *
  * @example
-	 * ```typescript
-	 * ```typescript
-	 * const viewMatrix = MatrixView(
-	 *   [10, 5, 10],  // Camera position
-	 *   [0, 0, 0],    // Looking at origin
-	 *   [0, 1, 0]     // Y-axis is up
-	 * );
-	 * ```
-	 * ```
+ * ```typescript
+ * const viewMatrix = MatrixView(
+ *   [10, 5, 10],  // Camera position
+ *   [0, 0, 0],    // Looking at origin
+ *   [0, 1, 0]     // Y-axis is up
+ * );
+ * ```
  */
 export function MatrixView(eye: TVector3, target: TVector3, up: TVector3): TMatrix4 {
 	AssertVector3(eye);
@@ -782,16 +754,14 @@ export function MatrixView(eye: TVector3, target: TVector3, up: TVector3): TMatr
  * @throws {Error} If parameters are invalid.
  *
  * @example
-	 * ```typescript
-	 * ```typescript
-	 * const perspectiveMatrix = MatrixPerspective(
-	 *   Math.PI / 4,  // 45-degree field of view
-	 *   16 / 9,       // Widescreen aspect ratio
-	 *   0.1,          // Near plane
-	 *   1000          // Far plane
-	 * );
-	 * ```
-	 * ```
+ * ```typescript
+ * const perspectiveMatrix = MatrixPerspective(
+ *   Math.PI / 4,  // 45-degree field of view
+ *   16 / 9,       // Widescreen aspect ratio
+ *   0.1,          // Near plane
+ *   1000          // Far plane
+ * );
+ * ```
  */
 export function MatrixPerspective(fovY: number, aspect: number, near: number, far: number): TMatrix4 {
 	AssertNumber(near, { gt: 0 }, { message: 'Near clipping plane must be greater than 0' });
@@ -833,15 +803,13 @@ export function MatrixPerspective(fovY: number, aspect: number, near: number, fa
  * @throws {Error} If any opposing boundaries are equal.
  *
  * @example
-	 * ```typescript
-	 * ```typescript
-	 * const orthoMatrix = MatrixOrthographic(
-	 *   -10, 10,   // Left/Right: 20 units wide
-	 *   -7.5, 7.5, // Bottom/Top: 15 units tall
-	 *   -100, 100  // Near/Far: 200 units deep
-	 * );
-	 * ```
-	 * ```
+ * ```typescript
+ * const orthoMatrix = MatrixOrthographic(
+ *   -10, 10,   // Left/Right: 20 units wide
+ *   -7.5, 7.5, // Bottom/Top: 15 units tall
+ *   -100, 100  // Near/Far: 200 units deep
+ * );
+ * ```
  */
 export function MatrixOrthographic(left: number, right: number, bottom: number, top: number, near: number, far: number): TMatrix4 {
 	AssertNotEquals(left, right, { message: 'Left and right bounds must not be equal' });

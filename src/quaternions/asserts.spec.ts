@@ -6,6 +6,12 @@ import {
 	AssertAxisAngle,
 	AssertRotationMatrix,
 	AssertQuaternions,
+	ValidateQuaternion,
+	ValidateNormalizedQuaternion,
+	ValidateEulerAngles,
+	ValidateAxisAngle,
+	ValidateRotationMatrix,
+	ValidateQuaternions,
 } from './asserts.js';
 import { TQuaternion } from './types.js';
 
@@ -365,11 +371,204 @@ describe('Quaternions Assertions', () => {
 			])).toThrow(/Invalid quaternion at index 2:/);
 		});
 
-		test('should pass options to individual quaternion validation', () => {
-			const options = { someOption: true };
-			// This test verifies that options are passed through,
-			// though the current implementation doesn't use them
-			expect(() => AssertQuaternions([[0, 0, 0, 1]], options)).not.toThrow();
+		test('should validate multiple quaternions', () => {
+			expect(() => AssertQuaternions([[0, 0, 0, 1]])).not.toThrow();
+		});
+	});
+
+	describe('ValidateQuaternion', () => {
+		test('should return true for valid quaternions', () => {
+			expect(ValidateQuaternion([0, 0, 0, 1])).toBe(true);
+			expect(ValidateQuaternion([1, 0, 0, 0])).toBe(true);
+			expect(ValidateQuaternion([0.5, 0.5, 0.5, 0.5])).toBe(true);
+		});
+
+		test('should return false for non-arrays', () => {
+			expect(ValidateQuaternion(null)).toBe(false);
+			expect(ValidateQuaternion(undefined)).toBe(false);
+			expect(ValidateQuaternion('string')).toBe(false);
+		});
+
+		test('should return false for arrays with wrong length', () => {
+			expect(ValidateQuaternion([1, 2, 3])).toBe(false);
+			expect(ValidateQuaternion([1, 2, 3, 4, 5])).toBe(false);
+		});
+
+		test('should return false for arrays with non-number elements', () => {
+			expect(ValidateQuaternion([1, 2, 3, 'string'])).toBe(false);
+			expect(ValidateQuaternion([NaN, 0, 0, 1])).toBe(false);
+		});
+
+		test('should not throw on invalid input', () => {
+			expect(() => ValidateQuaternion(null)).not.toThrow();
+			expect(() => ValidateQuaternion('invalid')).not.toThrow();
+		});
+	});
+
+	describe('ValidateNormalizedQuaternion', () => {
+		test('should return true for normalized quaternions', () => {
+			expect(ValidateNormalizedQuaternion([0, 0, 0, 1])).toBe(true);
+			expect(ValidateNormalizedQuaternion([1, 0, 0, 0])).toBe(true);
+			expect(ValidateNormalizedQuaternion([0.5, 0.5, 0.5, 0.5])).toBe(true);
+		});
+
+		test('should return false for non-normalized quaternions', () => {
+			expect(ValidateNormalizedQuaternion([1, 1, 1, 1])).toBe(false);
+			expect(ValidateNormalizedQuaternion([2, 0, 0, 0])).toBe(false);
+		});
+
+		test('should return false for invalid quaternions', () => {
+			expect(ValidateNormalizedQuaternion([1, 2, 3] as any)).toBe(false);
+			expect(ValidateNormalizedQuaternion('invalid' as any)).toBe(false);
+		});
+
+		test('should not throw on invalid input', () => {
+			expect(() => ValidateNormalizedQuaternion(null as any)).not.toThrow();
+			expect(() => ValidateNormalizedQuaternion('invalid' as any)).not.toThrow();
+		});
+	});
+
+	describe('ValidateEulerAngles', () => {
+		test('should return true for valid Euler angles', () => {
+			expect(ValidateEulerAngles([0, 0, 0])).toBe(true);
+			expect(ValidateEulerAngles([Math.PI, 0, 0])).toBe(true);
+			expect(ValidateEulerAngles([Math.PI / 4, Math.PI / 3, Math.PI / 6])).toBe(true);
+		});
+
+		test('should return false for non-arrays', () => {
+			expect(ValidateEulerAngles(null)).toBe(false);
+			expect(ValidateEulerAngles(undefined)).toBe(false);
+			expect(ValidateEulerAngles('string')).toBe(false);
+		});
+
+		test('should return false for arrays with wrong length', () => {
+			expect(ValidateEulerAngles([1, 2])).toBe(false);
+			expect(ValidateEulerAngles([1, 2, 3, 4])).toBe(false);
+		});
+
+		test('should return false for arrays with non-number elements', () => {
+			expect(ValidateEulerAngles([1, 2, 'string'])).toBe(false);
+			expect(ValidateEulerAngles([NaN, 0, 0])).toBe(false);
+		});
+
+		test('should not throw on invalid input', () => {
+			expect(() => ValidateEulerAngles(null)).not.toThrow();
+			expect(() => ValidateEulerAngles('invalid')).not.toThrow();
+		});
+	});
+
+	describe('ValidateAxisAngle', () => {
+		test('should return true for valid axis-angle representations', () => {
+			expect(ValidateAxisAngle([1, 0, 0, 0])).toBe(true);
+			expect(ValidateAxisAngle([0, 1, 0, Math.PI / 2])).toBe(true);
+			expect(ValidateAxisAngle([0, 0, 1, Math.PI])).toBe(true);
+		});
+
+		test('should return false for non-arrays', () => {
+			expect(ValidateAxisAngle(null)).toBe(false);
+			expect(ValidateAxisAngle(undefined)).toBe(false);
+			expect(ValidateAxisAngle('string')).toBe(false);
+		});
+
+		test('should return false for arrays with wrong length', () => {
+			expect(ValidateAxisAngle([1, 2, 3])).toBe(false);
+			expect(ValidateAxisAngle([1, 2, 3, 4, 5])).toBe(false);
+		});
+
+		test('should return false for arrays with non-number elements', () => {
+			expect(ValidateAxisAngle([1, 2, 3, 'string'])).toBe(false);
+			expect(ValidateAxisAngle([NaN, 0, 0, 1])).toBe(false);
+		});
+
+		test('should not throw on invalid input', () => {
+			expect(() => ValidateAxisAngle(null)).not.toThrow();
+			expect(() => ValidateAxisAngle('invalid')).not.toThrow();
+		});
+	});
+
+	describe('ValidateRotationMatrix', () => {
+		test('should return true for valid rotation matrices', () => {
+			expect(ValidateRotationMatrix([
+				[1, 0, 0],
+				[0, 1, 0],
+				[0, 0, 1],
+			])).toBe(true);
+			expect(ValidateRotationMatrix([
+				[0, -1, 0],
+				[1, 0, 0],
+				[0, 0, 1],
+			])).toBe(true);
+		});
+
+		test('should return false for non-arrays', () => {
+			expect(ValidateRotationMatrix(null)).toBe(false);
+			expect(ValidateRotationMatrix(undefined)).toBe(false);
+			expect(ValidateRotationMatrix('string')).toBe(false);
+		});
+
+		test('should return false for arrays with wrong row count', () => {
+			expect(ValidateRotationMatrix([[1, 0, 0]])).toBe(false);
+			expect(ValidateRotationMatrix([
+				[1, 0, 0],
+				[0, 1, 0],
+				[0, 0, 1],
+				[0, 0, 0],
+			])).toBe(false);
+		});
+
+		test('should return false for rows with wrong column count', () => {
+			expect(ValidateRotationMatrix([
+				[1, 0],
+				[0, 1, 0],
+				[0, 0, 1],
+			])).toBe(false);
+		});
+
+		test('should return false for rows with non-number elements', () => {
+			expect(ValidateRotationMatrix([
+				[1, 0, 0],
+				[0, 'string', 0],
+				[0, 0, 1],
+			])).toBe(false);
+		});
+
+		test('should not throw on invalid input', () => {
+			expect(() => ValidateRotationMatrix(null)).not.toThrow();
+			expect(() => ValidateRotationMatrix('invalid')).not.toThrow();
+		});
+	});
+
+	describe('ValidateQuaternions', () => {
+		test('should return true for valid quaternion arrays', () => {
+			expect(ValidateQuaternions([])).toBe(true);
+			expect(ValidateQuaternions([[0, 0, 0, 1]])).toBe(true);
+			expect(ValidateQuaternions([
+				[0, 0, 0, 1],
+				[1, 0, 0, 0],
+				[0.5, 0.5, 0.5, 0.5],
+			])).toBe(true);
+		});
+
+		test('should return false for non-arrays', () => {
+			expect(ValidateQuaternions(null as any)).toBe(false);
+			expect(ValidateQuaternions(undefined as any)).toBe(false);
+			expect(ValidateQuaternions('string' as any)).toBe(false);
+		});
+
+		test('should return false for arrays containing invalid quaternions', () => {
+			expect(ValidateQuaternions([
+				[0, 0, 0, 1],
+				[1, 2, 3],
+			])).toBe(false);
+			expect(ValidateQuaternions([
+				[0, 0, 0, 1],
+				[1, 2, 3, 'string'],
+			])).toBe(false);
+		});
+
+		test('should not throw on invalid input', () => {
+			expect(() => ValidateQuaternions(null as any)).not.toThrow();
+			expect(() => ValidateQuaternions('invalid' as any)).not.toThrow();
 		});
 	});
 });
