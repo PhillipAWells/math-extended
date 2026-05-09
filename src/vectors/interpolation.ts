@@ -6,9 +6,10 @@
 import { AssertNumber } from '@pawells/typescript-common';
 import { Clamp } from '../clamp.js';
 import { LinearInterpolation, SmoothStep, SmootherStep, QuadraticEaseIn, QuadraticEaseOut, QuadraticEaseInOut, CubicEaseIn, CubicEaseOut, CubicEaseInOut, CosineInterpolation, SineEaseIn, SineEaseOut, SineEaseInOut, ExponentialEaseIn, ExponentialEaseOut, ExponentialEaseInOut, ElasticEaseIn, ElasticEaseOut, ElasticEaseInOut, BackEaseIn, BackEaseOut, BackEaseInOut, BounceEaseIn, BounceEaseOut, BounceEaseInOut, CatmullRomInterpolation, HermiteInterpolation, CircularEaseIn, CircularEaseOut, CircularEaseInOut, StepInterpolation } from '../interpolation.js';
-import { AssertVectors, AssertVectorValue } from './asserts.js';
 import { VectorNormalize, VectorDot } from './core.js';
-import { TVector, TVectorResult } from './types.js';
+import type { TVector, TVectorResult } from './types.js';
+import { VECTOR_NONEMPTY_SCHEMA } from './types.js';
+import { AssertVector, AssertVectorSameSize, VectorError } from './asserts.js';
 
 /**
  * Helper function to apply interpolation function to vectors component-wise.
@@ -22,17 +23,26 @@ import { TVector, TVectorResult } from './types.js';
  * @returns Interpolated vector with same type as input
  */
 function vectorInterpolate<T extends TVector>(a: T, b: T, t: number, interpolationFn: (a: number, b: number, t: number) => number): TVectorResult<T> {
-	AssertVectors([a, b], { minSize: 1, finite: true });
+	try {
+		VECTOR_NONEMPTY_SCHEMA.parse(a);
+		VECTOR_NONEMPTY_SCHEMA.parse(b);
+	} catch (error) {
+		const message = error instanceof Error ? error.message : String(error);
+		throw new VectorError(`Invalid vectors for interpolation: ${message}`, {
+			cause: error instanceof Error ? error : undefined,
+		});
+	}
 	AssertNumber(t);
+
+	if (a.length !== b.length) {
+		throw new VectorError(`Vectors must have the same length: ${a.length} !== ${b.length}`);
+	}
 
 	const result: number[] = [];
 
 	for (let i = 0; i < a.length; i++) {
 		const av = a[i];
-		AssertVectorValue(av, {}, { index: i });
-
 		const bv = b[i];
-		AssertVectorValue(bv, {}, { index: i });
 		result.push(interpolationFn(av, bv, t));
 	}
 
@@ -51,29 +61,15 @@ function vectorInterpolate<T extends TVector>(a: T, b: T, t: number, interpolati
  * @returns Linearly interpolated vector
  *
  * @example
-	 * ```typescript
-	 * const start = [0, 0, 0];
-	 * const end = [10, 20, 30];
-	 * const halfway = VectorLERP(start, end, 0.5); // [5, 10, 15]
-	 * const quarter = VectorLERP(start, end, 0.25); // [2.5, 5, 7.5]
-	 * ```
+ * ```typescript
+ * const start = [0, 0, 0];
+ * const end = [10, 20, 30];
+ * const halfway = VectorLERP(start, end, 0.5); // [5, 10, 15]
+ * const quarter = VectorLERP(start, end, 0.25); // [2.5, 5, 7.5]
+ * ```
  */
 export function VectorLERP<T extends TVector>(a: T, b: T, t: number): TVectorResult<T> {
-	AssertVectors([a, b], { minSize: 1, finite: true });
-	AssertNumber(t);
-
-	const result: number[] = [];
-
-	for (let i = 0; i < a.length; i++) {
-		const av = a[i];
-		AssertVectorValue(av, {}, { index: i });
-
-		const bv = b[i];
-		AssertVectorValue(bv, {}, { index: i });
-		result.push(LinearInterpolation(av, bv, t));
-	}
-
-	return result as TVectorResult<T>;
+	return vectorInterpolate(a, b, t, LinearInterpolation);
 }
 
 /**
@@ -87,14 +83,13 @@ export function VectorLERP<T extends TVector>(a: T, b: T, t: number): TVectorRes
  * @returns Smoothly interpolated vector with smooth start and end
  *
  * @example
-	 * ```typescript
-	 * const start = [0, 0];
-	 * const end = [100, 200];
-	 * const smooth = VectorSmoothStep(start, end, 0.5); // Smooth transition
-	 * ```
+ * ```typescript
+ * const start = [0, 0];
+ * const end = [100, 200];
+ * const smooth = VectorSmoothStep(start, end, 0.5); // Smooth transition
+ * ```
  */
 export function VectorSmoothStep<T extends TVector>(a: T, b: T, t: number): TVectorResult<T> {
-	AssertVectors([a, b], { minSize: 1, finite: true });
 	return vectorInterpolate(a, b, t, SmoothStep);
 }
 
@@ -109,7 +104,6 @@ export function VectorSmoothStep<T extends TVector>(a: T, b: T, t: number): TVec
  * @returns Very smoothly interpolated vector with smooth acceleration/deceleration
  */
 export function VectorSmootherStep<T extends TVector>(a: T, b: T, t: number): TVectorResult<T> {
-	AssertVectors([a, b], { minSize: 1, finite: true });
 	return vectorInterpolate(a, b, t, SmootherStep);
 }
 
@@ -124,7 +118,6 @@ export function VectorSmootherStep<T extends TVector>(a: T, b: T, t: number): TV
  * @returns Vector with quadratic acceleration from start
  */
 export function VectorQuadraticEaseIn<T extends TVector>(a: T, b: T, t: number): TVectorResult<T> {
-	AssertVectors([a, b], { minSize: 1, finite: true });
 	return vectorInterpolate(a, b, t, QuadraticEaseIn);
 }
 
@@ -139,7 +132,6 @@ export function VectorQuadraticEaseIn<T extends TVector>(a: T, b: T, t: number):
  * @returns Vector with quadratic deceleration toward end
  */
 export function VectorQuadraticEaseOut<T extends TVector>(a: T, b: T, t: number): TVectorResult<T> {
-	AssertVectors([a, b], { minSize: 1, finite: true });
 	return vectorInterpolate(a, b, t, QuadraticEaseOut);
 }
 
@@ -154,7 +146,6 @@ export function VectorQuadraticEaseOut<T extends TVector>(a: T, b: T, t: number)
  * @returns Vector with cubic acceleration from start
  */
 export function VectorCubicEaseIn<T extends TVector>(a: T, b: T, t: number): TVectorResult<T> {
-	AssertVectors([a, b], { minSize: 1, finite: true });
 	return vectorInterpolate(a, b, t, CubicEaseIn);
 }
 
@@ -169,7 +160,6 @@ export function VectorCubicEaseIn<T extends TVector>(a: T, b: T, t: number): TVe
  * @returns Vector with cubic deceleration toward end
  */
 export function VectorCubicEaseOut<T extends TVector>(a: T, b: T, t: number): TVectorResult<T> {
-	AssertVectors([a, b], { minSize: 1, finite: true });
 	return vectorInterpolate(a, b, t, CubicEaseOut);
 }
 
@@ -184,7 +174,6 @@ export function VectorCubicEaseOut<T extends TVector>(a: T, b: T, t: number): TV
  * @returns Vector interpolated using cosine curve
  */
 export function VectorCosineInterpolation<T extends TVector>(a: T, b: T, t: number): TVectorResult<T> {
-	AssertVectors([a, b], { minSize: 1, finite: true });
 	return vectorInterpolate(a, b, t, CosineInterpolation);
 }
 
@@ -199,7 +188,6 @@ export function VectorCosineInterpolation<T extends TVector>(a: T, b: T, t: numb
  * @returns Vector with sine-based acceleration from start
  */
 export function VectorSineEaseIn<T extends TVector>(a: T, b: T, t: number): TVectorResult<T> {
-	AssertVectors([a, b], { minSize: 1, finite: true });
 	return vectorInterpolate(a, b, t, SineEaseIn);
 }
 
@@ -214,7 +202,6 @@ export function VectorSineEaseIn<T extends TVector>(a: T, b: T, t: number): TVec
  * @returns Vector with sine-based deceleration toward end
  */
 export function VectorSineEaseOut<T extends TVector>(a: T, b: T, t: number): TVectorResult<T> {
-	AssertVectors([a, b], { minSize: 1, finite: true });
 	return vectorInterpolate(a, b, t, SineEaseOut);
 }
 
@@ -229,7 +216,6 @@ export function VectorSineEaseOut<T extends TVector>(a: T, b: T, t: number): TVe
  * @returns Vector with exponential acceleration from start
  */
 export function VectorExponentialEaseIn<T extends TVector>(a: T, b: T, t: number): TVectorResult<T> {
-	AssertVectors([a, b], { minSize: 1, finite: true });
 	return vectorInterpolate(a, b, t, ExponentialEaseIn);
 }
 
@@ -244,7 +230,6 @@ export function VectorExponentialEaseIn<T extends TVector>(a: T, b: T, t: number
  * @returns Vector with exponential deceleration toward end
  */
 export function VectorExponentialEaseOut<T extends TVector>(a: T, b: T, t: number): TVectorResult<T> {
-	AssertVectors([a, b], { minSize: 1, finite: true });
 	return vectorInterpolate(a, b, t, ExponentialEaseOut);
 }
 
@@ -259,7 +244,6 @@ export function VectorExponentialEaseOut<T extends TVector>(a: T, b: T, t: numbe
  * @returns Vector with elastic bounce effect toward end
  */
 export function VectorElasticEaseOut<T extends TVector>(a: T, b: T, t: number): TVectorResult<T> {
-	AssertVectors([a, b], { minSize: 1, finite: true });
 	return vectorInterpolate(a, b, t, ElasticEaseOut);
 }
 
@@ -274,7 +258,6 @@ export function VectorElasticEaseOut<T extends TVector>(a: T, b: T, t: number): 
  * @returns Vector with back overshoot effect toward end
  */
 export function VectorBackEaseOut<T extends TVector>(a: T, b: T, t: number): TVectorResult<T> {
-	AssertVectors([a, b], { minSize: 1, finite: true });
 	return vectorInterpolate(a, b, t, BackEaseOut);
 }
 
@@ -289,7 +272,6 @@ export function VectorBackEaseOut<T extends TVector>(a: T, b: T, t: number): TVe
  * @returns Vector with bouncing effect toward end
  */
 export function VectorBounceEaseOut<T extends TVector>(a: T, b: T, t: number): TVectorResult<T> {
-	AssertVectors([a, b], { minSize: 1, finite: true });
 	return vectorInterpolate(a, b, t, BounceEaseOut);
 }
 
@@ -306,35 +288,31 @@ export function VectorBounceEaseOut<T extends TVector>(a: T, b: T, t: number): T
  * @returns Smoothly interpolated vector using Catmull-Rom spline
  *
  * @example
-	 * ```typescript
-	 * const path = [
-	 *   [0, 0],   // p0 - previous point
-	 *   [10, 0],  // p1 - start
-	 *   [20, 10], // p2 - end
-	 *   [30, 10]  // p3 - next point
-	 * ];
-	 * const smooth = VectorCatmullRomInterpolation(...path, 0.5);
-	 * ```
+ * ```typescript
+ * const path = [
+ *   [0, 0],   // p0 - previous point
+ *   [10, 0],  // p1 - start
+ *   [20, 10], // p2 - end
+ *   [30, 10]  // p3 - next point
+ * ];
+ * const smooth = VectorCatmullRomInterpolation(...path, 0.5);
+ * ```
  */
 export function VectorCatmullRomInterpolation<T extends TVector>(p0: T, p1: T, p2: T, p3: T, t: number): TVectorResult<T> {
-	AssertVectors([p0, p1, p2, p3], { minSize: 1, finite: true });
+	AssertVector(p0);
+	AssertVector(p1);
+	AssertVector(p2);
+	AssertVector(p3);
+	AssertVectorSameSize([p0, p1, p2, p3]);
 	AssertNumber(t);
 
 	const result: number[] = [];
 
 	for (let i = 0; i < p0.length; i++) {
 		const p0v = p0[i];
-		AssertVectorValue(p0v, {}, { index: i });
-
 		const p1v = p1[i];
-		AssertVectorValue(p1v, {}, { index: i });
-
 		const p2v = p2[i];
-		AssertVectorValue(p2v, {}, { index: i });
-
 		const p3v = p3[i];
-		AssertVectorValue(p3v, {}, { index: i });
-
 		result.push(CatmullRomInterpolation(p0v, p1v, p2v, p3v, t));
 	}
 
@@ -354,33 +332,29 @@ export function VectorCatmullRomInterpolation<T extends TVector>(p0: T, p1: T, p
  * @returns Vector interpolated using Hermite spline with tangent control
  *
  * @example
-	 * ```typescript
-	 * const start = [0, 0];
-	 * const end = [10, 10];
-	 * const startTangent = [5, 0]; // Horizontal tangent at start
-	 * const endTangent = [0, 5];   // Vertical tangent at end
-	 * const curved = VectorHermiteInterpolation(start, end, startTangent, endTangent, 0.5);
-	 * ```
+ * ```typescript
+ * const start = [0, 0];
+ * const end = [10, 10];
+ * const startTangent = [5, 0]; // Horizontal tangent at start
+ * const endTangent = [0, 5];   // Vertical tangent at end
+ * const curved = VectorHermiteInterpolation(start, end, startTangent, endTangent, 0.5);
+ * ```
  */
 export function VectorHermiteInterpolation<T extends TVector>(p0: T, p1: T, t0: T, t1: T, t: number): TVectorResult<T> {
-	AssertVectors([p0, p1, t0, t1], { minSize: 1, finite: true });
+	AssertVector(p0);
+	AssertVector(p1);
+	AssertVector(t0);
+	AssertVector(t1);
+	AssertVectorSameSize([p0, p1, t0, t1]);
 	AssertNumber(t);
 
 	const result: number[] = [];
 
 	for (let i = 0; i < p0.length; i++) {
 		const p0v = p0[i];
-		AssertVectorValue(p0v, {}, { index: i });
-
 		const p1v = p1[i];
-		AssertVectorValue(p1v, {}, { index: i });
-
 		const t0v = t0[i];
-		AssertVectorValue(t0v, {}, { index: i });
-
 		const t1v = t1[i];
-		AssertVectorValue(t1v, {}, { index: i });
-
 		result.push(HermiteInterpolation(p0v, p1v, t0v, t1v, t));
 	}
 
@@ -398,7 +372,6 @@ export function VectorHermiteInterpolation<T extends TVector>(p0: T, p1: T, t0: 
  * @returns Vector with circular acceleration from start
  */
 export function VectorCircularEaseIn<T extends TVector>(a: T, b: T, t: number): TVectorResult<T> {
-	AssertVectors([a, b], { minSize: 1, finite: true });
 	return vectorInterpolate(a, b, t, CircularEaseIn);
 }
 
@@ -413,7 +386,6 @@ export function VectorCircularEaseIn<T extends TVector>(a: T, b: T, t: number): 
  * @returns Vector with circular deceleration toward end
  */
 export function VectorCircularEaseOut<T extends TVector>(a: T, b: T, t: number): TVectorResult<T> {
-	AssertVectors([a, b], { minSize: 1, finite: true });
 	return vectorInterpolate(a, b, t, CircularEaseOut);
 }
 
@@ -429,15 +401,17 @@ export function VectorCircularEaseOut<T extends TVector>(a: T, b: T, t: number):
  * @returns Either the start or end vector based on threshold comparison
  *
  * @example
-	 * ```typescript
-	 * const off = [0, 0];
-	 * const on = [1, 1];
-	 * const result1 = VectorStepInterpolation(off, on, 0.3); // [0, 0] (< 0.5)
-	 * const result2 = VectorStepInterpolation(off, on, 0.7); // [1, 1] (>= 0.5)
-	 * ```
+ * ```typescript
+ * const off = [0, 0];
+ * const on = [1, 1];
+ * const result1 = VectorStepInterpolation(off, on, 0.3); // [0, 0] (< 0.5)
+ * const result2 = VectorStepInterpolation(off, on, 0.7); // [1, 1] (>= 0.5)
+ * ```
  */
 export function VectorStepInterpolation<T extends TVector>(a: T, b: T, t: number, threshold: number = 0.5): TVectorResult<T> {
-	AssertVectors([a, b], { minSize: 1, finite: true });
+	AssertVector(a);
+	AssertVector(b);
+	AssertVectorSameSize([a, b]);
 	AssertNumber(t);
 	AssertNumber(threshold);
 
@@ -445,10 +419,7 @@ export function VectorStepInterpolation<T extends TVector>(a: T, b: T, t: number
 
 	for (let i = 0; i < a.length; i++) {
 		const av = a[i];
-		AssertVectorValue(av, {}, { index: i });
-
 		const bv = b[i];
-		AssertVectorValue(bv, {}, { index: i });
 		result.push(StepInterpolation(av, bv, t, threshold));
 	}
 
@@ -624,15 +595,22 @@ const SLERP_LINEARITY_THRESHOLD = 0.001;
  * @returns Spherically interpolated vector maintaining unit length
  *
  * @example
-	 * ```typescript
-	 * const dir1 = [1, 0, 0];
-	 * const dir2 = [0, 1, 0];
-	 * const slerp = VectorSphericalLinearInterpolation(dir1, dir2, 0.5);
-	 * // Result maintains unit length and follows shortest spherical path
-	 * ```
+ * ```typescript
+ * const dir1 = [1, 0, 0];
+ * const dir2 = [0, 1, 0];
+ * const slerp = VectorSphericalLinearInterpolation(dir1, dir2, 0.5);
+ * // Result maintains unit length and follows shortest spherical path
+ * ```
  */
 export function VectorSphericalLinearInterpolation<T extends TVector>(a: T, b: T, t: number): TVectorResult<T> {
-	AssertVectors([a, b], { minSize: 2, finite: true });
+	AssertVector(a);
+	AssertVector(b);
+	AssertVectorSameSize([a, b]);
+	AssertNumber(t);
+
+	if (a.length < 2) {
+		throw new VectorError('Spherical linear interpolation requires vectors of at least 2 dimensions');
+	}
 
 	// Do not clamp t, allow extrapolation
 	const normalizedA = VectorNormalize(a);
@@ -654,11 +632,7 @@ export function VectorSphericalLinearInterpolation<T extends TVector>(a: T, b: T
 
 	for (let i = 0; i < a.length; i++) {
 		const ai = a[i];
-		AssertVectorValue(ai, {}, { index: i });
-
 		const bi = b[i];
-		AssertVectorValue(bi, {}, { index: i });
-
 		result.push((ai * weightA) + (bi * weightB));
 	}
 

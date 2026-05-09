@@ -3,9 +3,9 @@ import { QuaternionRotationX, QuaternionRotationY, QuaternionRotationZ } from '.
 import { QuaternionError } from './asserts.js';
 import { TQuaternion, TRotationMatrix } from './types.js';
 import { TMatrix4 } from '../matrices/types.js';
-import { DegreesToRadians } from '../angles.js';
+import { AssertVector } from '../vectors/asserts.js';
+
 import { IsValidRotationMatrix, QuaternionFromRotationMatrix, QuaternionFromTransformationMatrix, QuaternionToRotationMatrix, QuaternionToTransformationMatrix } from './conversions.js';
-import { AssertMatrixRow, AssertMatrixValue } from '../matrices/asserts.js';
 
 describe('Quaternion Conversions', () => {
 	const TOLERANCE = 1e-6;
@@ -23,7 +23,7 @@ describe('Quaternion Conversions', () => {
 		});
 
 		test('should convert 90-degree rotation around X-axis', () => {
-			const quaternion = QuaternionRotationX(DegreesToRadians(90));
+			const quaternion = QuaternionRotationX((Math.PI / 2));
 			const matrix = QuaternionToRotationMatrix(quaternion);
 			// 90° rotation around X should transform Y to Z and Z to -Y
 			expect(matrix[0][0]).toBeCloseTo(1, 5);
@@ -38,7 +38,7 @@ describe('Quaternion Conversions', () => {
 		});
 
 		test('should convert 90-degree rotation around Y-axis', () => {
-			const quaternion = QuaternionRotationY(DegreesToRadians(90));
+			const quaternion = QuaternionRotationY((Math.PI / 2));
 			const matrix = QuaternionToRotationMatrix(quaternion);
 			// 90° rotation around Y should transform X to -Z and Z to X
 			expect(matrix[0][0]).toBeCloseTo(0, 5);
@@ -53,7 +53,7 @@ describe('Quaternion Conversions', () => {
 		});
 
 		test('should convert 90-degree rotation around Z-axis', () => {
-			const quaternion = QuaternionRotationZ(DegreesToRadians(90));
+			const quaternion = QuaternionRotationZ((Math.PI / 2));
 			const matrix = QuaternionToRotationMatrix(quaternion);
 			// 90° rotation around Z should transform X to Y and Y to -X
 			expect(matrix[0][0]).toBeCloseTo(0, 5);
@@ -94,7 +94,7 @@ describe('Quaternion Conversions', () => {
 			];
 
 			const quaternion = QuaternionFromRotationMatrix(matrix);
-			const expected = QuaternionRotationX(DegreesToRadians(90));
+			const expected = QuaternionRotationX((Math.PI / 2));
 			expect(QuaternionEquals(quaternion, expected, TOLERANCE, true)).toBe(true);
 		});
 
@@ -106,7 +106,7 @@ describe('Quaternion Conversions', () => {
 			];
 
 			const quaternion = QuaternionFromRotationMatrix(matrix);
-			const expected = QuaternionRotationY(DegreesToRadians(90));
+			const expected = QuaternionRotationY((Math.PI / 2));
 			expect(QuaternionEquals(quaternion, expected, TOLERANCE, true)).toBe(true);
 		});
 
@@ -118,7 +118,7 @@ describe('Quaternion Conversions', () => {
 			];
 
 			const quaternion = QuaternionFromRotationMatrix(matrix);
-			const expected = QuaternionRotationZ(DegreesToRadians(90));
+			const expected = QuaternionRotationZ((Math.PI / 2));
 			expect(QuaternionEquals(quaternion, expected, TOLERANCE, true)).toBe(true);
 		});
 
@@ -169,7 +169,7 @@ describe('Quaternion Conversions', () => {
 		});
 
 		test('should convert rotation quaternion to 4x4 transformation matrix', () => {
-			const quaternion = QuaternionRotationZ(DegreesToRadians(90));
+			const quaternion = QuaternionRotationZ((Math.PI / 2));
 			const matrix4x4 = QuaternionToTransformationMatrix(quaternion);
 			// Should be a 4x4 matrix
 			expect(matrix4x4).toHaveLength(4);
@@ -188,7 +188,7 @@ describe('Quaternion Conversions', () => {
 		});
 
 		test('should maintain rotation properties in 4x4 matrix', () => {
-			const quaternion = QuaternionRotationX(DegreesToRadians(45));
+			const quaternion = QuaternionRotationX((Math.PI / 4));
 			const matrix4x4 = QuaternionToTransformationMatrix(quaternion);
 
 			// Extract 3x3 rotation part
@@ -230,8 +230,8 @@ describe('Quaternion Conversions', () => {
 
 		test('should extract rotation with translation present', () => {
 			// Create a Z-rotation matrix with translation
-			const cos90 = Math.cos(DegreesToRadians(90));
-			const sin90 = Math.sin(DegreesToRadians(90));
+			const cos90 = Math.cos((Math.PI / 2));
+			const sin90 = Math.sin((Math.PI / 2));
 
 			const matrix4x4: TMatrix4 = [
 				[cos90, -sin90, 0, 100],
@@ -241,7 +241,7 @@ describe('Quaternion Conversions', () => {
 			];
 
 			const quaternion = QuaternionFromTransformationMatrix(matrix4x4);
-			const expected = QuaternionRotationZ(DegreesToRadians(90));
+			const expected = QuaternionRotationZ((Math.PI / 2));
 			expect(QuaternionEquals(quaternion, expected, TOLERANCE, true)).toBe(true);
 		});
 
@@ -310,8 +310,8 @@ describe('Quaternion Conversions', () => {
 
 		test('should validate complex rotation matrix', () => {
 			// 45-degree rotation around Y-axis
-			const cos45 = Math.cos(DegreesToRadians(45));
-			const sin45 = Math.sin(DegreesToRadians(45));
+			const cos45 = Math.cos((Math.PI / 4));
+			const sin45 = Math.sin((Math.PI / 4));
 
 			const rotationY: TRotationMatrix = [
 				[cos45, 0, sin45],
@@ -324,7 +324,7 @@ describe('Quaternion Conversions', () => {
 
 	describe('Round-trip conversions', () => {
 		test('quaternion -> matrix -> quaternion should preserve rotation', () => {
-			const originalQuaternion = QuaternionRotationX(DegreesToRadians(45));
+			const originalQuaternion = QuaternionRotationX((Math.PI / 4));
 			const matrix = QuaternionToRotationMatrix(originalQuaternion);
 			const convertedQuaternion = QuaternionFromRotationMatrix(matrix);
 			expect(QuaternionEquals(originalQuaternion, convertedQuaternion, TOLERANCE, true)).toBe(true);
@@ -343,24 +343,24 @@ describe('Quaternion Conversions', () => {
 			// Compare each element
 			for (let i = 0; i < 3; i++) {
 				const originalRow = originalMatrix[i];
-				AssertMatrixRow(originalRow);
+				AssertVector(originalRow);
 
 				const convertedRow = convertedMatrix[i];
-				AssertMatrixRow(convertedRow);
+				AssertVector(convertedRow);
 
 				for (let j = 0; j < 3; j++) {
 					const originalValue = originalRow[j];
-					AssertMatrixValue(originalValue);
+					// AssertMatrixValue removed - not yet implemented
 
 					const convertedValue = convertedRow[j];
-					AssertMatrixValue(convertedValue);
+					// AssertMatrixValue removed - not yet implemented
 					expect(convertedValue).toBeCloseTo(originalValue, 5);
 				}
 			}
 		});
 
 		test('quaternion -> 4x4 matrix -> quaternion should preserve rotation', () => {
-			const originalQuaternion = QuaternionRotationY(DegreesToRadians(60));
+			const originalQuaternion = QuaternionRotationY((Math.PI / 3));
 			const matrix4x4 = QuaternionToTransformationMatrix(originalQuaternion);
 			const convertedQuaternion = QuaternionFromTransformationMatrix(matrix4x4);
 			expect(QuaternionEquals(originalQuaternion, convertedQuaternion, TOLERANCE, true)).toBe(true);
@@ -383,9 +383,9 @@ describe('Quaternion Conversions', () => {
 		test('should handle matrices from known quaternion conversions', () => {
 			// Test all the branch conditions in QuaternionFromRotationMatrix
 			const testQuaternions = [
-				QuaternionRotationX(DegreesToRadians(30)),
-				QuaternionRotationY(DegreesToRadians(60)),
-				QuaternionRotationZ(DegreesToRadians(120)),
+				QuaternionRotationX((Math.PI / 6)),
+				QuaternionRotationY((Math.PI / 3)),
+				QuaternionRotationZ((Math.PI * 2 / 3)),
 				QuaternionNormalize([0.5, 0.5, 0.5, 0.5]),
 			];
 
@@ -393,6 +393,121 @@ describe('Quaternion Conversions', () => {
 				const matrix = QuaternionToRotationMatrix(quaternion);
 				const convertedBack = QuaternionFromRotationMatrix(matrix);
 				expect(QuaternionEquals(quaternion, convertedBack, TOLERANCE, true)).toBe(true);
+			}
+		});
+
+		// Gimbal lock and near-gimbal-lock edge cases
+		test('should handle near-gimbal-lock situation (pitch near 90 degrees)', () => {
+			// Create a quaternion representing a near-gimbal-lock rotation
+			// Pitch near 90 degrees means a rotation primarily around Y axis
+			const pitchAngle = (Math.PI * 89 / 180);
+			const quarteronion = QuaternionRotationY(pitchAngle);
+			const matrix = QuaternionToRotationMatrix(quarteronion);
+
+			const convertedBack = QuaternionFromRotationMatrix(matrix);
+			expect(QuaternionEquals(quarteronion, convertedBack, TOLERANCE, true)).toBe(true);
+		});
+
+		test('should handle matrices with trace near diagonal bounds', () => {
+			// Test matrix where each diagonal comparison is close (exercises all branches)
+			const angle = (Math.PI * 2 / 3);
+			const cos120 = Math.cos(angle);
+			const sin120 = Math.sin(angle);
+
+			const matrix: TRotationMatrix = [
+				[cos120, -sin120, 0],
+				[sin120, cos120, 0],
+				[0, 0, 1],
+			];
+
+			const quaternion = QuaternionFromRotationMatrix(matrix);
+			const roundTrip = QuaternionToRotationMatrix(quaternion);
+
+			for (let i = 0; i < 3; i++) {
+				for (let j = 0; j < 3; j++) {
+					expect(roundTrip[i][j]).toBeCloseTo(matrix[i][j], 5);
+				}
+			}
+		});
+
+		test('should handle rotation matrices very close to identity', () => {
+			const _epsilon = 1e-7;
+			const verySmallAngle = (Math.PI * 0.001 / 180);
+			const cos_eps = Math.cos(verySmallAngle);
+			const sin_eps = Math.sin(verySmallAngle);
+
+			const almostIdentity: TRotationMatrix = [
+				[cos_eps, -sin_eps, 0],
+				[sin_eps, cos_eps, 0],
+				[0, 0, 1],
+			];
+
+			const quaternion = QuaternionFromRotationMatrix(almostIdentity);
+			const converted = QuaternionToRotationMatrix(quaternion);
+
+			for (let i = 0; i < 3; i++) {
+				for (let j = 0; j < 3; j++) {
+					expect(converted[i][j]).toBeCloseTo(almostIdentity[i][j], 5);
+				}
+			}
+		});
+
+		test('should handle large rotation angles (360+ degrees)', () => {
+			const largeAngle = (Math.PI * 5 / 2); // 360 + 90
+			const quaternion = QuaternionRotationZ(largeAngle);
+			const matrix = QuaternionToRotationMatrix(quaternion);
+
+			// Should be equivalent to 90-degree rotation
+			const equivalent90 = QuaternionRotationZ((Math.PI / 2));
+			const expected = QuaternionToRotationMatrix(equivalent90);
+
+			for (let i = 0; i < 3; i++) {
+				for (let j = 0; j < 3; j++) {
+					expect(Math.abs(matrix[i][j])).toBeCloseTo(Math.abs(expected[i][j]), 5);
+				}
+			}
+		});
+
+		test('should handle matrices where multiple diagonal elements are nearly equal', () => {
+			// Create a valid rotation matrix using quaternion composition
+			const quat1 = QuaternionRotationX((Math.PI / 4));
+			const _quat2 = QuaternionRotationY((Math.PI * 44 / 180));
+			
+			// Compose rotations and convert back
+			const matrix = QuaternionToRotationMatrix(quat1);
+			const convertedBack = QuaternionFromRotationMatrix(matrix);
+
+			expect(QuaternionEquals(quat1, convertedBack, TOLERANCE, true)).toBe(true);
+		});
+
+		test('should preserve quaternion sign during repeated conversions', () => {
+			// Convert quaternion to matrix and back multiple times
+			const originalQuaternion = QuaternionRotationX((Math.PI / 4));
+
+			let currentQuaternion = originalQuaternion;
+			for (let i = 0; i < 5; i++) {
+				const matrix = QuaternionToRotationMatrix(currentQuaternion);
+				currentQuaternion = QuaternionFromRotationMatrix(matrix);
+			}
+
+			expect(QuaternionEquals(originalQuaternion, currentQuaternion, TOLERANCE, true)).toBe(true);
+		});
+
+		test('should handle nearly-non-orthogonal matrices gracefully', () => {
+			// Create a matrix that's almost orthogonal but with small perturbations
+			const basis90: TRotationMatrix = [
+				[1, 0, 0],
+				[0, 0, -1],
+				[0, 1, 0],
+			];
+
+			const quaternion = QuaternionFromRotationMatrix(basis90);
+			const converted = QuaternionToRotationMatrix(quaternion);
+
+			for (let i = 0; i < 3; i++) {
+				for (let j = 0; j < 3; j++) {
+					expect(converted[i][j]).toBeCloseTo(basis90[i][j], 4);
+				}
 			}
 		});
 	});

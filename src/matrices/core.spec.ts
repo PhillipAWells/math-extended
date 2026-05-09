@@ -1,5 +1,5 @@
-import { AssertMatrixRow, AssertMatrixValue } from './asserts.js';
-import { MatrixCreate, MatrixSize, MatrixSizeSquare, MatrixIsValid, MatrixIsSquare, MatrixIsIdentity, MatrixIsSymmetric, MatrixIsDiagonal, MatrixIdentity, MatrixClone, MatrixEquals, MatrixToString, MatrixRank, MatrixTrace, MatrixTranspose, MatrixMap, MatrixIsZero } from './core.js';
+import { MatrixCreate, MatrixSize, MatrixSizeSquare, MatrixIsIdentity, MatrixIsSymmetric, MatrixIsDiagonal, MatrixIdentity, MatrixClone, MatrixEquals, MatrixToString, MatrixRank, MatrixTrace, MatrixTranspose, MatrixMap, MatrixIsZero } from './core.js';
+import { MatrixError } from './asserts.js';
 import { TMatrix } from './types.js';
 
 describe('Matrices Core', () => {
@@ -122,58 +122,7 @@ describe('Matrices Core', () => {
 
 		test('should throw for empty matrix', () => {
 			const matrix: number[][] = [];
-			expect(() => MatrixSizeSquare(matrix)).toThrow('Matrix must have at least one row and one column');
-		});
-	});
-
-	describe('MatrixIsValid', () => {
-		test('should return true for valid matrix', () => {
-			expect(MatrixIsValid([[1, 2], [3, 4]])).toBe(true);
-		});
-
-		test('should return false for empty matrix', () => {
-			expect(MatrixIsValid([])).toBe(false);
-		});
-
-		test('should return false for non-array input', () => {
-			expect(MatrixIsValid('invalid')).toBe(false);
-			expect(MatrixIsValid(123)).toBe(false);
-			expect(MatrixIsValid(null)).toBe(false);
-			expect(MatrixIsValid(undefined)).toBe(false);
-		});
-
-		test('should return false for matrix with non-number values', () => {
-			expect(MatrixIsValid([[1, 'invalid'], [3, 4]])).toBe(false);
-		});
-
-		test('should return false for matrix with inconsistent row lengths', () => {
-			expect(MatrixIsValid([[1, 2], [3]])).toBe(false);
-		});
-
-		test('should return true for single element matrix', () => {
-			expect(MatrixIsValid([[42]])).toBe(true);
-		});
-	});
-
-	describe('MatrixIsSquare', () => {
-		test('should return true for square matrix', () => {
-			expect(MatrixIsSquare([[1, 2], [3, 4]])).toBe(true);
-		});
-
-		test('should return false for rectangular matrix', () => {
-			expect(MatrixIsSquare([[1, 2, 3], [4, 5, 6]])).toBe(false);
-		});
-
-		test('should return true for 1x1 matrix', () => {
-			expect(MatrixIsSquare([[1]])).toBe(true);
-		});
-
-		test('should return false for empty matrix', () => {
-			expect(MatrixIsSquare([])).toBe(false);
-		});
-
-		test('should return true for 3x3 matrix', () => {
-			expect(MatrixIsSquare([[1, 2, 3], [4, 5, 6], [7, 8, 9]])).toBe(true);
+			expect(() => MatrixSizeSquare(matrix)).toThrow(MatrixError);
 		});
 	});
 
@@ -387,11 +336,11 @@ describe('Matrices Core', () => {
 			// Check all off-diagonal elements are 0
 			for (let i = 0; i < 3; i++) {
 				const id3Row = id3[i];
-				AssertMatrixRow(id3Row);
+				expect(Array.isArray(id3Row)).toBe(true);
 
 				for (let j = 0; j < 3; j++) {
 					const id3Value = id3Row[j];
-					AssertMatrixValue(id3Value, { rowIndex: i, columnIndex: j });
+					expect(typeof id3Value).toBe('number');
 					if (i !== j) expect(id3Value).toBe(0);
 				}
 			}
@@ -406,11 +355,11 @@ describe('Matrices Core', () => {
 			// Check all off-diagonal elements are 0
 			for (let i = 0; i < 4; i++) {
 				const id4Row = id4[i];
-				AssertMatrixRow(id4Row);
+				expect(Array.isArray(id4Row)).toBe(true);
 
 				for (let j = 0; j < 4; j++) {
 					const id4Value = id4Row[j];
-					AssertMatrixValue(id4Value, { rowIndex: i, columnIndex: j });
+					expect(typeof id4Value).toBe('number');
 					if (i !== j) expect(id4Value).toBe(0);
 				}
 			}
@@ -441,21 +390,21 @@ describe('Matrices Core', () => {
 				// Verify all diagonal elements are 1
 				for (let i = 0; i < size; i++) {
 					const row = identity[i];
-					AssertMatrixRow(row, { rowIndex: i });
+					expect(Array.isArray(row)).toBe(true);
 
 					const value = row[i];
-					AssertMatrixValue(value, { rowIndex: i, columnIndex: i });
+					expect(typeof value).toBe('number');
 					expect(value).toBe(1);
 				}
 
 				// Verify all off-diagonal elements are 0
 				for (let i = 0; i < size; i++) {
 					const row = identity[i];
-					AssertMatrixRow(row, { rowIndex: i });
+					expect(Array.isArray(row)).toBe(true);
 
 					for (let j = 0; j < size; j++) {
 						const value = row[j];
-						AssertMatrixValue(value, { rowIndex: i, columnIndex: j });
+						expect(typeof value).toBe('number');
 						if (i !== j) expect(value).toBe(0);
 					}
 				}
@@ -473,10 +422,10 @@ describe('Matrices Core', () => {
 
 			// Modify original and ensure clone is unchanged
 			const [row] = original;
-			AssertMatrixRow(row);
+			expect(Array.isArray(row)).toBe(true);
 
 			const [value] = row;
-			AssertMatrixValue(value, { rowIndex: 0, columnIndex: 0 });
+			expect(typeof value).toBe('number');
 			if (original[0]) {
 				original[0][0] = 999;
 			}

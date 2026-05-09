@@ -16,8 +16,7 @@ import {
 	MatrixPerspective,
 	MatrixOrthographic,
 } from './transformations.js';
-import { DegreesToRadians } from '../angles.js';
-import { AssertMatrixRow, AssertMatrixValue } from './asserts.js';
+
 import { MatrixIdentity } from './core.js';
 import { TMatrix3, TMatrix4 } from './types.js';
 import { VectorMagnitude } from '../vectors/core.js';
@@ -31,11 +30,9 @@ describe('Matrix Transformations', () => {
 		for (let i = 0; i < actual.length; i++) {
 			const actualRow = actual[i];
 			expect(actualRow).toBeDefined();
-			AssertMatrixRow(actualRow);
 
 			const expectedRow = expected[i];
 			expect(expectedRow).toBeDefined();
-			AssertMatrixRow(expectedRow);
 
 			const actualRowLength = actualRow.length;
 			const expectedRowLength = expectedRow.length;
@@ -43,10 +40,8 @@ describe('Matrix Transformations', () => {
 
 			for (let j = 0; j < actualRow.length; j++) {
 				const actualValue = actualRow[j];
-				AssertMatrixValue(actualValue);
 
 				const expectedValue = expectedRow[j];
-				AssertMatrixValue(expectedValue);
 
 				expect(actualValue).toBeCloseTo(expectedValue, precision);
 			}
@@ -215,9 +210,9 @@ describe('Matrix Transformations', () => {
 
 			test('should create complex rotation with all axes', () => {
 				const matrix = MatrixRotation3D(
-					DegreesToRadians(60),
-					DegreesToRadians(30),
-					DegreesToRadians(45),
+					(Math.PI / 3),
+					(Math.PI / 6),
+					(Math.PI / 4),
 				);
 				// Matrix should not be identity
 				expect(matrix).not.toEqual([
@@ -244,9 +239,9 @@ describe('Matrix Transformations', () => {
 			test('should convert degrees to radians and create rotation matrix', () => {
 				const matrix = MatrixRotation3DEulerAngles(60, 30, 45);
 				const expected = MatrixRotation3D(
-					DegreesToRadians(60),
-					DegreesToRadians(30),
-					DegreesToRadians(45),
+					(Math.PI / 3),
+					(Math.PI / 6),
+					(Math.PI / 4),
 				);
 				expectMatrixToBeCloseTo(matrix, expected);
 			});
@@ -548,13 +543,11 @@ describe('Matrix Transformations', () => {
 
 			test('should throw for invalid matrix', () => {
 				const invalidMatrix = [[1, 0], [0, 1]]; // Wrong size
-				// @ts-expect-error Invalid matrix size should cause a type error: MatrixTransform2D expects a 3x3 matrix
 				expect(() => MatrixTransform2D([1, 1], invalidMatrix)).toThrow();
 			});
 
 			test('should throw for invalid vector', () => {
 				const identity = MatrixIdentity(3);
-				// @ts-expect-error intentionally passing wrong vector size to test runtime assertion
 				expect(() => MatrixTransform2D([1], identity)).toThrow();
 			});
 
@@ -607,13 +600,11 @@ describe('Matrix Transformations', () => {
 
 			test('should throw for invalid matrix', () => {
 				const invalidMatrix = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]; // Wrong size
-				// @ts-expect-error Invalid matrix size should cause a type error: MatrixTransform3D expects a 4x4 matrix
 				expect(() => MatrixTransform3D([1, 1, 1], invalidMatrix)).toThrow();
 			});
 
 			test('should throw for invalid vector', () => {
 				const identity = MatrixIdentity(4);
-				// @ts-expect-error intentionally passing wrong vector size to test runtime assertion
 				expect(() => MatrixTransform3D([1, 1], identity)).toThrow();
 			});
 
@@ -670,7 +661,6 @@ describe('Matrix Transformations', () => {
 
 			test('should throw for invalid matrix', () => {
 				const invalidMatrix = [[1, 0], [0, 1]]; // Wrong size
-				// @ts-expect-error Invalid matrix size should cause a type error: MatrixDirection3D expects a 3x3 matrix
 				expect(() => MatrixDirection3D([1, 1, 1], invalidMatrix)).toThrow();
 			});
 
@@ -680,7 +670,6 @@ describe('Matrix Transformations', () => {
 					[0, 1, 0],
 					[0, 0, 1],
 				];
-				// @ts-expect-error intentionally passing wrong vector size to test runtime assertion
 				expect(() => MatrixDirection3D([1, 1], identity)).toThrow();
 			});
 		});
@@ -733,11 +722,8 @@ describe('Matrix Transformations', () => {
 			});
 
 			test('should throw for invalid vectors', () => {
-				// @ts-expect-error intentionally passing wrong vector size to test runtime assertion
 				expect(() => MatrixView([1, 2], [0, 0, 0], [0, 1, 0])).toThrow();
-				// @ts-expect-error intentionally passing wrong vector size to test runtime assertion
 				expect(() => MatrixView([0, 0, 0], [1, 2], [0, 1, 0])).toThrow();
-				// @ts-expect-error intentionally passing wrong vector size to test runtime assertion
 				expect(() => MatrixView([0, 0, 0], [0, 0, 0], [1, 2])).toThrow();
 			});
 		});

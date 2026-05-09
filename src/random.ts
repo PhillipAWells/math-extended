@@ -5,11 +5,19 @@ const BOX_MULLER_MIN_U1 = Number.EPSILON; // Avoid log(0) = -Infinity in Box-Mul
  * Generates a random integer within the specified range (inclusive).
  * @param min - Minimum value (inclusive)
  * @param max - Maximum value (inclusive)
- * @returns Random integer between min and max, or NaN if min > max
- * @throws Returns `Number.NaN` when `min > max`
- * @example RandomInt(1, 6) // Returns 1, 2, 3, 4, 5, or 6 (dice roll)
- * @example RandomInt(-5, 5) // Returns any integer from -5 to 5
- * @example RandomInt(10, 5) // Returns Number.NaN (invalid range)
+ * @returns Random integer between min and max. Returns Number.NaN when min > max.
+ * @example
+ * ```typescript
+ * RandomInt(1, 6) // Returns 1, 2, 3, 4, 5, or 6 (dice roll)
+ * ```
+ * @example
+ * ```typescript
+ * RandomInt(-5, 5) // Returns any integer from -5 to 5
+ * ```
+ * @example
+ * ```typescript
+ * RandomInt(10, 5) // Returns Number.NaN (invalid range)
+ * ```
  */
 export function RandomInt(min: number, max: number): number {
 	if (min > max) return Number.NaN;
@@ -22,11 +30,19 @@ export function RandomInt(min: number, max: number): number {
  * Note: Asymmetry with RandomInt — this function returns NaN when min >= max (not just min > max).
  * @param min - Minimum value (inclusive)
  * @param max - Maximum value (exclusive)
- * @returns Random float between min (inclusive) and max (exclusive), or NaN if min >= max
- * @throws Returns `Number.NaN` when `min >= max`
- * @example RandomFloat(0, 1) // Returns 0.0 to 0.999...
- * @example RandomFloat(-1.5, 1.5) // Returns any float from -1.5 to 1.499...
- * @example RandomFloat(5, 5) // Returns Number.NaN (min equals max)
+ * @returns Random float between min (inclusive) and max (exclusive). Returns Number.NaN when min >= max.
+ * @example
+ * ```typescript
+ * RandomFloat(0, 1) // Returns 0.0 to 0.999...
+ * ```
+ * @example
+ * ```typescript
+ * RandomFloat(-1.5, 1.5) // Returns any float from -1.5 to 1.499...
+ * ```
+ * @example
+ * ```typescript
+ * RandomFloat(5, 5) // Returns Number.NaN (min equals max)
+ * ```
  */
 export function RandomFloat(min: number, max: number): number {
 	if (min >= max) return Number.NaN;
@@ -39,8 +55,14 @@ export function RandomFloat(min: number, max: number): number {
  * @template T - The type of elements in the array
  * @param array - Array to choose from
  * @returns Random element from the array, or undefined if array is empty
- * @example RandomChoice([1, 2, 3, 4, 5]) // Returns one of the numbers
- * @example RandomChoice(['red', 'green', 'blue']) // Returns one of the colors
+ * @example
+ * ```typescript
+ * RandomChoice([1, 2, 3, 4, 5]) // Returns one of the numbers
+ * ```
+ * @example
+ * ```typescript
+ * RandomChoice(['red', 'green', 'blue']) // Returns one of the colors
+ * ```
  */
 export function RandomChoice<T>(array: T[]): T | undefined {
 	if (array.length === 0) return undefined;
@@ -56,8 +78,14 @@ export function RandomChoice<T>(array: T[]): T | undefined {
  * @param array - Array to choose from
  * @param count - Number of elements to select
  * @returns Array of `count` unique randomly selected elements, or empty array if inputs are invalid
- * @example RandomSample([1, 2, 3, 4, 5], 3) // Returns 3 unique numbers
- * @example RandomSample(['a', 'b', 'c'], 2) // Returns 2 unique letters
+ * @example
+ * ```typescript
+ * RandomSample([1, 2, 3, 4, 5], 3) // Returns 3 unique numbers
+ * ```
+ * @example
+ * ```typescript
+ * RandomSample(['a', 'b', 'c'], 2) // Returns 2 unique letters
+ * ```
  */
 export function RandomSample<T>(array: T[], count: number): T[] {
 	if (array.length === 0 || count <= 0 || count > array.length) return [];
@@ -81,8 +109,14 @@ export function RandomSample<T>(array: T[], count: number): T[] {
  * @param array - Array to shuffle
  * @param clone - If true, returns a shuffled copy; if false/undefined, modifies original array
  * @returns Shuffled array (original reference if clone=false, new array if clone=true)
- * @example RandomShuffle([1, 2, 3, 4, 5]) // Modifies and returns original array
- * @example RandomShuffle([1, 2, 3, 4, 5], true) // Returns new shuffled array, original unchanged
+ * @example
+ * ```typescript
+ * RandomShuffle([1, 2, 3, 4, 5]) // Modifies and returns original array
+ * ```
+ * @example
+ * ```typescript
+ * RandomShuffle([1, 2, 3, 4, 5], true) // Returns new shuffled array, original unchanged
+ * ```
  */
 export function RandomShuffle<T>(array: T[], clone?: boolean): T[] {
 	const targetArray = clone ? [...array] : array;
@@ -102,8 +136,14 @@ export function RandomShuffle<T>(array: T[], clone?: boolean): T[] {
  * @param probability - Probability of returning true (0.0 to 1.0, default: 0.5)
  * @returns Random boolean based on probability
  * @throws {RangeError} If probability is outside the range [0, 1]
- * @example RandomBool() // 50% chance of true
- * @example RandomBool(0.8) // 80% chance of true
+ * @example
+ * ```typescript
+ * RandomBool() // 50% chance of true
+ * ```
+ * @example
+ * ```typescript
+ * RandomBool(0.8) // 80% chance of true
+ * ```
  */
 export function RandomBool(probability: number = 0.5): boolean {
 	if (probability < 0 || probability > 1) throw new RangeError(`Probability must be between 0 and 1, got ${probability}`);
@@ -118,12 +158,25 @@ export function RandomBool(probability: number = 0.5): boolean {
  * @param mean - Mean of the distribution (default: 0)
  * @param standardDeviation - Standard deviation of the distribution (default: 1)
  * @returns Random number from normal distribution
- * @example RandomNormal() // Standard normal distribution (mean=0, std=1)
- * @example RandomNormal(100, 15) // IQ-like distribution (mean=100, std=15)
+ * @example
+ * ```typescript
+ * RandomNormal() // Standard normal distribution (mean=0, std=1)
+ * ```
+ * @example
+ * ```typescript
+ * RandomNormal(100, 15) // IQ-like distribution (mean=100, std=15)
+ * ```
  */
 export function RandomNormal(mean: number = 0, standardDeviation: number = 1): number {
 	// Box-Muller transform — u1 must be > 0 to avoid log(0) = -Infinity
 	let u1 = Math.random();
+	/**
+	 * Avoid log(0) → -Infinity by rejecting u1 too close to 0.
+	 * BOX_MULLER_MIN_U1 = Number.EPSILON ≈ 2.22e-16.
+	 * Expected retry probability per call: ~2.22e-16 (effectively never executed).
+	 * Box-Muller with u1 >= Number.EPSILON is statistically sound and produces
+	 * valid normal-distributed values.
+	 */
 	while (u1 < BOX_MULLER_MIN_U1) {
 		u1 = Math.random();
 	}

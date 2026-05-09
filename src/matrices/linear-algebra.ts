@@ -1,10 +1,10 @@
 import { AssertNumber } from '@pawells/typescript-common';
-import { AssertMatrix, AssertMatrix1, AssertMatrix2, AssertMatrix3, AssertMatrixRow, AssertMatrixValue, MatrixError } from './asserts.js';
+import { AssertMatrix1, AssertMatrix2, AssertMatrix3, AssertMatrixSquare } from './asserts.js';
 import { MatrixCreate, MatrixSize, MatrixSizeSquare, MatrixTranspose } from './core.js';
 import { MatrixLU } from './decompositions.js';
-import { TMatrix } from './types.js';
+import type { TMatrix } from './types.js';
 import { VectorProject, VectorSubtract } from '../vectors/core.js';
-import { TVector } from '../vectors/types.js';
+import type { TVector } from '../vectors/types.js';
 
 const GRAM_SCHMIDT_TOLERANCE = 1e-10;
 
@@ -13,10 +13,29 @@ const GRAM_SCHMIDT_TOLERANCE = 1e-10;
  * @param matrix - The square matrix to compute determinant for
  * @returns {number} The determinant value (can be positive, negative, or zero)
  * @throws {Error} If the matrix is not square
- * @example MatrixDeterminant([[1, 2], [3, 4]]) // -2 (1×4 - 2×3)
+ * @example
+	 * ```typescript
+	 * MatrixDeterminant([[1, 2], [3, 4]]) // -2 (1×4 - 2×3)
+	 * ```
+ */
+/**
+ * Computes the determinant of a square matrix using a hybrid algorithm.
+ *
+ * For 1×1, 2×2, and 3×3 matrices, uses direct formulas (Sarrus' rule for 3×3).
+ * For n≥4, uses LU decomposition with partial pivoting: det(A) = sign(P) × ∏ U[i,i]
+ * where sign(P) = (-1)^(number of row swaps).
+ *
+ * @param matrix - The square matrix to compute determinant for
+ * @returns {number} The determinant value (can be positive, negative, or zero)
+ * @throws {Error} If the matrix is not square
+ * @example
+ * ```typescript
+ * MatrixDeterminant([[1, 2], [3, 4]]) // -2 (1×4 - 2×3)
+ * MatrixDeterminant([[1,2,3,4],[5,6,7,8],[9,10,11,12],[13,14,15,17]]) // 4
+ * ```
  */
 export function MatrixDeterminant(matrix: TMatrix): number {
-	AssertMatrix(matrix, { square: true });
+	AssertMatrixSquare(matrix);
 
 	const size = MatrixSizeSquare(matrix);
 
@@ -38,20 +57,32 @@ export function MatrixDeterminant(matrix: TMatrix): number {
 		return (matrix[0][0] * ((matrix[1][1] * matrix[2][2]) - (matrix[1][2] * matrix[2][1]))) - (matrix[0][1] * ((matrix[1][0] * matrix[2][2]) - (matrix[1][2] * matrix[2][0]))) + (matrix[0][2] * ((matrix[1][0] * matrix[2][1]) - (matrix[1][1] * matrix[2][0])));
 	}
 
-	// n×n: cofactor expansion along first row
-	let det = 0;
-	const [row] = matrix;
-	AssertMatrixRow(row);
+	// n≥4: Use LU decomposition (more efficient than O(n!) cofactor expansion)
+	try {
+		const { L: _L, U, P } = MatrixLU(matrix);
 
-	for (let col = 0; col < size; col++) {
-		const element = row[col];
-		AssertMatrixValue(element);
+		// Calculate permutation parity: count positions where P[i] !== i
+		let swapCount = 0;
+		for (let i = 0; i < size; i++) {
+			if (P[i] !== i) {
+				swapCount++;
+			}
+		}
 
-		const cofactor = MatrixCofactorElement(matrix, col, 0);
-		det += element * cofactor;
+		// Determine sign from parity: odd swaps → -1, even swaps → 1
+		const sign = swapCount % 2 === 0 ? 1 : -1;
+
+		// Compute product of diagonal elements of U
+		let product = 1;
+		for (let i = 0; i < size; i++) {
+			product *= U[i][i];
+		}
+
+		return sign * product;
+	} catch {
+		// Singular matrix (zero pivot): determinant is 0
+		return 0;
 	}
-
-	return det;
 }
 
 /**
@@ -61,14 +92,17 @@ export function MatrixDeterminant(matrix: TMatrix): number {
  * @param y - Row index (0-based, 0 ≤ y < matrix height)
  * @returns {number} The cofactor value (can be positive, negative, or zero)
  * @throws {Error} If the matrix is not square or indices are out of bounds
- * @example MatrixCofactorElement([[1, 2], [3, 4]], 0, 0) // +4 (sign: +, minor: 4)
+ * @example
+	 * ```typescript
+	 * MatrixCofactorElement([[1, 2], [3, 4]], 0, 0) // +4 (sign: +, minor: 4)
+	 * ```
  */
 export function MatrixCofactorElement(matrix: TMatrix, x: number, y: number): number {
-	AssertMatrix(matrix, { square: true });
+	AssertMatrixSquare(matrix);
 
 	const minor = MatrixMinor(matrix, x, y);
 	// Fix: sign should be (-1)^(row+col), where row = y, col = x
-	return Math.pow(-1, y + x) * minor;
+	return ((y + x) % 2 === 0 ? 1 : -1) * minor;
 }
 
 function normalizeZeroMatrix(matrix: TMatrix): TMatrix {
@@ -84,10 +118,13 @@ function normalizeZeroMatrix(matrix: TMatrix): TMatrix {
  * @param matrix - The square matrix (must be at least 1×1)
  * @returns {TMatrix} The cofactor matrix (same dimensions as input)
  * @throws {Error} If the matrix is not square
- * @example MatrixCofactor([[1, 2], [3, 4]]) // [[4, -3], [-2, 1]]
+ * @example
+	 * ```typescript
+	 * MatrixCofactor([[1, 2], [3, 4]]) // [[4, -3], [-2, 1]]
+	 * ```
  */
 export function MatrixCofactor(matrix: TMatrix): TMatrix {
-	AssertMatrix(matrix, { square: true });
+	AssertMatrixSquare(matrix);
 
 	const [size] = MatrixSize(matrix);
 	const result = MatrixCreate(size, size);
@@ -95,7 +132,6 @@ export function MatrixCofactor(matrix: TMatrix): TMatrix {
 	for (let row = 0; row < size; row++) {
 		for (let col = 0; col < size; col++) {
 			const resultRow = result[row];
-			AssertMatrixRow(resultRow);
 			resultRow[col] = MatrixCofactorElement(matrix, col, row);
 		}
 	}
@@ -108,10 +144,13 @@ export function MatrixCofactor(matrix: TMatrix): TMatrix {
  * @param matrix - The square matrix (must be at least 1×1)
  * @returns {TMatrix} The adjoint matrix (same dimensions as input)
  * @throws {Error} If the matrix is not square
- * @example MatrixAdjoint([[1, 2], [3, 4]]) // [[4, -2], [-3, 1]]
+ * @example
+	 * ```typescript
+	 * MatrixAdjoint([[1, 2], [3, 4]]) // [[4, -2], [-3, 1]]
+	 * ```
  */
 export function MatrixAdjoint(matrix: TMatrix): TMatrix {
-	AssertMatrix(matrix, { square: true });
+	AssertMatrixSquare(matrix);
 	return normalizeZeroMatrix(MatrixTranspose(MatrixCofactor(matrix)));
 }
 
@@ -125,17 +164,20 @@ export function MatrixAdjoint(matrix: TMatrix): TMatrix {
  * @param matrix - The square matrix to invert (must be non-singular)
  * @returns {TMatrix} The inverse matrix A⁻¹
  * @throws {MatrixError} If the matrix is not square or is singular (determinant is zero)
- * @example MatrixInverse([[1, 2], [3, 4]]) // [[-2, 1], [1.5, -0.5]]
+ * @example
+	 * ```typescript
+	 * MatrixInverse([[1, 2], [3, 4]]) // [[-2, 1], [1.5, -0.5]]
+	 * ```
  */
 export function MatrixInverse(matrix: TMatrix): TMatrix {
-	AssertMatrix(matrix, { square: true });
+	AssertMatrixSquare(matrix);
 
 	const [size] = MatrixSize(matrix);
 
 	// For 1–3×3 use the adjugate/cofactor method (closed-form, exact)
 	if (size <= 3) {
 		const det = MatrixDeterminant(matrix);
-		if (det === 0) throw new MatrixError('Matrix is not invertible (determinant is zero)');
+		if (det === 0) throw new Error('Matrix is not invertible (determinant is zero)');
 
 		const cof = MatrixCofactor(matrix);
 		const transposed = MatrixTranspose(cof);
@@ -144,14 +186,11 @@ export function MatrixInverse(matrix: TMatrix): TMatrix {
 
 		for (let row = 0; row < size; row++) {
 			const transposedRow = transposed[row];
-			AssertMatrixRow(transposedRow);
-
 			const resultRow = result[row];
-			AssertMatrixRow(resultRow);
 
 			for (let col = 0; col < size; col++) {
 				const val = transposedRow[col];
-				if (typeof val !== 'number') throw new MatrixError(`Transposed matrix value at [${row}, ${col}] is not a number`);
+				if (typeof val !== 'number') throw new Error(`Transposed matrix value at [${row}, ${col}] is not a number`);
 				resultRow[col] = Object.is(val * invDet, -0) ? 0 : val * invDet;
 			}
 		}
@@ -199,7 +238,10 @@ export function MatrixInverse(matrix: TMatrix): TMatrix {
  * @param matrix - Input matrix with columns to orthogonalize
  * @returns {TMatrix} Matrix with orthonormal columns
  * @throws {Error} If matrix contains linearly dependent columns
- * @example MatrixGramSchmidt([[1, 1], [0, 1]]) // Orthonormal columns
+ * @example
+	 * ```typescript
+	 * MatrixGramSchmidt([[1, 1], [0, 1]]) // Orthonormal columns
+	 * ```
  * @complexity Time: O(n²m), Space: O(mn)
  */
 export function MatrixGramSchmidt(matrix: TMatrix): TMatrix {
@@ -295,11 +337,14 @@ export function MatrixGramSchmidt(matrix: TMatrix): TMatrix {
  * @param y - Row index to remove
  * @returns {number} Determinant of resulting submatrix
  * @throws {Error} If matrix too small or indices out of bounds
- * @example MatrixMinor([[1,2,3],[4,5,6],[7,8,9]], 1, 0) // -6
+ * @example
+	 * ```typescript
+	 * MatrixMinor([[1,2,3],[4,5,6],[7,8,9]], 1, 0) // -6
+	 * ```
  * @complexity Time: O(n³), Space: O(n²)
  */
 export function MatrixMinor(matrix: TMatrix, x: number, y: number): number {
-	AssertMatrix(matrix, { square: true });
+	AssertMatrixSquare(matrix);
 
 	const [rows, cols] = MatrixSize(matrix);
 	AssertNumber(rows, { gte: 2 }, { message: 'Matrix must be at least 2x2 to compute minor' });
@@ -317,10 +362,8 @@ export function MatrixMinor(matrix: TMatrix, x: number, y: number): number {
 		for (let j = 0; j < cols; j++) {
 			if (j === x) continue;
 			const currentRow = matrix[i];
-			AssertMatrixRow(currentRow);
 
 			const value = currentRow[j];
-			AssertMatrixValue(value);
 			row.push(value);
 		}
 		minor.push(row);

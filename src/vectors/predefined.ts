@@ -3,7 +3,7 @@
  * Provides convenient constructors for standard vectors used in graphics, physics, and mathematics.
  */
 
-import { TVector, TVector2, TVector3, TVector4 } from './types.js';
+import type { TVector, TVector2, TVector3, TVector4 } from './types.js';
 
 type TVectorSize3 = 3;
 type TVectorSize4 = 4;
@@ -63,8 +63,8 @@ export function VectorOne(size: number): TVector | TVector2 | TVector3 | TVector
  *
  * @example
 	 * ```typescript
-	 * const upDirection = Vector2_Up(); // Character movement upward
-	 * const velocity = Vector2_Up().map(c => c * speed); // Moving up at given speed
+	 * const upDirection = Vector2Up(); // Character movement upward
+	 * const velocity = Vector2Up().map(c => c * speed); // Moving up at given speed
 	 * ```
  */
 export function Vector2Up(): TVector2 {
@@ -79,8 +79,8 @@ export function Vector2Up(): TVector2 {
  *
  * @example
 	 * ```typescript
-	 * const worldUp = Vector3_Up(); // World space up direction
-	 * const jumpForce = Vector3_Up().map(c => c * jumpStrength);
+	 * const worldUp = Vector3Up(); // World space up direction
+	 * const jumpForce = Vector3Up().map(c => c * jumpStrength);
 	 * ```
  */
 export function Vector3Up(): TVector3 {
@@ -92,6 +92,10 @@ export function Vector3Up(): TVector3 {
  * Useful in homogeneous coordinates and 4D transformations.
  *
  * @returns [0, 1, 0, 0] - Unit vector in positive Y direction
+ * @example
+	 * ```typescript
+	 * const up4 = Vector4Up(); // [0, 1, 0, 0]
+	 * ```
  */
 export function Vector4Up(): TVector4 {
 	return [0, 1, 0, 0];
@@ -105,8 +109,8 @@ export function Vector4Up(): TVector4 {
  *
  * @example
 	 * ```typescript
-	 * const gravity = Vector2_Down().map(c => c * 9.81); // Gravity force
-	 * const dropDirection = Vector2_Down(); // Object falling down
+	 * const gravity = Vector2Down().map(c => c * 9.81); // Gravity force
+	 * const dropDirection = Vector2Down(); // Object falling down
 	 * ```
  */
 export function Vector2Down(): TVector2 {
@@ -133,6 +137,10 @@ export function Vector3Down(): TVector3 {
  * Creates a 4D unit vector pointing downward (negative Y direction).
  *
  * @returns [0, -1, 0, 0] - Unit vector in negative Y direction
+ * @example
+	 * ```typescript
+	 * const down4 = Vector4Down(); // [0, -1, 0, 0]
+	 * ```
  */
 export function Vector4Down(): TVector4 {
 	return [0, -1, 0, 0];
@@ -173,6 +181,10 @@ export function Vector3Left(): TVector3 {
  * Creates a 4D unit vector pointing left (negative X direction).
  *
  * @returns [-1, 0, 0, 0] - Unit vector in negative X direction
+ * @example
+	 * ```typescript
+	 * const left4 = Vector4Left(); // [-1, 0, 0, 0]
+	 * ```
  */
 export function Vector4Left(): TVector4 {
 	return [-1, 0, 0, 0];
@@ -213,6 +225,10 @@ export function Vector3Right(): TVector3 {
  * Creates a 4D unit vector pointing right (positive X direction).
  *
  * @returns [1, 0, 0, 0] - Unit vector in positive X direction
+ * @example
+	 * ```typescript
+	 * const right4 = Vector4Right(); // [1, 0, 0, 0]
+	 * ```
  */
 export function Vector4Right(): TVector4 {
 	return [1, 0, 0, 0];
@@ -239,6 +255,10 @@ export function Vector3Forward(): TVector3 {
  * Creates a 4D unit vector pointing forward (positive Z direction).
  *
  * @returns [0, 0, 1, 0] - Unit vector in positive Z direction
+ * @example
+	 * ```typescript
+	 * const forward4 = Vector4Forward(); // [0, 0, 1, 0]
+	 * ```
  */
 export function Vector4Forward(): TVector4 {
 	return [0, 0, 1, 0];
@@ -265,6 +285,10 @@ export function Vector3Backward(): TVector3 {
  * Creates a 4D unit vector pointing backward (negative Z direction).
  *
  * @returns [0, 0, -1, 0] - Unit vector in negative Z direction
+ * @example
+	 * ```typescript
+	 * const backward4 = Vector4Backward(); // [0, 0, -1, 0]
+	 * ```
  */
 export function Vector4Backward(): TVector4 {
 	return [0, 0, -1, 0];

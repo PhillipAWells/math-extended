@@ -3,9 +3,9 @@
  * Provides comprehensive conversion between different rotation formats.
  */
 
-import { TMatrix4 } from '../matrices/types.js';
+import type { TMatrix4 } from '../matrices/types.js';
 import { AssertNormalizedQuaternion, AssertRotationMatrix } from './asserts.js';
-import { TQuaternion, TRotationMatrix } from './types.js';
+import type { TQuaternion, TRotationMatrix } from './types.js';
 
 const SHEPPERD_QUARTER = 0.25;
 
@@ -17,11 +17,11 @@ const SHEPPERD_QUARTER = 0.25;
  * @returns 3x3 rotation matrix as TMatrix3
  *
  * @example
-	 * ```typescript
-	 * const q = [0, 0, 0.707, 0.707]; // 90° rotation around Z-axis
-	 * const matrix = QuaternionToRotationMatrix(q);
-	 * // matrix represents rotation that transforms +X to +Y
-	 * ```
+ * ```typescript
+ * const q = [0, 0, 0.707, 0.707]; // 90° rotation around Z-axis
+ * const matrix = QuaternionToRotationMatrix(q);
+ * // matrix represents rotation that transforms +X to +Y
+ * ```
  */
 export function QuaternionToRotationMatrix(quaternion: TQuaternion): TRotationMatrix {
 	AssertNormalizedQuaternion(quaternion);
@@ -52,11 +52,11 @@ export function QuaternionToRotationMatrix(quaternion: TQuaternion): TRotationMa
  * @returns Normalized quaternion representing the same rotation
  *
  * @example
-	 * ```typescript
-	 * const identityMatrix = [[1, 0, 0], [0, 1, 0], [0, 0, 1]];
-	 * const q = QuaternionFromRotationMatrix(identityMatrix);
-	 * console.log(q); // [0, 0, 0, 1] (identity quaternion)
-	 * ```
+ * ```typescript
+ * const identityMatrix = [[1, 0, 0], [0, 1, 0], [0, 0, 1]];
+ * const q = QuaternionFromRotationMatrix(identityMatrix);
+ * console.log(q); // [0, 0, 0, 1] (identity quaternion)
+ * ```
  */
 export function QuaternionFromRotationMatrix(matrix: TRotationMatrix): TQuaternion {
 	AssertRotationMatrix(matrix);
@@ -110,11 +110,11 @@ export function QuaternionFromRotationMatrix(matrix: TRotationMatrix): TQuaterni
  * @returns 4x4 transformation matrix as a flat array of 16 elements (row-major)
  *
  * @example
-	 * ```typescript
-	 * const q = [0, 0, 0, 1]; // Identity quaternion
-	 * const matrix4x4 = QuaternionToTransformationMatrix(q);
-	 * // Returns identity 4x4 matrix
-	 * ```
+ * ```typescript
+ * const q = [0, 0, 0, 1]; // Identity quaternion
+ * const matrix4x4 = QuaternionToTransformationMatrix(q);
+ * // Returns identity 4x4 matrix
+ * ```
  */
 export function QuaternionToTransformationMatrix(quaternion: TQuaternion): TMatrix4 {
 	const rotationMatrix = QuaternionToRotationMatrix(quaternion);
@@ -135,11 +135,11 @@ export function QuaternionToTransformationMatrix(quaternion: TQuaternion): TMatr
  * @returns Normalized quaternion representing the rotation component
  *
  * @example
-	 * ```typescript
-	 * const transformMatrix = [1, 0, 0, 5, 0, 1, 0, 10, 0, 0, 1, 15, 0, 0, 0, 1];
-	 * const q = QuaternionFromTransformationMatrix(transformMatrix);
-	 * // Extracts rotation (identity in this case), ignores translation [5, 10, 15]
-	 * ```
+ * ```typescript
+ * const transformMatrix = [1, 0, 0, 5, 0, 1, 0, 10, 0, 0, 1, 15, 0, 0, 0, 1];
+ * const q = QuaternionFromTransformationMatrix(transformMatrix);
+ * // Extracts rotation (identity in this case), ignores translation [5, 10, 15]
+ * ```
  */
 export function QuaternionFromTransformationMatrix(matrix: TMatrix4): TQuaternion {
 	// Extract 3x3 rotation matrix from 4x4 transformation matrix
@@ -161,10 +161,10 @@ export function QuaternionFromTransformationMatrix(matrix: TMatrix4): TQuaternio
  * @returns True if the matrix is a valid rotation matrix
  *
  * @example
-	 * ```typescript
-	 * const matrix = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]; // Identity matrix
-	 * console.log(IsValidRotationMatrix(matrix)); // true
-	 * ```
+ * ```typescript
+ * const matrix = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]; // Identity matrix
+ * console.log(IsValidRotationMatrix(matrix)); // true
+ * ```
  */
 export function IsValidRotationMatrix(matrix: TRotationMatrix, tolerance: number = 1e-6): boolean {
 	AssertRotationMatrix(matrix);

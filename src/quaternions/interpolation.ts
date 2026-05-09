@@ -5,11 +5,10 @@
 
 import { AssertArray, AssertNumber } from '@pawells/typescript-common';
 import { AssertNormalizedQuaternion } from './asserts.js';
-import { TQuaternion } from './types.js';
-import { QuaternionSLERP, QuaternionNormalize, QuaternionMultiply, QuaternionInverse } from './core.js';
+import type { TQuaternion } from './types.js';
+import { QuaternionSLERP, QuaternionNormalize, QuaternionMultiply, QuaternionInverse, QUATERNION_TOLERANCE } from './core.js';
+import { VectorMagnitude } from '../vectors/core.js';
 import { Clamp } from '../clamp.js';
-
-const QUATERNION_LOG_TOLERANCE = 1e-6;
 
 /**
  * Performs normalized linear interpolation (NLERP) between two quaternions.
@@ -22,11 +21,11 @@ const QUATERNION_LOG_TOLERANCE = 1e-6;
  * @returns Interpolated and normalized quaternion
  *
  * @example
-	 * ```typescript
-	 * const q1 = [0, 0, 0, 1];
-	 * const q2 = [0, 0, 0.707, 0.707];
-	 * const interpolated = QuaternionNLERP(q1, q2, 0.5);
-	 * ```
+ * ```typescript
+ * const q1 = [0, 0, 0, 1];
+ * const q2 = [0, 0, 0.707, 0.707];
+ * const interpolated = QuaternionNLERP(q1, q2, 0.5);
+ * ```
  */
 export function QuaternionNLERP(a: TQuaternion, b: TQuaternion, t: number): TQuaternion {
 	AssertNormalizedQuaternion(a);
@@ -62,11 +61,11 @@ export function QuaternionNLERP(a: TQuaternion, b: TQuaternion, t: number): TQua
  * @returns Smoothly interpolated quaternion
  *
  * @example
-	 * ```typescript
-	 * // Create a smooth path through multiple rotations
-	 * const path = [q0, q1, q2, q3]; // Array of quaternions
-	 * const smooth = QuaternionSQUAD(path[0], path[1], path[2], path[3], 0.5);
-	 * ```
+ * ```typescript
+ * // Create a smooth path through multiple rotations
+ * const path = [q0, q1, q2, q3]; // Array of quaternions
+ * const smooth = QuaternionSQUAD(path[0], path[1], path[2], path[3], 0.5);
+ * ```
  */
 export function QuaternionSQUAD(q0: TQuaternion, q1: TQuaternion, q2: TQuaternion, q3: TQuaternion, t: number): TQuaternion {
 	AssertNormalizedQuaternion(q0);
@@ -131,9 +130,9 @@ function quaternionLog(quaternion: TQuaternion): TQuaternion {
 	AssertNormalizedQuaternion(quaternion);
 
 	const [x, y, z, w] = quaternion;
-	const vectorLength = Math.sqrt((x * x) + (y * y) + (z * z));
+	const vectorLength = VectorMagnitude([x, y, z]);
 
-	if (vectorLength < QUATERNION_LOG_TOLERANCE) return [0, 0, 0, 0];
+	if (vectorLength < QUATERNION_TOLERANCE) return [0, 0, 0, 0];
 
 	const angle = Math.atan2(vectorLength, w);
 	const scale = angle / vectorLength;
@@ -150,9 +149,9 @@ function quaternionLog(quaternion: TQuaternion): TQuaternion {
  */
 function quaternionExp(quaternion: TQuaternion): TQuaternion {
 	const [x, y, z, w] = quaternion;
-	const vectorLength = Math.sqrt((x * x) + (y * y) + (z * z));
+	const vectorLength = VectorMagnitude([x, y, z]);
 
-	if (vectorLength < QUATERNION_LOG_TOLERANCE) return [0, 0, 0, 1];
+	if (vectorLength < QUATERNION_TOLERANCE) return [0, 0, 0, 1];
 
 	const expW = Math.exp(w);
 	const cosV = Math.cos(vectorLength);
@@ -177,11 +176,11 @@ function quaternionExp(quaternion: TQuaternion): TQuaternion {
  * @returns Function that takes t ∈ [0, 1] and returns interpolated quaternion
  *
  * @example
-	 * ```typescript
-	 * const path = [q1, q2, q3, q4];
-	 * const interpolator = QuaternionCreatePath(path, 'slerp');
-	 * const halfway = interpolator(0.5); // Interpolated quaternion at 50% along path
-	 * ```
+ * ```typescript
+ * const path = [q1, q2, q3, q4];
+ * const interpolator = QuaternionCreatePath(path, 'slerp');
+ * const halfway = interpolator(0.5); // Interpolated quaternion at 50% along path
+ * ```
  */
 export function QuaternionCreatePath(
 	quaternions: TQuaternion[],

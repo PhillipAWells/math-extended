@@ -1,14 +1,17 @@
-import { AssertMatrix, AssertMatrixRow, AssertMatrixValue } from './asserts.js';
+import { AssertMatrix, MatrixError } from './asserts.js';
 import { MatrixSize } from './core.js';
 import { MatrixSVD } from './decompositions.js';
-import { TMatrix } from './types.js';
+import type { TMatrix } from './types.js';
 
 /**
  * Computes the Frobenius norm (Euclidean norm) of a matrix.
  * @param matrix - The input matrix (any dimensions)
  * @returns {number} The Frobenius norm (always non-negative)
  * @throws {Error} If the matrix contains invalid values
- * @example MatrixFrobeniusNorm([[3, 4], [0, 0]]) // 5 (sqrt(3² + 4²))
+ * @example
+ * ```typescript
+ * MatrixFrobeniusNorm([[3, 4], [0, 0]]) // 5 (sqrt(3² + 4²))
+ * ```
  */
 export function MatrixFrobeniusNorm(matrix: TMatrix): number {
 	AssertMatrix(matrix);
@@ -18,11 +21,9 @@ export function MatrixFrobeniusNorm(matrix: TMatrix): number {
 
 	for (let row = 0; row < rows; row++) {
 		const matrixRow = matrix[row];
-		AssertMatrixRow(matrixRow, { rowIndex: row });
 
 		for (let col = 0; col < cols; col++) {
 			const val = matrixRow[col];
-			AssertMatrixValue(val, { rowIndex: row, columnIndex: col });
 			// Add square of each element to the sum
 			sum += val * val;
 		}
@@ -37,7 +38,10 @@ export function MatrixFrobeniusNorm(matrix: TMatrix): number {
  * @param matrix - The input matrix
  * @returns {number} The spectral norm (always non-negative)
  * @throws {Error} If the matrix contains invalid values
- * @example MatrixSpectralNorm([[3, 0], [0, 4]]) // 4 (largest singular value)
+ * @example
+ * ```typescript
+ * MatrixSpectralNorm([[3, 0], [0, 4]]) // 4 (largest singular value)
+ * ```
  */
 export function MatrixSpectralNorm(matrix: TMatrix): number {
 	AssertMatrix(matrix);
@@ -57,7 +61,10 @@ export function MatrixSpectralNorm(matrix: TMatrix): number {
  * @param matrix - The input matrix
  * @returns {number} The 1-norm (always non-negative)
  * @throws {Error} If the matrix contains invalid values
- * @example Matrix1Norm([[1, 2], [3, 4]]) // 6 (max of column sums: 4, 6)
+ * @example
+ * ```typescript
+ * Matrix1Norm([[1, 2], [3, 4]]) // 6 (max of column sums: 4, 6)
+ * ```
  */
 export function Matrix1Norm(matrix: TMatrix): number {
 	AssertMatrix(matrix);
@@ -72,10 +79,8 @@ export function Matrix1Norm(matrix: TMatrix): number {
 		// Sum absolute values in this column
 		for (let row = 0; row < rows; row++) {
 			const matrixRow = matrix[row];
-			AssertMatrixRow(matrixRow, { rowIndex: row });
 
 			const val = matrixRow[col];
-			AssertMatrixValue(val, { rowIndex: row, columnIndex: col });
 			columnSum += Math.abs(val);
 		}
 
@@ -90,7 +95,10 @@ export function Matrix1Norm(matrix: TMatrix): number {
  * @param matrix - The input matrix
  * @returns {number} The infinity norm (always non-negative)
  * @throws {Error} If the matrix contains invalid values
- * @example MatrixInfinityNorm([[1, 2], [3, 4]]) // 7 (max of row sums: 3, 7)
+ * @example
+ * ```typescript
+ * MatrixInfinityNorm([[1, 2], [3, 4]]) // 7 (max of row sums: 3, 7)
+ * ```
  */
 export function MatrixInfinityNorm(matrix: TMatrix): number {
 	AssertMatrix(matrix);
@@ -101,14 +109,12 @@ export function MatrixInfinityNorm(matrix: TMatrix): number {
 	// Iterate through each row
 	for (let row = 0; row < rows; row++) {
 		const matrixRow = matrix[row];
-		AssertMatrixRow(matrixRow, { rowIndex: row });
 
 		let rowSum = 0;
 
 		// Sum absolute values in this row
 		for (let col = 0; col < cols; col++) {
 			const val = matrixRow[col];
-			AssertMatrixValue(val, { rowIndex: row, columnIndex: col });
 			rowSum += Math.abs(val);
 		}
 
@@ -124,7 +130,10 @@ export function MatrixInfinityNorm(matrix: TMatrix): number {
  * @param matrix - The input matrix
  * @returns {number} The nuclear norm (always non-negative)
  * @throws {Error} If the matrix contains invalid values
- * @example MatrixNuclearNorm([[3, 0], [0, 4]]) // 7 (sum of singular values: 3 + 4)
+ * @example
+ * ```typescript
+ * MatrixNuclearNorm([[3, 0], [0, 4]]) // 7 (sum of singular values: 3 + 4)
+ * ```
  */
 export function MatrixNuclearNorm(matrix: TMatrix): number {
 	AssertMatrix(matrix);
@@ -145,7 +154,10 @@ export function MatrixNuclearNorm(matrix: TMatrix): number {
  * @param matrix - The input matrix
  * @returns {number} The max norm (always non-negative)
  * @throws {Error} If the matrix contains invalid values
- * @example MatrixMaxNorm([[1, -5], [3, 2]]) // 5 (max absolute value)
+ * @example
+ * ```typescript
+ * MatrixMaxNorm([[1, -5], [3, 2]]) // 5 (max absolute value)
+ * ```
  */
 export function MatrixMaxNorm(matrix: TMatrix): number {
 	AssertMatrix(matrix);
@@ -155,11 +167,9 @@ export function MatrixMaxNorm(matrix: TMatrix): number {
 
 	for (let row = 0; row < rows; row++) {
 		const matrixRow = matrix[row];
-		AssertMatrixRow(matrixRow, { rowIndex: row });
 
 		for (let col = 0; col < cols; col++) {
 			const val = matrixRow[col];
-			AssertMatrixValue(val, { rowIndex: row, columnIndex: col });
 			maxValue = Math.max(maxValue, Math.abs(val));
 		}
 	}
@@ -173,29 +183,26 @@ export function MatrixMaxNorm(matrix: TMatrix): number {
  * @param p - The norm parameter (must be >= 1)
  * @returns {number} The p-norm (always non-negative)
  * @throws {Error} If the matrix contains invalid values or p < 1
- * @example MatrixPNorm([[1, 2], [3, 4]], 1) // 10 (sum of absolute values)
+ * @example
+ * ```typescript
+ * MatrixPNorm([[1, 2], [3, 4]], 1) // 10 (sum of absolute values)
+ * ```
  */
 export function MatrixPNorm(matrix: TMatrix, p: number): number {
 	AssertMatrix(matrix);
 
-	if (p < 1) {
-		throw new Error('p-norm parameter must be >= 1');
-	}
+	if (p < 1) 		throw new MatrixError('p-norm parameter must be >= 1');
 
-	if (p === Infinity) {
-		return MatrixMaxNorm(matrix);
-	}
+	if (p === Infinity) 	return MatrixMaxNorm(matrix);
 
 	const [rows, cols] = MatrixSize(matrix);
 	let sum = 0;
 
 	for (let row = 0; row < rows; row++) {
 		const matrixRow = matrix[row];
-		AssertMatrixRow(matrixRow, { rowIndex: row });
 
 		for (let col = 0; col < cols; col++) {
 			const val = matrixRow[col];
-			AssertMatrixValue(val, { rowIndex: row, columnIndex: col });
 			sum += Math.pow(Math.abs(val), p);
 		}
 	}
