@@ -19,7 +19,7 @@ yarn add @pawells/math-extended
 
 ## Usage
 
-All exports are available as individual named imports for tree-shaking, or grouped via namespace imports for convenience.
+All exports are available as individual named imports for tree-shaking optimization.
 
 ### Direct Named Imports (Tree-Shaking Friendly)
 
@@ -43,28 +43,21 @@ const v = SmoothStep(0, 10, 0.5); // 5
 const rad = DegreesToRadians(180); // Math.PI
 ```
 
-### Namespace Imports (Grouped)
-
-Import related utilities together using namespace imports:
-
-```typescript
-import { VectorUtils, MatrixUtils, QuaternionUtils } from '@pawells/math-extended';
-
-// Access utilities via namespace
-VectorUtils.VectorAdd([1, 0, 0], [0, 1, 0]);
-MatrixUtils.MatrixMultiply(matA, matB);
-QuaternionUtils.QuaternionSLERP(q1, q2, 0.5);
-```
 
 ### Import Patterns
 
 | Pattern | Best For | Example |
 |---------|----------|---------|
 | **Direct named** | Tree-shaking, small imports | `import { VectorAdd } from '@pawells/math-extended'` |
-| **Namespace** | Grouping related functions | `import { VectorUtils } from '@pawells/math-extended'` |
-| **Mixed** | Flexibility | Both patterns together |
+| **Mixed** | Flexibility | Multiple imports together |
 
 ## API
+
+### Core
+
+| Export | Description |
+|--------|-------------|
+| `CubeRoot(value)` | Compute the cube root of a number |
 
 ### Angles
 
@@ -106,7 +99,7 @@ All interpolation functions share the signature `(a, b, t)`. `t` is typically in
 | `CosineInterpolation` | Cosine interpolation |
 | `CatmullRomInterpolation` | Catmull-Rom spline `(p0, p1, p2, p3, t)` |
 | `HermiteInterpolation` | Hermite spline `(p0, p1, t0, t1, t)` |
-| `SphericalLinearInterpolation` | Shortest-arc scalar SLERP |
+| `SphericalLinearInterpolation` | **@deprecated** Identical to `LinearInterpolation`. Use `QuaternionSLERP` for true spherical interpolation. |
 | `StepInterpolation` | Step function with configurable threshold |
 | `QuadraticEaseIn/Out/InOut` | Quadratic easing |
 | `CubicEaseIn/Out/InOut` | Cubic easing |
@@ -172,11 +165,11 @@ Every scalar easing function has a `Vector*` counterpart (e.g., `VectorSmoothSte
 
 #### Assertions
 
-`AssertVector`, `AssertVector2`, `AssertVector3`, `AssertVector4`, `AssertVectorValue`, `AssertVectors`, `VectorError`
+`AssertVector`, `AssertVector2`, `AssertVector3`, `AssertVector4`, `AssertVectorNonZero`, `AssertVectorSameSize`, `ValidateVector`, `ValidateVector2`, `ValidateVector3`, `ValidateVector4`, `ValidateVectorSameSize`, `VectorError`
 
 ### Matrices
 
-Matrices are `number[][]` arrays (`IMatrix`, `IMatrix1`–`IMatrix4`). All operations return new matrices.
+Matrices are `number[][]` arrays (`TMatrix`, `TMatrix1`–`TMatrix4`). All operations return new matrices.
 
 #### Core
 
@@ -266,7 +259,7 @@ Matrices are `number[][]` arrays (`IMatrix`, `IMatrix1`–`IMatrix4`). All opera
 
 #### Assertions
 
-`AssertMatrix`, `AssertMatrix1`–`AssertMatrix4`, `AssertMatrixRow`, `AssertMatrixValue`, `AssertMatrices`, `MatrixError`
+`AssertMatrix`, `AssertMatrix1`–`AssertMatrix4`, `AssertMatrixSquare`, `AssertMatricesCompatible`, `ValidateMatrix`, `ValidateMatrix1`–`ValidateMatrix4`, `ValidateMatrixSquare`, `MatrixError`
 
 ### Quaternions
 
@@ -318,6 +311,7 @@ Quaternions are `[x, y, z, w]` tuples (`TQuaternion`).
 
 `AssertQuaternion`, `AssertQuaternions`, `AssertNormalizedQuaternion`, `AssertAxisAngle`, `AssertEulerAngles`, `AssertRotationMatrix`, `QuaternionError`
 
+
 ## Development
 
 ```bash
@@ -328,7 +322,7 @@ yarn watch          # Watch mode
 yarn typecheck      # Type check without building
 yarn lint           # ESLint
 yarn lint:fix       # ESLint with auto-fix
-yarn test           # Run tests (1080 tests)
+yarn test           # Run tests (1137 tests)
 yarn test:ui        # Interactive Vitest UI
 yarn test:coverage  # Tests with coverage report
 ```
@@ -339,4 +333,4 @@ yarn test:coverage  # Tests with coverage report
 
 ## License
 
-MIT — See [LICENSE](./LICENSE) for details.
+This project is licensed under the [MIT License](LICENSE).
