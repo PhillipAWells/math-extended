@@ -1,0 +1,38 @@
+{
+	"name": "@pawells/math-extended",
+	"version": "3.0.0",
+	"author": {
+		"name": "Phillip Aaron Wells",
+		"email": "69355326+PhillipAWells@users.noreply.github.com"
+	},
+	"homepage": "https://github.com/PhillipAWells/math-extended",
+	"repository": {
+		"url": "https://github.com/PhillipAWells/math-extended.git"
+	},
+	"funding": {
+		"type": "github",
+		"url": "https://github.com/sponsors/PhillipAWells"
+	},
+	"type": "module",
+	"main": "./dist/index.js",
+	"module": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"exports": {
+		"./package.json": "./package.json",
+		".": {
+			"@pawells/math-extended-workspace": "./src/index.ts",
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js",
+			"default": "./dist/index.js"
+		}
+	},
+	"files": [
+		"dist",
+		"!**/*.tsbuildinfo"
+	],
+	"dependencies": {
+		"@pawells/typescript-common": "^2.0.0",
+		"tslib": "^2.3.0",
+		"zod": "^4.4.3"
+	}
+}
