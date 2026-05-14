@@ -1,0 +1,15 @@
+src/
+*.spec.ts
+*.test.ts
+.github/
+.husky/
+.vscode/
+.serena/
+.git/
+.gitignore
+tsconfig*.json
+vitest.*
+eslint.config.mjs
+nx.json
+CHANGELOG.md
+CONTRIBUTING.md

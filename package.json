@@ -2,7 +2,17 @@
   "name": "@pawells/math-extended-workspace",
   "license": "MIT",
   "private": true,
+  "packageManager": "yarn@4.14.1",
+  "engines": {
+    "node": ">=22.0.0"
+  },
   "scripts": {
+    "build": "nx run-many -t build",
+    "lint": "nx run-many -t lint",
+    "typecheck": "nx run-many -t typecheck",
+    "test": "nx run-many -t test",
+    "test:coverage": "nx run-many -t test -- --coverage",
+    "clean": "nx run-many -t clean",
     "prepare": "husky"
   },
   "devDependencies": {
@@ -14,7 +24,7 @@
     "@swc-node/register": "1.11.1",
     "@swc/core": "1.15.8",
     "@swc/helpers": "0.5.18",
-    "@types/node": "20.19.9",
+    "@types/node": "~22.0.0",
     "@vitest/coverage-v8": "~4.1.0",
     "eslint": "^9.8.0",
     "eslint-config-prettier": "^10.0.0",

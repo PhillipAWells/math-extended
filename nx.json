@@ -9,7 +9,7 @@
       "!{projectRoot}/**/?(*.)+(spec|test).[jt]s?(x)?(.snap)",
       "!{projectRoot}/tsconfig.spec.json"
     ],
-    "sharedGlobals": []
+    "sharedGlobals": ["{workspaceRoot}/tsconfig.base.json"]
   },
   "plugins": [
     {
@@ -37,7 +37,7 @@
       "options": {
         "testTargetName": "test",
         "ciTargetName": "test-ci",
-        "testMode": "watch"
+        "testMode": "run"
       }
     }
   ],
@@ -45,7 +45,7 @@
   "analytics": false,
   "release": {
     "version": {
-      "preVersionCommand": "yarn dlx nx run-many -t build"
+      "preVersionCommand": "yarn nx run-many -t build"
     }
   },
   "targetDefaults": {
