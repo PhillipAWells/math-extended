@@ -762,7 +762,7 @@ export function BounceEaseInOut(a: number, b: number, t: number): number {
  * StepInterpolation(0, 10, 0.3, 0.25)  // 10 (above custom threshold of 0.25)
  * ```
  */
-export function StepInterpolation(a: number, b: number, t: number, threshold: number = 0.5): number {
+export function StepInterpolation(a: number, b: number, t: number, threshold = 0.5): number {
 	const clampedT = Clamp(t, 0, 1);
 	const clampedThreshold = Clamp(threshold, 0, 1);
 

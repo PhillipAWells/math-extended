@@ -65,7 +65,7 @@ export function AssertQuaternion(quaternion: unknown): asserts quaternion is TQu
  * AssertNormalizedQuaternion([1, 1, 1, 1]); // Throws - not normalized
  * ```
  */
-export function AssertNormalizedQuaternion(quaternion: TQuaternion, tolerance: number = 1e-6): void {
+export function AssertNormalizedQuaternion(quaternion: TQuaternion, tolerance = 1e-6): void {
 	AssertQuaternion(quaternion);
 
 	// Type guard to establish type narrowing for TypeScript
@@ -233,7 +233,7 @@ export function ValidateQuaternion(quaternion: unknown): quaternion is TQuaterni
  * }
  * ```
  */
-export function ValidateNormalizedQuaternion(quaternion: TQuaternion, tolerance: number = 1e-6): boolean {
+export function ValidateNormalizedQuaternion(quaternion: TQuaternion, tolerance = 1e-6): boolean {
 	try {
 		AssertNormalizedQuaternion(quaternion, tolerance);
 		return true;

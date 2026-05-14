@@ -408,7 +408,7 @@ export function VectorCircularEaseOut<T extends TVector>(a: T, b: T, t: number):
  * const result2 = VectorStepInterpolation(off, on, 0.7); // [1, 1] (>= 0.5)
  * ```
  */
-export function VectorStepInterpolation<T extends TVector>(a: T, b: T, t: number, threshold: number = 0.5): TVectorResult<T> {
+export function VectorStepInterpolation<T extends TVector>(a: T, b: T, t: number, threshold = 0.5): TVectorResult<T> {
 	AssertVector(a);
 	AssertVector(b);
 	AssertVectorSameSize([a, b]);

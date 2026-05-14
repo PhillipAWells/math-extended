@@ -45,7 +45,7 @@ export function VectorClone<T extends TAnyVector>(vector: T): TVectorResult<T> {
  * const approximatelyEqual = VectorEquals(a, b, 0.001); // true
  * ```
  */
-export function VectorEquals<T extends TAnyVector>(a: T, b: T, tolerance: number = 0): boolean {
+export function VectorEquals<T extends TAnyVector>(a: T, b: T, tolerance = 0): boolean {
 	if (!ValidateVectorSameSize([a, b])) return false;
 
 	AssertVector(a);
@@ -860,7 +860,7 @@ export function VectorClamp<T extends TAnyVector>(a: T, min: T | number, max: T 
  * const orthonormal = VectorGramSchmidt(vectors, true); // Orthonormal set
  * ```
  */
-export function VectorGramSchmidt<T extends TAnyVector>(vectors: T[], normalize: boolean = false): TVectorResult<T>[] {
+export function VectorGramSchmidt<T extends TAnyVector>(vectors: T[], normalize = false): TVectorResult<T>[] {
 	if (vectors.length === 0) throw new VectorError('GramSchmidt: Empty Vector Set');
 	const [firstVector] = vectors;
 	if (!firstVector) throw new VectorError('GramSchmidt: Undefined First Vector');

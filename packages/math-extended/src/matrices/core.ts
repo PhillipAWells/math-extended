@@ -139,7 +139,7 @@ export function MatrixSizeSquare(matrix: TMatrix): number {
  * MatrixIsZero([[0.1, 0], [0, 0]]) // false
  * ```
  */
-export function MatrixIsZero(matrix: TMatrix, threshold: number = 1e-14): boolean {
+export function MatrixIsZero(matrix: TMatrix, threshold = 1e-14): boolean {
 	AssertMatrix(matrix);
 
 	const [rows, cols] = MatrixSize(matrix);
@@ -176,7 +176,7 @@ export function MatrixIsZero(matrix: TMatrix, threshold: number = 1e-14): boolea
  * MatrixIsIdentity([[1, 1], [0, 1]]) // false
  * ```
  */
-export function MatrixIsIdentity(matrix: TMatrix, threshold: number = 1e-14): boolean {
+export function MatrixIsIdentity(matrix: TMatrix, threshold = 1e-14): boolean {
 	AssertMatrix(matrix);
 
 	const [rows, cols] = MatrixSize(matrix);
@@ -215,7 +215,7 @@ export function MatrixIsIdentity(matrix: TMatrix, threshold: number = 1e-14): bo
  * MatrixIsSymmetric([[1, 2, 3], [2, 5, 4], [3, 4, 6]]) // true
  * ```
  */
-export function MatrixIsSymmetric(matrix: TMatrix, threshold: number = 1e-14): boolean {
+export function MatrixIsSymmetric(matrix: TMatrix, threshold = 1e-14): boolean {
 	AssertMatrix(matrix);
 
 	const [rows, cols] = MatrixSize(matrix);
@@ -257,7 +257,7 @@ export function MatrixIsSymmetric(matrix: TMatrix, threshold: number = 1e-14): b
  * MatrixIsDiagonal([[1, 2], [0, 1]]) // false
  * ```
  */
-export function MatrixIsDiagonal(matrix: TMatrix, threshold: number = 1e-14): boolean {
+export function MatrixIsDiagonal(matrix: TMatrix, threshold = 1e-14): boolean {
 	AssertMatrix(matrix);
 
 	const [rows, cols] = MatrixSize(matrix);
@@ -350,7 +350,7 @@ export function MatrixClone<T extends TMatrix>(matrix: T): TMatrixResult<T> {
  * MatrixEquals([[1, 2]], [[1, 3]]) // false
  * ```
  */
-export function MatrixEquals(a: TMatrix, b: TMatrix, tolerance: number = 1e-8): boolean {
+export function MatrixEquals(a: TMatrix, b: TMatrix, tolerance = 1e-8): boolean {
 	AssertMatrix(a);
 	AssertMatrix(b);
 	AssertNumber(tolerance, { gte: 0 }, { message: 'Tolerance must be a non-negative number' });
@@ -392,7 +392,7 @@ export function MatrixEquals(a: TMatrix, b: TMatrix, tolerance: number = 1e-8): 
  * MatrixToString([[1, 2], [3, 4]], 0) // "[ 1, 2 ]\n[ 3, 4 ]"
  * ```
  */
-export function MatrixToString(matrix: TMatrix, precision: number = 2): string {
+export function MatrixToString(matrix: TMatrix, precision = 2): string {
 	AssertMatrix(matrix);
 	AssertNumber(precision, { integer: true, gte: 0 }, { message: 'Precision must be a non-negative integer' });
 
@@ -420,7 +420,7 @@ export function MatrixToString(matrix: TMatrix, precision: number = 2): string {
  * MatrixRank([[1, 0], [0, 1]]) // 2 (full rank)
  * ```
  */
-export function MatrixRank(matrix: TMatrix, tolerance: number = 1e-10): number {
+export function MatrixRank(matrix: TMatrix, tolerance = 1e-10): number {
 	AssertMatrix(matrix);
 	AssertNumber(tolerance, { gte: 0 }, { message: 'Tolerance must be a non-negative number' });
 

@@ -145,7 +145,7 @@ export function RandomShuffle<T>(array: T[], clone?: boolean): T[] {
  * RandomBool(0.8) // 80% chance of true
  * ```
  */
-export function RandomBool(probability: number = 0.5): boolean {
+export function RandomBool(probability = 0.5): boolean {
 	if (probability < 0 || probability > 1) throw new RangeError(`Probability must be between 0 and 1, got ${probability}`);
 
 	return Math.random() < probability;
@@ -167,7 +167,7 @@ export function RandomBool(probability: number = 0.5): boolean {
  * RandomNormal(100, 15) // IQ-like distribution (mean=100, std=15)
  * ```
  */
-export function RandomNormal(mean: number = 0, standardDeviation: number = 1): number {
+export function RandomNormal(mean = 0, standardDeviation = 1): number {
 	// Box-Muller transform — u1 must be > 0 to avoid log(0) = -Infinity
 	let u1 = Math.random();
 	/**

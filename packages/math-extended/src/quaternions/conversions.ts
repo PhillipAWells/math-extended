@@ -166,7 +166,7 @@ export function QuaternionFromTransformationMatrix(matrix: TMatrix4): TQuaternio
  * console.log(IsValidRotationMatrix(matrix)); // true
  * ```
  */
-export function IsValidRotationMatrix(matrix: TRotationMatrix, tolerance: number = 1e-6): boolean {
+export function IsValidRotationMatrix(matrix: TRotationMatrix, tolerance = 1e-6): boolean {
 	AssertRotationMatrix(matrix);
 
 	const [[m00, m01, m02], [m10, m11, m12], [m20, m21, m22]] = matrix;

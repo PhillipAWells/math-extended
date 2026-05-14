@@ -240,7 +240,7 @@ export function ValidateVectorSameSize(vectors: unknown[]): boolean {
  * AssertVectorNonZero(zero, 'Direction'); // Throws VectorError: Direction must not be zero
  * ```
  */
-export function AssertVectorNonZero(vector: TVector, label: string = 'Vector'): void {
+export function AssertVectorNonZero(vector: TVector, label = 'Vector'): void {
 	AssertVector(vector);
 	// Check if vector is zero (all components are 0)
 	const isZero = vector.every((v) => v === 0);

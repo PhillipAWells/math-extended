@@ -66,7 +66,7 @@ export function QuaternionClone(quaternion: TQuaternion): TQuaternion {
  * console.log(QuaternionEquals(q1, q2, 1e-6, true)); // true (same rotation)
  * ```
  */
-export function QuaternionEquals(a: TQuaternion, b: TQuaternion, tolerance: number = 1e-6, checkEquivalence: boolean = false): boolean {
+export function QuaternionEquals(a: TQuaternion, b: TQuaternion, tolerance = 1e-6, checkEquivalence = false): boolean {
 	AssertQuaternion(a);
 	AssertQuaternion(b);
 
