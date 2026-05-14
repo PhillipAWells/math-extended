@@ -7,11 +7,16 @@
 	},
 	"homepage": "https://github.com/PhillipAWells/math-extended",
 	"repository": {
+		"type": "git",
 		"url": "https://github.com/PhillipAWells/math-extended.git"
 	},
 	"funding": {
 		"type": "github",
 		"url": "https://github.com/sponsors/PhillipAWells"
+	},
+	"license": "MIT",
+	"engines": {
+		"node": ">=22.0.0"
 	},
 	"type": "module",
 	"main": "./dist/index.js",
@@ -33,6 +38,6 @@
 	"dependencies": {
 		"@pawells/typescript-common": "^2.0.0",
 		"tslib": "^2.3.0",
-		"zod": "^4.4.3"
+		"zod": "~4.4.3"
 	}
 }
