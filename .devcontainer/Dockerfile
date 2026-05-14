@@ -30,7 +30,7 @@ RUN groupadd --gid 1000 dev \
 
 USER dev
 ENV HOME=/home/dev
-ENV PATH="$HOME/.yarn/bin:$HOME/.local/bin:${PATH}"
+ENV PATH="$HOME/.local/bin:${PATH}"
 
 # Ensure ~/.local/bin is in PATH for interactive shell sessions
 RUN echo 'export PATH="$HOME/.local/bin:$PATH"' >> /home/dev/.bashrc
