@@ -431,7 +431,6 @@ describe('Quaternion Conversions', () => {
 		});
 
 		test('should handle rotation matrices very close to identity', () => {
-			const _epsilon = 1e-7;
 			const verySmallAngle = (Math.PI * 0.001 / 180);
 			const cos_eps = Math.cos(verySmallAngle);
 			const sin_eps = Math.sin(verySmallAngle);
@@ -471,7 +470,6 @@ describe('Quaternion Conversions', () => {
 		test('should handle matrices where multiple diagonal elements are nearly equal', () => {
 			// Create a valid rotation matrix using quaternion composition
 			const quat1 = QuaternionRotationX((Math.PI / 4));
-			const _quat2 = QuaternionRotationY((Math.PI * 44 / 180));
 			
 			// Compose rotations and convert back
 			const matrix = QuaternionToRotationMatrix(quat1);
@@ -508,6 +506,101 @@ describe('Quaternion Conversions', () => {
 				for (let j = 0; j < 3; j++) {
 					expect(converted[i][j]).toBeCloseTo(basis90[i][j], 4);
 				}
+			}
+		});
+	});
+
+	describe('QuaternionFromRotationMatrix - Shepperd algorithm branches', () => {
+		test('should handle case where m00 is the largest diagonal element', () => {
+			// Rotation around X-axis where m00 can be largest in certain configurations
+			const angle = 0.5; // radians
+			const quat = QuaternionRotationX(angle);
+			const matrix = QuaternionToRotationMatrix(quat);
+
+			const result = QuaternionFromRotationMatrix(matrix);
+			expect(result).toHaveLength(4);
+			// Verify it's a unit quaternion
+			const magnitude = Math.sqrt((result[0] ** 2) + (result[1] ** 2) + (result[2] ** 2) + (result[3] ** 2));
+			expect(magnitude).toBeCloseTo(1.0, 5);
+		});
+
+		test('should handle case where m11 is the largest diagonal element', () => {
+			// Rotation primarily around Y-axis where m11 stays large
+			const angle = (Math.PI / 3);
+			const quat = QuaternionRotationY(angle);
+			const matrix = QuaternionToRotationMatrix(quat);
+
+			// For Y-axis rotation: m11 = 1 always (largest)
+			expect(Math.abs(matrix[1][1])).toBeCloseTo(1, 5);
+
+			const result = QuaternionFromRotationMatrix(matrix);
+			expect(result).toHaveLength(4);
+			const magnitude = Math.sqrt((result[0] ** 2) + (result[1] ** 2) + (result[2] ** 2) + (result[3] ** 2));
+			expect(magnitude).toBeCloseTo(1.0, 5);
+
+			// Verify round-trip
+			const matrixBack = QuaternionToRotationMatrix(result);
+			for (let i = 0; i < 3; i++) {
+				for (let j = 0; j < 3; j++) {
+					expect(matrixBack[i][j]).toBeCloseTo(matrix[i][j], 4);
+				}
+			}
+		});
+
+		test('should handle case where m22 is the largest diagonal element', () => {
+			// Small rotation where m22 remains largest (close to 1)
+			const quat = QuaternionRotationZ(0.1);
+			const matrix = QuaternionToRotationMatrix(quat);
+
+			// For Z rotation, m22 = 1 always (largest)
+			expect(matrix[2][2]).toBeCloseTo(1, 5);
+
+			const result = QuaternionFromRotationMatrix(matrix);
+			expect(result).toHaveLength(4);
+			const magnitude = Math.sqrt((result[0] ** 2) + (result[1] ** 2) + (result[2] ** 2) + (result[3] ** 2));
+			expect(magnitude).toBeCloseTo(1.0, 5);
+		});
+
+		test('should handle case where trace is largest (identity-like matrix)', () => {
+			// Very small rotation keeps trace largest
+			const verySmallAngle = (Math.PI * 0.001 / 180);
+			const quat = QuaternionRotationZ(verySmallAngle);
+			const matrix = QuaternionToRotationMatrix(quat);
+
+			// For very small angle, trace = 1 + 1 + 1 + small ≈ 3 (largest)
+			const trace = matrix[0][0] + matrix[1][1] + matrix[2][2];
+			expect(trace).toBeGreaterThan(2.9);
+
+			const result = QuaternionFromRotationMatrix(matrix);
+			expect(result).toHaveLength(4);
+			const magnitude = Math.sqrt((result[0] ** 2) + (result[1] ** 2) + (result[2] ** 2) + (result[3] ** 2));
+			expect(magnitude).toBeCloseTo(1.0, 5);
+
+			// Verify round-trip
+			expect(QuaternionEquals(quat, result, TOLERANCE, true)).toBe(true);
+		});
+
+		test('should exercise all Shepperd branches with diverse rotation angles', () => {
+			const testAngles = [0.1, 0.5, 1.0, (Math.PI / 4), (Math.PI / 3), (Math.PI / 2)];
+
+			for (const angle of testAngles) {
+				// Test X rotation
+				const quatX = QuaternionRotationX(angle);
+				const matrixX = QuaternionToRotationMatrix(quatX);
+				const resultX = QuaternionFromRotationMatrix(matrixX);
+				expect(QuaternionEquals(quatX, resultX, TOLERANCE, true)).toBe(true);
+
+				// Test Y rotation
+				const quatY = QuaternionRotationY(angle);
+				const matrixY = QuaternionToRotationMatrix(quatY);
+				const resultY = QuaternionFromRotationMatrix(matrixY);
+				expect(QuaternionEquals(quatY, resultY, TOLERANCE, true)).toBe(true);
+
+				// Test Z rotation
+				const quatZ = QuaternionRotationZ(angle);
+				const matrixZ = QuaternionToRotationMatrix(quatZ);
+				const resultZ = QuaternionFromRotationMatrix(matrixZ);
+				expect(QuaternionEquals(quatZ, resultZ, TOLERANCE, true)).toBe(true);
 			}
 		});
 	});
