@@ -20,18 +20,20 @@ jobs:
     name: Publish
     needs: [ci]
     runs-on: ubuntu-latest
+    env:
+      HUSKY: '0'
     permissions:
       contents: write
       id-token: write
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: Enable corepack
         run: corepack enable
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v4
         with:
           node-version: '24'
           registry-url: 'https://registry.npmjs.org'
@@ -44,9 +46,12 @@ jobs:
         run: yarn build
 
       - name: Publish to npm
+        working-directory: packages/math-extended
         run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v3
+        uses: softprops/action-gh-release@v2
         with:
           generate_release_notes: true
