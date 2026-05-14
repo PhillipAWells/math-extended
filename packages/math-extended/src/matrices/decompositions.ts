@@ -251,15 +251,18 @@ export function MatrixEigen(matrix: TMatrix): TEigenDecompositionResult {
 		// For each eigenvalue, find the corresponding eigenvector
 		if (Math.abs(b) > MATRIX_NUMERICAL_TOLERANCE && Math.abs(c) < MATRIX_NUMERICAL_TOLERANCE) {
 			// Upper-triangular or b ≠ 0, c ≈ 0
-			// First eigenvector: [1, 0] (for lambda1 = a)
-			// Second eigenvector: [1, (lambda2 - a)/b]
+			// Eigenvalues are diagonal elements: a and d
 			const [eigenvectorsRow0, eigenvectorsRow1] = eigenvectors;
 
+			// First eigenvector for eigenvalue that equals 'a'
 			eigenvectorsRow0[0] = 1;
 			eigenvectorsRow1[0] = 0;
 
-			eigenvectorsRow0[1] = 1;
-			eigenvectorsRow1[1] = (lambda2 - a) / b;
+			// Second eigenvector for eigenvalue that equals 'd'
+			// For (A - d*I)v = 0: [[a-d, b], [0, 0]]v = 0 => (a-d)*v[0] + b*v[1] = 0
+			// Solution: v = [b, -(a-d)] = [b, d-a]
+			eigenvectorsRow0[1] = b;
+			eigenvectorsRow1[1] = d - a;
 		} else if (Math.abs(c) > MATRIX_NUMERICAL_TOLERANCE) {
 			// Use the first row to find eigenvectors when c ≠ 0
 			const [eigenvectorsRow0, eigenvectorsRow1] = eigenvectors;
@@ -690,6 +693,13 @@ export function MatrixQR(matrix: TMatrix, allowDependentColumns = false): TQRDec
  * - Computes U = A V Σ⁻¹ for the left singular vectors
  * - Applies Gram-Schmidt to ensure orthogonality of U
  * - Handles edge cases for 1×1, single row, and single column matrices
+ *
+ * **Numerical Stability Warning:**
+ * This implementation uses eigendecomposition of A^T A, which squares the condition number (κ²).
+ * For ill-conditioned matrices (high condition number), this approach loses precision.
+ * Direct SVD algorithms (Golub-Kahan-Reinsch) maintain better numerical stability but are more complex.
+ * This implementation is suitable for graphics, animation, and other non-critical applications.
+ * For production numerical computing with ill-conditioned matrices, consider specialized linear algebra libraries.
  *
  * @param matrix - Matrix to decompose (any m×n matrix)
  * @returns Object containing U, S (singular values), and VT matrices
