@@ -6,6 +6,7 @@ import {
 	AssertVector4,
 	AssertVectorSameSize,
 	ValidateVectorSameSize,
+	AssertVectorNonZero,
 } from './asserts.js';
 
 describe('Vector Assertions', () => {
@@ -157,6 +158,60 @@ describe('Vector Assertions', () => {
 		it('should not throw on invalid input', () => {
 			expect(() => ValidateVectorSameSize([])).not.toThrow();
 			expect(() => ValidateVectorSameSize([[1, 2], 'invalid' as unknown])).not.toThrow();
+		});
+	});
+
+	describe('AssertVectorNonZero', () => {
+		it('should pass for non-zero vectors', () => {
+			expect(() => AssertVectorNonZero([1, 0, 0])).not.toThrow();
+			expect(() => AssertVectorNonZero([0, 1, 0])).not.toThrow();
+			expect(() => AssertVectorNonZero([0.00001, 0, 0])).not.toThrow();
+			expect(() => AssertVectorNonZero([1])).not.toThrow();
+			expect(() => AssertVectorNonZero([1, 1, 1, 1])).not.toThrow();
+		});
+
+		it('should throw for zero vector', () => {
+			expect(() => AssertVectorNonZero([0, 0, 0])).toThrow();
+		});
+
+		it('should throw with zero vector message', () => {
+			expect(() => AssertVectorNonZero([0, 0, 0])).toThrow('must not be zero');
+		});
+
+		it('should throw with custom label', () => {
+			expect(() => AssertVectorNonZero([0, 0], 'input direction')).toThrow('input direction');
+		});
+
+		it('should work with 2D zero vectors', () => {
+			expect(() => AssertVectorNonZero([0, 0])).toThrow();
+		});
+
+		it('should work with 3D zero vectors', () => {
+			expect(() => AssertVectorNonZero([0, 0, 0])).toThrow();
+		});
+
+		it('should work with 4D zero vectors', () => {
+			expect(() => AssertVectorNonZero([0, 0, 0, 0])).toThrow();
+		});
+
+		it('should work with single element zero vector', () => {
+			expect(() => AssertVectorNonZero([0])).toThrow();
+		});
+
+		it('should throw on invalid input', () => {
+			expect(() => AssertVectorNonZero(null as any)).toThrow();
+			expect(() => AssertVectorNonZero(undefined as any)).toThrow();
+			expect(() => AssertVectorNonZero('invalid' as any)).toThrow();
+		});
+
+		it('should handle negative and positive components correctly', () => {
+			expect(() => AssertVectorNonZero([-1, 0, 0])).not.toThrow();
+			expect(() => AssertVectorNonZero([1, -1, 0])).not.toThrow();
+		});
+
+		it('should handle very small non-zero values', () => {
+			expect(() => AssertVectorNonZero([1e-10, 0, 0])).not.toThrow();
+			expect(() => AssertVectorNonZero([0, 1e-15, 0])).not.toThrow();
 		});
 	});
 });
