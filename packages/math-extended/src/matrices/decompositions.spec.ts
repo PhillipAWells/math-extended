@@ -706,4 +706,245 @@ describe('Matrix Decompositions', () => {
 			expect(eigenvectors?.length).toBe(3);
 		});
 	});
+
+	describe('MatrixLU - Permutation handling (critical branches)', () => {
+		it('should correctly compute LU with row permutation for ill-conditioned leading element', () => {
+			// Matrix that requires row swaps during pivoting
+			const A = [
+				[0.001, 2, 3],
+				[1, 2, 3],
+				[2, 3, 4],
+			];
+
+			const { L, U, P } = MatrixLU(A);
+
+			// Verify PA = LU algebraically
+			// First construct the permuted matrix
+			const PA: number[][] = [];
+			for (let i = 0; i < 3; i++) {
+				PA[i] = [...(A[P[i]] as number[])];
+			}
+
+			// Compute LU
+			const LU: number[][] = [
+				[0, 0, 0],
+				[0, 0, 0],
+				[0, 0, 0],
+			];
+			for (let i = 0; i < 3; i++) {
+				for (let j = 0; j < 3; j++) {
+					let sum = 0;
+					for (let k = 0; k < 3; k++) {
+						sum += ((L[i] as number[])[k] as number) * ((U[k] as number[])[j] as number);
+					}
+					(LU[i] as number[])[j] = sum;
+				}
+			}
+
+			// Verify each element
+			for (let i = 0; i < 3; i++) {
+				for (let j = 0; j < 3; j++) {
+					expect((LU[i] as number[])[j]).toBeCloseTo((PA[i] as number[])[j], 5);
+				}
+			}
+		});
+
+		it('should have valid permutation matrix P (orthogonal: P * P^T = I)', () => {
+			const A = [[2, 1], [1, 3]];
+			const { P } = MatrixLU(A);
+
+			// Build permutation matrix from P array
+			const permMatrix: number[][] = [
+				[0, 0],
+				[0, 0],
+			];
+			for (let i = 0; i < 2; i++) {
+				(permMatrix[i] as number[])[P[i]] = 1;
+			}
+
+			// Compute P * P^T
+			const PPt: number[][] = [
+				[0, 0],
+				[0, 0],
+			];
+			for (let i = 0; i < 2; i++) {
+				for (let j = 0; j < 2; j++) {
+					let sum = 0;
+					for (let k = 0; k < 2; k++) {
+						sum += ((permMatrix[i] as number[])[k] as number) * ((permMatrix[j] as number[])[k] as number);
+					}
+					(PPt[i] as number[])[j] = sum;
+				}
+			}
+
+			// Verify PPt = I
+			for (let i = 0; i < 2; i++) {
+				for (let j = 0; j < 2; j++) {
+					const expected = i === j ? 1 : 0;
+					expect((PPt[i] as number[])[j]).toBeCloseTo(expected, 5);
+				}
+			}
+		});
+
+		it('should handle 4x4 matrix with multiple permutations', () => {
+			// Use a non-singular 4x4 matrix - create one by starting with a diagonal matrix
+			// and adding small perturbations
+			const A = [
+				[0.1, 0.01, 0.02, 0.03],
+				[0.04, 0.2, 0.05, 0.06],
+				[0.07, 0.08, 0.3, 0.09],
+				[0.1, 0.11, 0.12, 0.4],
+			];
+
+			const { L, U, P } = MatrixLU(A);
+
+			// Reconstruct permuted matrix
+			const PA: number[][] = [];
+			for (let i = 0; i < 4; i++) {
+				PA[i] = [...(A[P[i]] as number[])];
+			}
+
+			// Compute LU product
+			const LU: number[][] = [
+				[0, 0, 0, 0],
+				[0, 0, 0, 0],
+				[0, 0, 0, 0],
+				[0, 0, 0, 0],
+			];
+			for (let i = 0; i < 4; i++) {
+				for (let j = 0; j < 4; j++) {
+					let sum = 0;
+					for (let k = 0; k < 4; k++) {
+						sum += ((L[i] as number[])[k] as number) * ((U[k] as number[])[j] as number);
+					}
+					(LU[i] as number[])[j] = sum;
+				}
+			}
+
+			// Verify decomposition holds
+			for (let i = 0; i < 4; i++) {
+				for (let j = 0; j < 4; j++) {
+					expect((LU[i] as number[])[j]).toBeCloseTo((PA[i] as number[])[j], 4);
+				}
+			}
+		});
+
+		it('should preserve permutation validity across different matrix sizes', () => {
+			const testMatrices = [
+				// 2x2 with small leading element
+				[[0.01, 1], [1, 2]],
+				// 3x3 with diagonal-dominant structure
+				[[0.1, 0.01, 0.02], [0.03, 0.2, 0.04], [0.05, 0.06, 0.3]],
+				// 4x4 with diagonal-dominant structure
+				[[0.1, 0.01, 0.02, 0.03], [0.04, 0.2, 0.05, 0.06], [0.07, 0.08, 0.3, 0.09], [0.1, 0.11, 0.12, 0.4]],
+			];
+
+			for (const A of testMatrices) {
+				const { L: _L, U: _U, P } = MatrixLU(A);
+				const n = A.length;
+
+				// Verify P is a valid permutation of [0, 1, ..., n-1]
+				expect(P).toHaveLength(n);
+				const seen = new Set(P);
+				expect(seen.size).toBe(n);
+				for (let i = 0; i < n; i++) {
+					expect(P).toContain(i);
+				}
+			}
+		});
+
+		it('should handle matrix requiring swap in first column', () => {
+			// First element is very small, requiring row swap
+			const A = [
+				[1e-10, 1, 2],
+				[3, 4, 5],
+				[6, 7, 8],
+			];
+
+			const { L, U, P } = MatrixLU(A);
+
+			// Verify that P[0] != 0 (first row was swapped)
+			expect(P[0]).not.toBe(0);
+
+			// Verify PA = LU
+			const PA: number[][] = [];
+			for (let i = 0; i < 3; i++) {
+				PA[i] = [...(A[P[i]] as number[])];
+			}
+
+			const LU: number[][] = [
+				[0, 0, 0],
+				[0, 0, 0],
+				[0, 0, 0],
+			];
+			for (let i = 0; i < 3; i++) {
+				for (let j = 0; j < 3; j++) {
+					let sum = 0;
+					for (let k = 0; k < 3; k++) {
+						sum += ((L[i] as number[])[k] as number) * ((U[k] as number[])[j] as number);
+					}
+					(LU[i] as number[])[j] = sum;
+				}
+			}
+
+			for (let i = 0; i < 3; i++) {
+				for (let j = 0; j < 3; j++) {
+					expect((LU[i] as number[])[j]).toBeCloseTo((PA[i] as number[])[j], 4);
+				}
+			}
+		});
+
+		it('should correctly handle matrix with swaps in multiple columns', () => {
+			// Matrix designed to require pivoting in multiple steps
+			const A = [
+				[0.01, 1, 2],
+				[3, 0.001, 5],
+				[6, 7, 0.01],
+			];
+
+			const { L, U, P } = MatrixLU(A);
+
+			// Verify L is unit lower triangular
+			for (let i = 0; i < 3; i++) {
+				expect((L[i] as number[])[i]).toBeCloseTo(1, 5);
+				for (let j = i + 1; j < 3; j++) {
+					expect((L[i] as number[])[j]).toBeCloseTo(0, 5);
+				}
+			}
+
+			// Verify U is upper triangular
+			for (let i = 0; i < 3; i++) {
+				for (let j = 0; j < i; j++) {
+					expect((U[i] as number[])[j]).toBeCloseTo(0, 5);
+				}
+			}
+
+			// Verify PA = LU
+			const PA: number[][] = [];
+			for (let i = 0; i < 3; i++) {
+				PA[i] = [...(A[P[i]] as number[])];
+			}
+
+			const LU: number[][] = [
+				[0, 0, 0],
+				[0, 0, 0],
+				[0, 0, 0],
+			];
+			for (let i = 0; i < 3; i++) {
+				for (let j = 0; j < 3; j++) {
+					let sum = 0;
+					for (let k = 0; k < 3; k++) {
+						sum += ((L[i] as number[])[k] as number) * ((U[k] as number[])[j] as number);
+					}
+					(LU[i] as number[])[j] = sum;
+				}
+			}
+
+			for (let i = 0; i < 3; i++) {
+				for (let j = 0; j < 3; j++) {
+					expect((LU[i] as number[])[j]).toBeCloseTo((PA[i] as number[])[j], 4);
+				}
+			}
+		});
+	});
 });
