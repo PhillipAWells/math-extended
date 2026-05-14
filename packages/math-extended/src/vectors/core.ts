@@ -407,9 +407,10 @@ export function VectorAngle(a: TVector, b: TVector): number {
 	AssertVector(b);
 	AssertVectorSameSize([a, b]);
 	if (VectorIsZero(a) || VectorIsZero(b)) throw new VectorError('Cannot Calculate Angle with Zero Vectors');
+	const magA = VectorMagnitude(a);
+	const magB = VectorMagnitude(b);
 	const dot = VectorDot(a, b);
-	const magProduct = VectorMagnitude(a) * VectorMagnitude(b);
-	const cosTheta = Clamp(dot / magProduct, -1, 1);
+	const cosTheta = Clamp(dot / (magA * magB), -1, 1);
 	return Math.acos(cosTheta);
 }
 
