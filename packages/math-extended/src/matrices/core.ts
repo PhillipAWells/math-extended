@@ -43,6 +43,11 @@ export function MatrixCreate(rows?: number, cols?: number): TMatrix | TMatrix1 |
 		return [[0]] as TMatrix1;
 	}
 
+	// Validate parameters before switch for early error detection
+	const effectiveCols = cols ?? rows;
+	AssertNumber(rows, { integer: true, gte: 0 }, { message: 'Rows must be a non-negative integer' });
+	AssertNumber(effectiveCols, { integer: true, gte: 0 }, { message: 'Columns must be a non-negative integer' });
+
 	// Handle single parameter - create square matrix
 	if (cols === undefined) {
 		// Return specific types for common square matrices
@@ -70,11 +75,6 @@ export function MatrixCreate(rows?: number, cols?: number): TMatrix | TMatrix1 |
 		}
 	}
 
-	// Validate parameters
-	const effectiveCols = cols ?? rows;
-	AssertNumber(rows, { integer: true, gte: 0 }, { message: 'Rows must be a non-negative integer' });
-	AssertNumber(effectiveCols, { integer: true, gte: 0 }, { message: 'Columns must be a non-negative integer' });
-
 	const result: number[][] = [];
 
 	// Create each row filled with zeros
@@ -97,7 +97,7 @@ export function MatrixCreate(rows?: number, cols?: number): TMatrix | TMatrix1 |
  */
 export function MatrixSize(matrix: TMatrix): [number, number] {
 	// Basic validation without calling AssertMatrix to avoid circular dependency
-	if (!Array.isArray(matrix)) throw new Error('Input must be an array');
+	if (!Array.isArray(matrix)) throw new MatrixError('Input must be an array');
 
 	// Handle empty matrix or matrix with no columns
 	if (matrix.length === 0 || !Array.isArray(matrix[0])) return [0, 0];
@@ -431,8 +431,12 @@ export function MatrixRank(matrix: TMatrix, tolerance = 1e-10): number {
 	const mat = matrix.map((row) => [...row]);
 	let rank = 0;
 	const rowUsed = new Array(rows).fill(false);
+	const maxRank = Math.min(rows, cols);
 
 	for (let col = 0; col < cols; col++) {
+		// Early termination if rank has reached maximum possible value
+		if (rank === maxRank) break;
+
 		let pivotRow = -1;
 
 		for (let row = 0; row < rows; row++) {
@@ -575,11 +579,11 @@ export function MatrixMap<T extends TMatrix>(matrix: T, fn: (value: number, row:
 	for (let row = 0; row < rows; row++) {
 		const matrixRow = matrix[row];
 
-		const newRow: number[] = [];
+		const newRow: number[] = new Array(cols);
 
 		for (let col = 0; col < cols; col++) {
 			const val = matrixRow[col];
-			newRow.push(fn(val, row, col));
+			newRow[col] = fn(val, row, col);
 		}
 		result.push(newRow);
 	}
