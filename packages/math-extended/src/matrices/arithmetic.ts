@@ -1,6 +1,6 @@
 import { AssertNumber } from '@pawells/typescript-common';
 import { AssertMatricesCompatible, AssertMatrix, AssertMatrix1, AssertMatrix2, AssertMatrix3, AssertMatrix4, AssertMatrixSquare, MatrixError } from './asserts.js';
-import { MatrixCreate, MatrixSize } from './core.js';
+import { MatrixCreate, MatrixSize, MatrixTranspose } from './core.js';
 import type { TMatrix, TMatrix1, TMatrix2, TMatrix3, TMatrix4, TMatrixResult } from './types.js';
 import type { TVector, TVector2, TVector3, TVector4 } from '../vectors/types.js';
 import { ValidateVector, AssertVector } from '../vectors/asserts.js';
@@ -571,27 +571,27 @@ function matrixMultiplyMatrix(a: TMatrix, b: TMatrix): TMatrix {
 	}
 
 	// Standard O(n³) algorithm for general case: C[i,j] = Σ(A[i,k] × B[k,j])
+	// For cache efficiency on large matrices, transpose B first so we iterate row-wise
+	// instead of column-wise, improving CPU cache locality (spatial locality)
+	// After transpose: BT[j][k] = B[k][j], so we access BT sequentially by row
+	const BT = MatrixTranspose(b);
 	const result = MatrixCreate(arows, bcols);
 
-	// Iterate through each position in the result matrix
-	for (let row = 0; row < arows; row++) {
-		const aRow = a[row];
-		const resultRow = result[row];
+	// Iterate A row-wise and BT row-wise for sequential memory access
+	// This improves L3 cache hit rate significantly on large matrices
+	for (let i = 0; i < arows; i++) {
+		const aRow = a[i];
+		const resultRow = result[i];
 
-		for (let col = 0; col < bcols; col++) {
-			let sum = 0;
+		for (let k = 0; k < acols; k++) {
+			const aVal = aRow[k];
+			// Skip zero multiplications (performance optimization)
+			if (aVal === 0) continue;
 
-			// Compute dot product of matrix A row with matrix B column
-			for (let k = 0; k < acols; k++) {
-				const aVal = aRow[k];
-				const bRow = b[k];
-				const bVal = bRow[col];
-
-				// Skip multiplication if either operand is zero (performance optimization)
-				if (aVal === 0 || bVal === 0) continue;
-				sum += aVal * bVal;
+			for (let j = 0; j < bcols; j++) {
+				// BT is bcols × acols, access BT[j][k] which is B[k][j]
+				resultRow[j] += aVal * ((BT[j] as number[])[k] as number);
 			}
-			resultRow[col] = sum;
 		}
 	}
 
@@ -949,10 +949,12 @@ function matrixMultiplyStrassen(a: TMatrix, b: TMatrix): TMatrix {
 	const halfSize = n / 2;
 
 	// Partition matrices into 2×2 blocks: A=[A11 A12; A21 A22], B=[B11 B12; B21 B22]
-	const a11 = MatrixSubmatrix(a, 0, 0, halfSize, halfSize);
-	const a12 = MatrixSubmatrix(a, halfSize, 0, halfSize, halfSize);
-	const a21 = MatrixSubmatrix(a, 0, halfSize, halfSize, halfSize);
-	const a22 = MatrixSubmatrix(a, halfSize, halfSize, halfSize, halfSize);
+	// MatrixSubmatrix(matrix, startCol, startRow, width, height) extracts a rectangular region
+	// All quadrants use (startCol, startRow) = (0,0), (halfSize,0), (0,halfSize), (halfSize,halfSize)
+	const a11 = MatrixSubmatrix(a, 0, 0, halfSize, halfSize);           // top-left: rows[0:n/2], cols[0:n/2]
+	const a12 = MatrixSubmatrix(a, halfSize, 0, halfSize, halfSize);    // top-right: rows[0:n/2], cols[n/2:n]
+	const a21 = MatrixSubmatrix(a, 0, halfSize, halfSize, halfSize);    // bottom-left: rows[n/2:n], cols[0:n/2]
+	const a22 = MatrixSubmatrix(a, halfSize, halfSize, halfSize, halfSize); // bottom-right: rows[n/2:n], cols[n/2:n]
 
 	const b11 = MatrixSubmatrix(b, 0, 0, halfSize, halfSize);
 	const b12 = MatrixSubmatrix(b, halfSize, 0, halfSize, halfSize);
