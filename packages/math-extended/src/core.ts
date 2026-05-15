@@ -21,5 +21,5 @@
  * ```
  */
 export function CubeRoot(value: number): number {
-	return Math.sign(value) * Math.pow(Math.abs(value), 1 / 3);
+	return Math.sign(value) * Math.cbrt(Math.abs(value));
 }
