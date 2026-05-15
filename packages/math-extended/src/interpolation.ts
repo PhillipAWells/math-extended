@@ -3,7 +3,6 @@ import { Clamp } from './clamp.js';
 // ---- Polynomial interpolation constants ----
 const CUBIC = 3;                 // t³ power used in cubic ease, smooth step, etc.
 const QUARTIC = 4;               // t⁴ power used in smoother step / catmull-rom
-const QUINTIC = 5;               // t⁵ power used in smoother step
 // Perlin's smootherstep formula coefficients: 6t⁵ − 15t⁴ + 10t³
 // These create a smooth curve with zero first and second derivatives at endpoints
 const SMOOTHER_COEFF_A = 6;     // 6t⁵ coefficient in SmootherStep
@@ -97,7 +96,7 @@ export function SmoothStep(a: number, b: number, t: number): number {
  */
 export function SmootherStep(a: number, b: number, t: number): number {
 	// Allow extrapolation by not clamping t
-	const smoothT = (SMOOTHER_COEFF_A * Math.pow(t, QUINTIC)) - (SMOOTHER_COEFF_B * Math.pow(t, QUARTIC)) + (SMOOTHER_COEFF_C * Math.pow(t, CUBIC));
+	const smoothT = (SMOOTHER_COEFF_A * (t * t * t * t * t)) - (SMOOTHER_COEFF_B * (t * t * t * t)) + (SMOOTHER_COEFF_C * (t * t * t));
 
 	return a + ((b - a) * smoothT);
 }
@@ -141,7 +140,7 @@ export function QuadraticEaseIn(a: number, b: number, t: number): number {
  */
 export function QuadraticEaseOut(a: number, b: number, t: number): number {
 	// Allow extrapolation by not clamping t
-	return a + ((b - a) * (1 - Math.pow(1 - t, 2)));
+	return a + ((b - a) * (1 - ((1 - t) * (1 - t))));
 }
 
 /**
@@ -183,7 +182,8 @@ export function CubicEaseIn(a: number, b: number, t: number): number {
  */
 export function CubicEaseOut(a: number, b: number, t: number): number {
 	// Allow extrapolation by not clamping t
-	return a + ((b - a) * (1 - Math.pow(1 - t, CUBIC)));
+	const easeOutT = 1 - t;
+	return a + ((b - a) * (1 - (easeOutT * easeOutT * easeOutT)));
 }
 
 /**
@@ -345,7 +345,8 @@ export function BackEaseOut(a: number, b: number, t: number): number {
 	// Allow extrapolation by not clamping t
 	const c1 = 1.70158;
 	const c3 = c1 + 1;
-	const backT = 1 + (c3 * Math.pow(t - 1, CUBIC)) + (c1 * Math.pow(t - 1, 2));
+	const tMinus1 = t - 1;
+	const backT = 1 + (c3 * (tMinus1 * tMinus1 * tMinus1)) + (c1 * (tMinus1 * tMinus1));
 
 	return a + ((b - a) * backT);
 }
@@ -487,7 +488,8 @@ export function CircularEaseIn(a: number, b: number, t: number): number {
  */
 export function CircularEaseOut(a: number, b: number, t: number): number {
 	// Allow extrapolation by not clamping t
-	return a + ((b - a) * Math.sqrt(1 - Math.pow(t - 1, 2)));
+	const tMinus1 = t - 1;
+	return a + ((b - a) * Math.sqrt(1 - (tMinus1 * tMinus1)));
 }
 
 /**
@@ -510,7 +512,7 @@ export function CircularEaseOut(a: number, b: number, t: number): number {
 export function QuadraticEaseInOut(a: number, b: number, t: number): number {
 	const smoothT = t < EASE_INOUT_HALF
 		? 2 * t * t
-		: 1 - (Math.pow(-2 * t + 2, 2) / 2);
+		: 1 - (((-2 * t + 2) * (-2 * t + 2)) / 2);
 	return a + ((b - a) * smoothT);
 }
 
@@ -534,7 +536,7 @@ export function QuadraticEaseInOut(a: number, b: number, t: number): number {
 export function CubicEaseInOut(a: number, b: number, t: number): number {
 	const smoothT = t < EASE_INOUT_HALF
 		? 4 * t * t * t
-		: 1 - (Math.pow(-2 * t + 2, CUBIC) / 2);
+		: 1 - (((-2 * t + 2) * (-2 * t + 2) * (-2 * t + 2)) / 2);
 	return a + ((b - a) * smoothT);
 }
 
@@ -602,8 +604,8 @@ export function ExponentialEaseInOut(a: number, b: number, t: number): number {
  */
 export function CircularEaseInOut(a: number, b: number, t: number): number {
 	const smoothT = t < EASE_INOUT_HALF
-		? (1 - Math.sqrt(1 - Math.pow(2 * t, 2))) / 2
-		: (Math.sqrt(1 - Math.pow(-2 * t + 2, 2)) + 1) / 2;
+		? (1 - Math.sqrt(1 - ((2 * t) * (2 * t)))) / 2
+		: (Math.sqrt(1 - ((-2 * t + 2) * (-2 * t + 2))) + 1) / 2;
 	return a + ((b - a) * smoothT);
 }
 
@@ -696,8 +698,8 @@ export function BackEaseIn(a: number, b: number, t: number): number {
 export function BackEaseInOut(a: number, b: number, t: number): number {
 	const c2 = BACK_EASE_OVERSHOOT_AMPLITUDE * BACK_INOUT_SCALE;
 	const backT = t < EASE_INOUT_HALF
-		? Math.pow(2 * t, 2) * (((c2 + 1) * 2 * t) - c2) / 2
-		: (Math.pow((2 * t) - 2, 2) * (((c2 + 1) * ((2 * t) - 2)) + c2) + 2) / 2;
+		? (((2 * t) * (2 * t)) * (((c2 + 1) * 2 * t) - c2)) / 2
+		: ((((2 * t) - 2) * ((2 * t) - 2)) * (((c2 + 1) * ((2 * t) - 2)) + c2) + 2) / 2;
 	return a + ((b - a) * backT);
 }
 
