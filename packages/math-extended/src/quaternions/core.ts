@@ -221,17 +221,26 @@ export function QuaternionMultiply(a: TQuaternion, b: TQuaternion): TQuaternion 
  * ```
  */
 export function QuaternionFromAxisAngle(axis: TVector3, angle: number): TQuaternion {
-	const normalizedAxis = VectorNormalize(axis);
-	const halfAngle = angle * 0.5;
-	const sinHalf = Math.sin(halfAngle);
-	const cosHalf = Math.cos(halfAngle);
+	try {
+		// AssertVector3 validates that axis is a valid 3D vector
+		const normalizedAxis = VectorNormalize(axis);
+		const halfAngle = angle * 0.5;
+		const sinHalf = Math.sin(halfAngle);
+		const cosHalf = Math.cos(halfAngle);
 
-	return [
-		normalizedAxis[0] * sinHalf,
-		normalizedAxis[1] * sinHalf,
-		normalizedAxis[2] * sinHalf,
-		cosHalf,
-	];
+		return [
+			normalizedAxis[0] * sinHalf,
+			normalizedAxis[1] * sinHalf,
+			normalizedAxis[2] * sinHalf,
+			cosHalf,
+		];
+	} catch (err) {
+		// Convert VectorError to QuaternionError
+		if (err instanceof Error && err.message.includes('Cannot Normalize')) {
+			throw new QuaternionError(`Invalid axis vector: ${err.message}`);
+		}
+		throw err;
+	}
 }
 
 /**

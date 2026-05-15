@@ -4,7 +4,7 @@
  */
 
 import { AssertArray, AssertNumber } from '@pawells/typescript-common';
-import { AssertNormalizedQuaternion } from './asserts.js';
+import { AssertNormalizedQuaternion, QuaternionError } from './asserts.js';
 import type { TQuaternion } from './types.js';
 import { QuaternionSLERP, QuaternionNormalize, QuaternionMultiply, QuaternionInverse, QUATERNION_TOLERANCE } from './core.js';
 import { VectorMagnitude } from '../vectors/core.js';
@@ -215,7 +215,7 @@ export function QuaternionCreatePath(
 		const q2 = quaternions[nextIndex];
 
 		// Ensure we have valid quaternions
-		if (!q1 || !q2) throw new Error('Invalid quaternion path calculation');
+		if (!q1 || !q2) throw new QuaternionError('Invalid quaternion path calculation');
 
 		switch (method) {
 			case 'nlerp':
@@ -226,7 +226,7 @@ export function QuaternionCreatePath(
 				const q3 = quaternions[Math.min(quaternions.length - 1, nextIndex + 1)];
 
 				// Ensure we have valid quaternions
-				if (!q0 || !q3) throw new Error('Invalid quaternion path calculation for SQUAD');
+				if (!q0 || !q3) throw new QuaternionError('Invalid quaternion path calculation for SQUAD');
 
 				return QuaternionSQUAD(q0, q1, q2, q3, segmentT);
 			}
