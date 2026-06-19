@@ -1,0 +1,52 @@
+{
+	"name": "@pawells/math-extended",
+	"displayName": "Math Extended",
+	"version": "3.0.1",
+	"description": "Extended mathematical utilities for TypeScript: vectors, matrices, quaternions, interpolation & easing, angle conversions, clamping, and seedable random helpers.",
+	"keywords": [
+		"math",
+		"mathematics",
+		"utilities",
+		"typescript",
+		"statistics"
+	],
+	"author": {
+		"name": "Phillip Aaron Wells",
+		"email": "69355326+PhillipAWells@users.noreply.github.com"
+	},
+	"homepage": "https://github.com/PhillipAWells/math-extended",
+	"repository": {
+		"url": "https://github.com/PhillipAWells/math-extended.git"
+	},
+	"funding": {
+		"type": "github",
+		"url": "https://github.com/sponsors/PhillipAWells"
+	},
+	"license": "MIT",
+	"engines": {
+		"node": ">=22.0.0"
+	},
+	"type": "module",
+	"main": "./dist/index.js",
+	"module": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"exports": {
+		"./package.json": "./package.json",
+		".": {
+			"local": "./src/index.ts",
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js",
+			"default": "./dist/index.js"
+		}
+	},
+	"files": [
+		"dist",
+		"!**/*.tsbuildinfo",
+		"LICENSE"
+	],
+	"dependencies": {
+		"@pawells/typescript-common": "^3.0.5",
+		"tslib": "^2.3.0",
+		"zod": "~4.4.3"
+	}
+}
