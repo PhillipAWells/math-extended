@@ -5,7 +5,7 @@
 COMMIT_MSG_FILE="$1"
 COMMIT_MSG=$(cat "$COMMIT_MSG_FILE")
 
-if echo "$COMMIT_MSG" | grep -q "Co-Authored-By"; then
+if echo "$COMMIT_MSG" | grep -iqE '^[[:space:]]*co-authored-by:'; then
   cat >&2 <<'EOF'
 
 ❌ Commit rejected: Co-Authored-By line found
