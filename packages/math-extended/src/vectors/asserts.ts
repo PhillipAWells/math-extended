@@ -4,10 +4,11 @@
  * and catch errors early in mathematical operations.
  */
 
+import z from 'zod/v4';
+
 import { BaseError, type TErrorMetadata } from '@pawells/typescript-common';
 import { makeValidate } from '../internal/make-validate.js';
-import { VECTOR2_SCHEMA, VECTOR3_SCHEMA, VECTOR4_SCHEMA, VECTOR_SCHEMA, type TVector, type TVector2, type TVector3, type TVector4 } from './types.js';
-import z from 'zod/v4';
+import { VECTOR_SCHEMA, type TVector, type TVector2, type TVector3, type TVector4 } from './types.js';
 
 /**
  * Vector error class for validation failures and vector operations.
@@ -95,14 +96,16 @@ export type TVectorErrorMetadata = TErrorMetadata;
  * ```
  */
 export function AssertVector(vector: unknown): asserts vector is TVector {
-	try {
-		VECTOR_SCHEMA.parse(vector);
+	if (!Array.isArray(vector)) {
+		throw new VectorError('Invalid vector: Expected array, received ' + typeof vector);
 	}
-	catch (error) {
-		const message = error instanceof Error ? error.message : String(error);
-		throw new VectorError(`Invalid vector: ${message}`, {
-			cause: error instanceof Error ? error : undefined
-		});
+	for (const element of vector) {
+		if (typeof element !== 'number') {
+			throw new VectorError('Invalid vector: Expected number, received ' + typeof element);
+		}
+		if (Number.isNaN(element)) {
+			throw new VectorError('Invalid vector: Expected number, received nan');
+		}
 	}
 }
 /**
@@ -136,14 +139,19 @@ export const ValidateVector: (vector: unknown) => vector is TVector = makeValida
  * ```
  */
 export function AssertVector2(vector: unknown): asserts vector is TVector2 {
-	try {
-		VECTOR2_SCHEMA.parse(vector);
+	if (!Array.isArray(vector)) {
+		throw new VectorError('Invalid 2D vector: Expected array, received ' + typeof vector);
 	}
-	catch (error) {
-		const message = error instanceof Error ? error.message : String(error);
-		throw new VectorError(`Invalid 2D vector: ${message}`, {
-			cause: error instanceof Error ? error : undefined
-		});
+	if (vector.length !== 2) {
+		throw new VectorError('Invalid 2D vector: Vector2 must be an array of 2 numbers [x, y]');
+	}
+	for (const element of vector) {
+		if (typeof element !== 'number') {
+			throw new VectorError('Invalid 2D vector: Expected number, received ' + typeof element);
+		}
+		if (Number.isNaN(element)) {
+			throw new VectorError('Invalid 2D vector: Expected number, received nan');
+		}
 	}
 }
 /**
@@ -177,14 +185,19 @@ export const ValidateVector2: (vector: unknown) => vector is TVector2 = makeVali
  * ```
  */
 export function AssertVector3(vector: unknown): asserts vector is TVector3 {
-	try {
-		VECTOR3_SCHEMA.parse(vector);
+	if (!Array.isArray(vector)) {
+		throw new VectorError('Invalid 3D vector: Expected array, received ' + typeof vector);
 	}
-	catch (error) {
-		const message = error instanceof Error ? error.message : String(error);
-		throw new VectorError(`Invalid 3D vector: ${message}`, {
-			cause: error instanceof Error ? error : undefined
-		});
+	if (vector.length !== 3) {
+		throw new VectorError('Invalid 3D vector: Vector3 must be an array of 3 numbers [x, y, z]');
+	}
+	for (const element of vector) {
+		if (typeof element !== 'number') {
+			throw new VectorError('Invalid 3D vector: Expected number, received ' + typeof element);
+		}
+		if (Number.isNaN(element)) {
+			throw new VectorError('Invalid 3D vector: Expected number, received nan');
+		}
 	}
 }
 /**
@@ -218,14 +231,19 @@ export const ValidateVector3: (vector: unknown) => vector is TVector3 = makeVali
  * ```
  */
 export function AssertVector4(vector: unknown): asserts vector is TVector4 {
-	try {
-		VECTOR4_SCHEMA.parse(vector);
+	if (!Array.isArray(vector)) {
+		throw new VectorError('Invalid 4D vector: Expected array, received ' + typeof vector);
 	}
-	catch (error) {
-		const message = error instanceof Error ? error.message : String(error);
-		throw new VectorError(`Invalid 4D vector: ${message}`, {
-			cause: error instanceof Error ? error : undefined
-		});
+	if (vector.length !== 4) {
+		throw new VectorError('Invalid 4D vector: Vector4 must be an array of 4 numbers [x, y, z, w]');
+	}
+	for (const element of vector) {
+		if (typeof element !== 'number') {
+			throw new VectorError('Invalid 4D vector: Expected number, received ' + typeof element);
+		}
+		if (Number.isNaN(element)) {
+			throw new VectorError('Invalid 4D vector: Expected number, received nan');
+		}
 	}
 }
 /**
@@ -316,14 +334,38 @@ export type TVectorSameSize = z.infer<typeof VECTOR_SAME_SIZE_SCHEMA>;
  * ```
  */
 export function AssertVectorSameSize(vectors: unknown[]): asserts vectors is TVectorSameSize {
-	try {
-		VECTOR_SAME_SIZE_SCHEMA.parse(vectors);
+	if (!Array.isArray(vectors) || vectors.length === 0) {
+		throw new VectorError('Vectors must have same size: Input must be a non-empty array of vectors');
 	}
-	catch (error) {
-		const message = error instanceof Error ? error.message : String(error);
-		throw new VectorError(`Vectors must have same size: ${message}`, {
-			cause: error instanceof Error ? error : undefined
-		});
+
+	const firstVector = vectors[0];
+	if (!Array.isArray(firstVector)) {
+		throw new VectorError('Vectors must have same size: Each item must be an array representing a vector');
+	}
+
+	const size = firstVector.length;
+
+	// Validate first vector is all numbers
+	for (const element of firstVector) {
+		if (typeof element !== 'number' || Number.isNaN(element)) {
+			throw new VectorError('Vectors must have same size: Expected number, received ' + (Number.isNaN(element) ? 'nan' : typeof element));
+		}
+	}
+
+	for (const vector of vectors) {
+		if (!Array.isArray(vector)) {
+			throw new VectorError('Vectors must have same size: Each item must be an array representing a vector');
+		}
+		if (vector.length !== size) {
+			throw new VectorError('Vectors must have same size: All vectors must have the same size. Expected size: ' + size + ', but got: ' + vector.length);
+		}
+
+		// Validate each element is a number
+		for (const element of vector) {
+			if (typeof element !== 'number' || Number.isNaN(element)) {
+				throw new VectorError('Vectors must have same size: Expected number, received ' + (Number.isNaN(element) ? 'nan' : typeof element));
+			}
+		}
 	}
 }
 /**

@@ -1,7 +1,7 @@
-import { BaseError, GetErrorMessage, type TErrorMetadata } from '@pawells/typescript-common';
+import { BaseError, type TErrorMetadata } from '@pawells/typescript-common';
 import { makeValidate } from '../internal/make-validate.js';
 import { MatrixSize } from './core.js';
-import { MATRIX1_SCHEMA, MATRIX2_SCHEMA, MATRIX3_SCHEMA, MATRIX4_SCHEMA, MATRIX_SCHEMA, MATRIX_SQUARE_SCHEMA, type TMatrix, type TMatrix1, type TMatrix2, type TMatrix3, type TMatrix4, type TMatrixSquare } from './types.js';
+import { type TMatrix, type TMatrix1, type TMatrix2, type TMatrix3, type TMatrix4, type TMatrixSquare } from './types.js';
 
 /**
  * Matrix error class for validation failures and matrix operations.
@@ -87,14 +87,44 @@ export type TMatrixErrorMetadata = TErrorMetadata;
  * ```
  */
 export function AssertMatrix(matrix: unknown): asserts matrix is TMatrix {
-	try {
-		MATRIX_SCHEMA.parse(matrix);
+	if (!Array.isArray(matrix)) {
+		throw new MatrixError('Invalid matrix: Expected array, got ' + typeof matrix);
 	}
-	catch (error) {
-		const message = GetErrorMessage(error);
-		throw new MatrixError(`Invalid matrix: ${message}`, {
-			cause: error instanceof Error ? error : undefined
-		});
+
+	if (matrix.length === 0) {
+		throw new MatrixError('Invalid matrix: Matrix must have at least one row and one column');
+	}
+
+	const firstRow = matrix[0];
+	if (!Array.isArray(firstRow)) {
+		throw new MatrixError('Invalid matrix: Expected array, got ' + typeof firstRow);
+	}
+
+	if (firstRow.length === 0) {
+		throw new MatrixError('Invalid matrix: Matrix must have at least one row and one column');
+	}
+
+	const firstRowLength = firstRow.length;
+
+	for (let i = 0; i < matrix.length; i++) {
+		const row = matrix[i];
+		if (!Array.isArray(row)) {
+			throw new MatrixError('Invalid matrix: Expected array, got ' + typeof row);
+		}
+
+		if (row.length !== firstRowLength) {
+			throw new MatrixError('Invalid matrix: All matrix rows must have the same length');
+		}
+
+		for (let j = 0; j < row.length; j++) {
+			const element = row[j];
+			if (typeof element !== 'number') {
+				throw new MatrixError('Invalid matrix: Expected number, got ' + typeof element);
+			}
+			if (!Number.isFinite(element)) {
+				throw new MatrixError('Invalid matrix: Expected finite number, got ' + element);
+			}
+		}
 	}
 }
 /**
@@ -113,14 +143,29 @@ export function AssertMatrix(matrix: unknown): asserts matrix is TMatrix {
  */
 export const ValidateMatrix: (value: unknown) => value is TMatrix = makeValidate(AssertMatrix);
 export function AssertMatrix1(matrix: unknown): asserts matrix is TMatrix1 {
-	try {
-		MATRIX1_SCHEMA.parse(matrix);
+	if (!Array.isArray(matrix)) {
+		throw new MatrixError('Invalid 1x1 matrix: Expected array, got ' + typeof matrix);
 	}
-	catch (error) {
-		const message = GetErrorMessage(error);
-		throw new MatrixError(`Invalid 1x1 matrix: ${message}`, {
-			cause: error instanceof Error ? error : undefined
-		});
+
+	if (matrix.length !== 1) {
+		throw new MatrixError('Invalid 1x1 matrix: Matrix must be exactly 1×1');
+	}
+
+	const row0 = matrix[0];
+	if (!Array.isArray(row0)) {
+		throw new MatrixError('Invalid 1x1 matrix: Expected array, got ' + typeof row0);
+	}
+
+	if (row0.length !== 1) {
+		throw new MatrixError('Invalid 1x1 matrix: Matrix must be exactly 1×1');
+	}
+
+	const element = row0[0];
+	if (typeof element !== 'number') {
+		throw new MatrixError('Invalid 1x1 matrix: Expected number, got ' + typeof element);
+	}
+	if (!Number.isFinite(element)) {
+		throw new MatrixError('Invalid 1x1 matrix: Expected finite number, got ' + element);
 	}
 }
 /**
@@ -139,14 +184,39 @@ export function AssertMatrix1(matrix: unknown): asserts matrix is TMatrix1 {
  */
 export const ValidateMatrix1: (value: unknown) => value is TMatrix1 = makeValidate(AssertMatrix1);
 export function AssertMatrix2(matrix: unknown): asserts matrix is TMatrix2 {
-	try {
-		MATRIX2_SCHEMA.parse(matrix);
+	if (!Array.isArray(matrix)) {
+		throw new MatrixError('Invalid 2x2 matrix: Expected array, got ' + typeof matrix);
 	}
-	catch (error) {
-		const message = GetErrorMessage(error);
-		throw new MatrixError(`Invalid 2x2 matrix: ${message}`, {
-			cause: error instanceof Error ? error : undefined
-		});
+
+	if (matrix.length !== 2) {
+		throw new MatrixError('Invalid 2x2 matrix: Matrix must be exactly 2×2');
+	}
+
+	const row0 = matrix[0];
+	const row1 = matrix[1];
+
+	if (!Array.isArray(row0)) {
+		throw new MatrixError('Invalid 2x2 matrix: Expected array, got ' + typeof row0);
+	}
+	if (!Array.isArray(row1)) {
+		throw new MatrixError('Invalid 2x2 matrix: Expected array, got ' + typeof row1);
+	}
+
+	if (row0.length !== 2 || row1.length !== 2) {
+		throw new MatrixError('Invalid 2x2 matrix: Matrix must be exactly 2×2');
+	}
+
+	for (let i = 0; i < 2; i++) {
+		const row = matrix[i];
+		for (let j = 0; j < 2; j++) {
+			const element = row[j];
+			if (typeof element !== 'number') {
+				throw new MatrixError('Invalid 2x2 matrix: Expected number, got ' + typeof element);
+			}
+			if (!Number.isFinite(element)) {
+				throw new MatrixError('Invalid 2x2 matrix: Expected finite number, got ' + element);
+			}
+		}
 	}
 }
 /**
@@ -165,14 +235,37 @@ export function AssertMatrix2(matrix: unknown): asserts matrix is TMatrix2 {
  */
 export const ValidateMatrix2: (value: unknown) => value is TMatrix2 = makeValidate(AssertMatrix2);
 export function AssertMatrix3(matrix: unknown): asserts matrix is TMatrix3 {
-	try {
-		MATRIX3_SCHEMA.parse(matrix);
+	if (!Array.isArray(matrix)) {
+		throw new MatrixError('Invalid 3x3 matrix: Expected array, got ' + typeof matrix);
 	}
-	catch (error) {
-		const message = GetErrorMessage(error);
-		throw new MatrixError(`Invalid 3x3 matrix: ${message}`, {
-			cause: error instanceof Error ? error : undefined
-		});
+
+	if (matrix.length !== 3) {
+		throw new MatrixError('Invalid 3x3 matrix: Matrix must be exactly 3×3');
+	}
+
+	const row0 = matrix[0];
+	const row1 = matrix[1];
+	const row2 = matrix[2];
+
+	if (!Array.isArray(row0) || !Array.isArray(row1) || !Array.isArray(row2)) {
+		throw new MatrixError('Invalid 3x3 matrix: Expected array, got non-array row');
+	}
+
+	if (row0.length !== 3 || row1.length !== 3 || row2.length !== 3) {
+		throw new MatrixError('Invalid 3x3 matrix: Matrix must be exactly 3×3');
+	}
+
+	for (let i = 0; i < 3; i++) {
+		const row = matrix[i];
+		for (let j = 0; j < 3; j++) {
+			const element = row[j];
+			if (typeof element !== 'number') {
+				throw new MatrixError('Invalid 3x3 matrix: Expected number, got ' + typeof element);
+			}
+			if (!Number.isFinite(element)) {
+				throw new MatrixError('Invalid 3x3 matrix: Expected finite number, got ' + element);
+			}
+		}
 	}
 }
 /**
@@ -191,14 +284,38 @@ export function AssertMatrix3(matrix: unknown): asserts matrix is TMatrix3 {
  */
 export const ValidateMatrix3: (value: unknown) => value is TMatrix3 = makeValidate(AssertMatrix3);
 export function AssertMatrix4(matrix: unknown): asserts matrix is TMatrix4 {
-	try {
-		MATRIX4_SCHEMA.parse(matrix);
+	if (!Array.isArray(matrix)) {
+		throw new MatrixError('Invalid 4x4 matrix: Expected array, got ' + typeof matrix);
 	}
-	catch (error) {
-		const message = GetErrorMessage(error);
-		throw new MatrixError(`Invalid 4x4 matrix: ${message}`, {
-			cause: error instanceof Error ? error : undefined
-		});
+
+	if (matrix.length !== 4) {
+		throw new MatrixError('Invalid 4x4 matrix: Matrix must be exactly 4×4');
+	}
+
+	const row0 = matrix[0];
+	const row1 = matrix[1];
+	const row2 = matrix[2];
+	const row3 = matrix[3];
+
+	if (!Array.isArray(row0) || !Array.isArray(row1) || !Array.isArray(row2) || !Array.isArray(row3)) {
+		throw new MatrixError('Invalid 4x4 matrix: Expected array, got non-array row');
+	}
+
+	if (row0.length !== 4 || row1.length !== 4 || row2.length !== 4 || row3.length !== 4) {
+		throw new MatrixError('Invalid 4x4 matrix: Matrix must be exactly 4×4');
+	}
+
+	for (let i = 0; i < 4; i++) {
+		const row = matrix[i];
+		for (let j = 0; j < 4; j++) {
+			const element = row[j];
+			if (typeof element !== 'number') {
+				throw new MatrixError('Invalid 4x4 matrix: Expected number, got ' + typeof element);
+			}
+			if (!Number.isFinite(element)) {
+				throw new MatrixError('Invalid 4x4 matrix: Expected finite number, got ' + element);
+			}
+		}
 	}
 }
 /**
@@ -217,14 +334,35 @@ export function AssertMatrix4(matrix: unknown): asserts matrix is TMatrix4 {
  */
 export const ValidateMatrix4: (value: unknown) => value is TMatrix4 = makeValidate(AssertMatrix4);
 export function AssertMatrixSquare(matrix: unknown): asserts matrix is TMatrixSquare {
-	try {
-		MATRIX_SQUARE_SCHEMA.parse(matrix);
+	if (!Array.isArray(matrix)) {
+		throw new MatrixError('Invalid square matrix: Expected array, got ' + typeof matrix);
 	}
-	catch (error) {
-		const message = GetErrorMessage(error);
-		throw new MatrixError(`Invalid square matrix: ${message}`, {
-			cause: error instanceof Error ? error : undefined
-		});
+
+	if (matrix.length === 0) {
+		throw new MatrixError('Invalid square matrix: Matrix must be square (m×m)');
+	}
+
+	const rows = matrix.length;
+
+	for (let i = 0; i < rows; i++) {
+		const row = matrix[i];
+		if (!Array.isArray(row)) {
+			throw new MatrixError('Invalid square matrix: Expected array, got ' + typeof row);
+		}
+
+		if (row.length !== rows) {
+			throw new MatrixError('Invalid square matrix: Matrix must be square (m×m)');
+		}
+
+		for (let j = 0; j < row.length; j++) {
+			const element = row[j];
+			if (typeof element !== 'number') {
+				throw new MatrixError('Invalid square matrix: Expected number, got ' + typeof element);
+			}
+			if (!Number.isFinite(element)) {
+				throw new MatrixError('Invalid square matrix: Expected finite number, got ' + element);
+			}
+		}
 	}
 }
 /**
