@@ -20,7 +20,8 @@
 		"test": "yarn nx run-many --target=test --all",
 		"test:coverage": "yarn nx run-many --target=test --all -- --coverage",
 		"build": "yarn nx run-many --target=build --all",
-		"clean": "yarn nx run-many --target=clean --all"
+		"clean": "yarn nx run-many --target=clean --all",
+		"prepare": "husky"
 	},
 	"devDependencies": {
 		"@eslint/js": "^9.8.0",
