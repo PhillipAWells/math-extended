@@ -204,10 +204,10 @@ Every scalar easing and interpolation function has a `Vector*` counterpart that 
 | `VectorSmoothStep(a, b, t)` | Component-wise smooth-step |
 | `VectorSmootherStep(a, b, t)` | Component-wise smoother-step |
 | `VectorCosineInterpolation(a, b, t)` | Component-wise cosine interpolation |
-| `VectorCatmullRomInterpolation(p0, p1, p2, p3, t)` | Component-wise Catmull-Rom spline |
-| `VectorHermiteInterpolation(p0, p1, t0, t1, t)` | Component-wise Hermite spline |
+| `VectorCatmullRomInterpolation(p0, p1, p2, p3, t)` | Component-wise Catmull-Rom spline; throws if `t` is non-finite |
+| `VectorHermiteInterpolation(p0, p1, t0, t1, t)` | Component-wise Hermite spline; throws if `t` is non-finite |
 | `VectorStepInterpolation(a, b, t, threshold?)` | Component-wise step interpolation |
-| `VectorSphericalLinearInterpolation(a, b, t)` | Spherical linear interpolation for vectors |
+| `VectorSphericalLinearInterpolation(a, b, t)` | Spherical linear interpolation for vectors; throws if `t` is non-finite |
 | `VectorQuadraticEaseIn/Out/InOut` | Component-wise quadratic easing |
 | `VectorCubicEaseIn/Out/InOut` | Component-wise cubic easing |
 | `VectorSineEaseIn/Out/InOut` | Component-wise sine easing |
@@ -249,6 +249,10 @@ Matrices are `number[][]` arrays (`TMatrix`, `TMatrix1`–`TMatrix4`). All opera
 | `TMatrixResult<T>` | Operation result wrapper type |
 | `IMatrixOperationOptions` | Options interface for matrix operations |
 | `MATRIX_SCHEMA` (and sized variants) | Zod schemas for each matrix type |
+| `TLUDecompositionResult` | `{ readonly L: TMatrix; readonly U: TMatrix; readonly P: number[] }` — result of `MatrixLU` |
+| `TQRDecompositionResult` | `{ readonly Q: TMatrix; readonly R: TMatrix }` — result of `MatrixQR` |
+| `TEigenDecompositionResult` | `{ eigenvalues: number[]; eigenvectors: TMatrix }` — result of `MatrixEigen` |
+| `TSVDDecompositionResult` | `{ readonly U: TMatrix; readonly S: number[]; readonly VT: TMatrix }` — result of `MatrixSVD` |
 
 #### Core
 
@@ -298,7 +302,6 @@ Matrices are `number[][]` arrays (`TMatrix`, `TMatrix1`–`TMatrix4`). All opera
 | `MatrixQR(m)` | QR decomposition → `{ Q, R }` |
 | `MatrixCholesky(m)` | Cholesky decomposition → lower-triangular `L` |
 | `MatrixEigen(m)` | Eigenvalue decomposition → `{ eigenvalues, eigenvectors }` |
-| `MatrixEigenQRIteration(m, iterations?)` | QR iteration for eigenvalue approximation |
 | `MatrixSVD(m)` | Singular value decomposition → `{ U, S, VT }` |
 | `MatrixSolve(a, b)` | Solve `Ax = b` |
 
@@ -318,19 +321,19 @@ Matrices are `number[][]` arrays (`TMatrix`, `TMatrix1`–`TMatrix4`). All opera
 
 | Export | Description |
 |--------|-------------|
-| `MatrixTranslation2D(tx, ty)` | 2D translation → `TMatrix3` |
-| `MatrixTranslation3D(tx, ty, tz)` | 3D translation → `TMatrix4` |
-| `MatrixScale2D(sx, sy)` | 2D scale matrix |
-| `MatrixScale3D(sx, sy, sz)` | 3D scale matrix |
+| `MatrixTranslation2D(x, y)` / `MatrixTranslation2D(v)` | 2D translation → `TMatrix3`; accepts individual coordinates or a `TVector2` |
+| `MatrixTranslation3D(distance)` / `MatrixTranslation3D(x, y, z)` / `MatrixTranslation3D(v)` | 3D translation → `TMatrix4`; accepts a uniform distance, independent axes, or a `TVector3` |
+| `MatrixScale2D(scale)` / `MatrixScale2D(x, y)` / `MatrixScale2D(v)` | 2D scale matrix → `TMatrix3`; accepts a uniform scale, independent axes, or a `TVector2` |
+| `MatrixScale3D(scale)` / `MatrixScale3D(x, y, z)` / `MatrixScale3D(v)` | 3D scale matrix → `TMatrix4`; accepts a uniform scale, independent axes, or a `TVector3` |
 | `MatrixRotation2D(angle)` | 2D rotation matrix |
-| `MatrixRotation3D(axis, angle)` | 3D rotation around an arbitrary axis |
-| `MatrixRotation3DRoll(angle)` | 3D rotation around the Z axis |
-| `MatrixRotation3DPitch(angle)` | 3D rotation around the X axis |
-| `MatrixRotation3DYaw(angle)` | 3D rotation around the Y axis |
+| `MatrixRotation3D(roll, pitch, yaw)` / `MatrixRotation3D(v)` | Composite 3D rotation matrix from Roll (X) → Pitch (Y) → Yaw (Z); accepts individual angles or a `TVector3` |
+| `MatrixRotation3DRoll(angle)` | 3D rotation around the X axis (roll) |
+| `MatrixRotation3DPitch(angle)` | 3D rotation around the Y axis (pitch) |
+| `MatrixRotation3DYaw(angle)` | 3D rotation around the Z axis (yaw) |
 | `MatrixRotation3DEulerAngles(roll, pitch, yaw)` | Euler-angles rotation matrix |
 | `MatrixTransform2D(v, TMatrix3)` | Apply a 2D transformation matrix to a vector |
 | `MatrixTransform3D(v, TMatrix4)` | Apply a 3D transformation matrix to a vector |
-| `MatrixDirection3D(forward, up)` | Look-at direction matrix |
+| `MatrixDirection3D(direction, matrix)` | Transform a 3D direction vector by a 3×3 matrix (ignores translation) |
 | `MatrixView(eye, target, up)` | View / look-at matrix |
 | `MatrixPerspective(fovY, aspect, near, far)` | Perspective projection matrix |
 | `MatrixOrthographic(left, right, bottom, top, near, far)` | Orthographic projection matrix |
@@ -362,6 +365,8 @@ Quaternions are `[x, y, z, w]` tuples (`TQuaternion`). All operations return new
 | `TRotationMatrix` | 3×3 rotation matrix type |
 | `TRotation` | Union of all rotation representation types |
 | `QUATERNION_SCHEMA` (and related schemas) | Zod schemas for quaternion types |
+
+`QUATERNION_SCHEMA` validates a 4-tuple `[x, y, z, w]` where each component must be of type `number`. `NaN` is **rejected** (fails the schema). `Infinity` is **permitted** — the schema checks only that the value is a number and not `NaN`; it does not require finite values.
 
 #### Core
 
