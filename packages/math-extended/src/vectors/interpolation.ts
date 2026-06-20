@@ -306,7 +306,7 @@ export function VectorCatmullRomInterpolation<T extends TVector>(p0: T, p1: T, p
 	AssertVector(p2);
 	AssertVector(p3);
 	AssertVectorSameSize([p0, p1, p2, p3]);
-	AssertNumber(t);
+	AssertNumber(t, { finite: true });
 
 	const result: number[] = [];
 
@@ -348,7 +348,7 @@ export function VectorHermiteInterpolation<T extends TVector>(p0: T, p1: T, t0: 
 	AssertVector(t0);
 	AssertVector(t1);
 	AssertVectorSameSize([p0, p1, t0, t1]);
-	AssertNumber(t);
+	AssertNumber(t, { finite: true });
 
 	const result: number[] = [];
 
@@ -608,7 +608,7 @@ export function VectorSphericalLinearInterpolation<T extends TVector>(a: T, b: T
 	AssertVector(a);
 	AssertVector(b);
 	AssertVectorSameSize([a, b]);
-	AssertNumber(t);
+	AssertNumber(t, { finite: true });
 
 	if (a.length < 2) {
 		throw new VectorError('Spherical linear interpolation requires vectors of at least 2 dimensions');

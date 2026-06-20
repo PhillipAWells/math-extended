@@ -96,7 +96,7 @@ export function SmoothStep(a: number, b: number, t: number): number {
  */
 export function SmootherStep(a: number, b: number, t: number): number {
 	// Allow extrapolation by not clamping t
-	const smoothT = (SMOOTHER_COEFF_A * (t * t * t * t * t)) - (SMOOTHER_COEFF_B * (t * t * t * t)) + (SMOOTHER_COEFF_C * (t * t * t));
+	const smoothT = (SMOOTHER_COEFF_A * (t ** 5)) - (SMOOTHER_COEFF_B * (t ** 4)) + (SMOOTHER_COEFF_C * (t ** 3));
 
 	return a + ((b - a) * smoothT);
 }
@@ -343,10 +343,9 @@ export function ElasticEaseOut(a: number, b: number, t: number): number {
  */
 export function BackEaseOut(a: number, b: number, t: number): number {
 	// Allow extrapolation by not clamping t
-	const c1 = 1.70158;
-	const c3 = c1 + 1;
+	const c3 = BACK_EASE_OVERSHOOT_AMPLITUDE + 1;
 	const tMinus1 = t - 1;
-	const backT = 1 + (c3 * (tMinus1 * tMinus1 * tMinus1)) + (c1 * (tMinus1 * tMinus1));
+	const backT = 1 + (c3 * (tMinus1 * tMinus1 * tMinus1)) + (BACK_EASE_OVERSHOOT_AMPLITUDE * (tMinus1 * tMinus1));
 
 	return a + ((b - a) * backT);
 }

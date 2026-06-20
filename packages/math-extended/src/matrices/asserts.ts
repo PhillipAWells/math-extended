@@ -1,4 +1,5 @@
 import { BaseError, GetErrorMessage, type TErrorMetadata } from '@pawells/typescript-common';
+import { makeValidate } from '../internal/make-validate.js';
 import { MatrixSize } from './core.js';
 import { MATRIX1_SCHEMA, MATRIX2_SCHEMA, MATRIX3_SCHEMA, MATRIX4_SCHEMA, MATRIX_SCHEMA, MATRIX_SQUARE_SCHEMA, type TMatrix, type TMatrix1, type TMatrix2, type TMatrix3, type TMatrix4, type TMatrixSquare } from './types.js';
 
@@ -91,25 +92,6 @@ export class MatrixError extends BaseError<TMatrixErrorMetadata> {
  * @property {Error} [cause] - Optional original error for cause chain propagation
  */
 export type TMatrixErrorMetadata = TErrorMetadata;
-
-/**
- * Factory function to create a Validate* type guard from an Assert* function.
- * @param assert - The assertion function to wrap
- * @returns A type guard function that returns true if valid, false otherwise
- */
-function makeValidate<T>(
-	assert: (value: unknown) => asserts value is T
-): (value: unknown) => value is T {
-	return (value: unknown): value is T => {
-		try {
-			assert(value);
-			return true;
-		}
-		catch {
-			return false;
-		}
-	};
-}
 
 export function AssertMatrix(matrix: unknown): asserts matrix is TMatrix {
 	try {

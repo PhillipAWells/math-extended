@@ -454,7 +454,7 @@ export function MatrixScale3D(scaleOrX: number | TVector3, y?: number, z?: numbe
 // ============================================================================
 
 /**
- * Creates a 2D translation transformation matrix.
+ * Creates a 2D translation transformation matrix with flexible input options.
  *
  * Moves 2D points by the specified offset distances. Uses homogeneous
  * coordinates to enable composition with other 2D transformations.
@@ -466,26 +466,45 @@ export function MatrixScale3D(scaleOrX: number | TVector3, y?: number, z?: numbe
  * [0  0   1]
  * ```
  *
- * @param v - Translation vector [x, y] containing offset distances
+ * Supports two call patterns:
+ * 1. Individual translation: MatrixTranslation2D(x, y)
+ * 2. Vector translation: MatrixTranslation2D([x, y])
+ *
+ * @param translationOrX - X-axis translation distance or translation vector [x, y]
+ * @param y - Y-axis translation distance (only for individual translation)
  * @returns {TMatrix3} A 3x3 translation transformation matrix
  *
- * @throws {Error} If the input is not a valid 2D vector
+ * @throws {Error} If any translation distance is not a finite number
  *
  * @example
  * ```typescript
- * // Move 10 units right, 5 units up
+ * // Individual translation (10 units right, 5 units up)
  * const translation = MatrixTranslation2D(10, 5);
- * // Using vector input
+ * // Vector input
  * const offset: TVector2 = [10, 5];
- * const translation2 = MatrixTranslation2D(...offset);
+ * const translation2 = MatrixTranslation2D(offset);
  * ```
  */
-export function MatrixTranslation2D(...v: TVector2): TMatrix3 {
-	// Called with vector parameter using spread syntax
-	AssertVector2(v);
+
+export function MatrixTranslation2D(x: number, y: number): TMatrix3;
+
+export function MatrixTranslation2D(v: TVector2): TMatrix3;
+export function MatrixTranslation2D(translationOrX: number | TVector2, y?: number): TMatrix3 {
+	if (typeof translationOrX === 'number') {
+		// Called with individual parameters
+		AssertNumber(translationOrX, { finite: true }, { message: 'X translation distance must be a finite number' });
+		AssertNumber(y, { finite: true }, { message: 'Y translation distance must be a finite number' });
+		return [
+			[1, 0, translationOrX], // [1, 0, tx]
+			[0, 1, y], // [0, 1, ty]
+			[0, 0, 1] // [0, 0,  1]
+		];
+	}
+	// Called with vector parameter
+	AssertVector2(translationOrX);
 	return [
-		[1, 0, v[0]], // [1, 0, tx]
-		[0, 1, v[1]], // [0, 1, ty]
+		[1, 0, translationOrX[0]], // [1, 0, tx]
+		[0, 1, translationOrX[1]], // [0, 1, ty]
 		[0, 0, 1] // [0, 0,  1]
 	];
 }

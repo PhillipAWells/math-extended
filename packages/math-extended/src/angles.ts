@@ -16,6 +16,8 @@ const NORMALIZE_EPSILON = 1e-10; // Epsilon for floating-point boundary cleanup
 	 * DegreesToRadians(0)    // 0
 	 * ```
  */
+import { AssertNumber } from './internal/guards.js';
+
 export function DegreesToRadians(degrees: number): number {
 	return (degrees * Math.PI) / DEGREES_PER_HALF_REVOLUTION;
 }
@@ -51,6 +53,7 @@ export function RadiansToDegrees(radians: number): number {
 	 * ```
  */
 export function FormatRadians(radians: number): string {
+	AssertNumber(radians, { finite: true });
 	const r = radians / Math.PI;
 
 	if (r === 0) return '0';
@@ -88,6 +91,7 @@ export function FormatRadians(radians: number): string {
 	 * ```
  */
 export function NormalizeRadians(radians: number): number {
+	AssertNumber(radians, { finite: true });
 	const twoPi = 2 * Math.PI;
 	const result = ((radians % twoPi) + twoPi) % twoPi;
 	// Epsilon cleanup for floating-point precision at boundaries
@@ -111,6 +115,7 @@ export function NormalizeRadians(radians: number): number {
 	 * ```
  */
 export function NormalizeDegrees(degrees: number): number {
+	AssertNumber(degrees, { finite: true });
 	const result = ((degrees % DEGREES_PER_FULL_REVOLUTION) + DEGREES_PER_FULL_REVOLUTION) % DEGREES_PER_FULL_REVOLUTION;
 	// Epsilon cleanup for floating-point precision at boundaries (mirrors NormalizeRadians)
 	if (result < NORMALIZE_EPSILON || result > DEGREES_PER_FULL_REVOLUTION - NORMALIZE_EPSILON) return 0;

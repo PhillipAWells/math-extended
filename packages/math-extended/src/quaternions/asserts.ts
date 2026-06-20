@@ -4,6 +4,7 @@
  */
 
 import { BaseError, type TErrorMetadata } from '@pawells/typescript-common';
+import { makeValidate } from '../internal/make-validate.js';
 import { type TQuaternion, type TEulerAngles, type TAxisAngle, type TRotationMatrix } from './types.js';
 
 /**
@@ -265,7 +266,6 @@ export function AssertQuaternions(quaternions: unknown[]): asserts quaternions i
  * conditional logic where exceptions are not desired.
  *
  * @param quaternion - The value to validate as a quaternion
- * @param options - Validation options
  * @returns true if the quaternion is valid, false otherwise
  *
  * @example
@@ -275,15 +275,7 @@ export function AssertQuaternions(quaternions: unknown[]): asserts quaternions i
  * }
  * ```
  */
-export function ValidateQuaternion(quaternion: unknown): quaternion is TQuaternion {
-	try {
-		AssertQuaternion(quaternion);
-		return true;
-	}
-	catch {
-		return false;
-	}
-}
+export const ValidateQuaternion: (quaternion: unknown) => quaternion is TQuaternion = makeValidate(AssertQuaternion);
 
 /**
  * Validates that a quaternion is normalized (magnitude = 1) without throwing an error.
@@ -322,15 +314,7 @@ export function ValidateNormalizedQuaternion(quaternion: TQuaternion, tolerance 
  * }
  * ```
  */
-export function ValidateEulerAngles(euler: unknown): euler is TEulerAngles {
-	try {
-		AssertEulerAngles(euler);
-		return true;
-	}
-	catch {
-		return false;
-	}
-}
+export const ValidateEulerAngles: (euler: unknown) => euler is TEulerAngles = makeValidate(AssertEulerAngles);
 
 /**
  * Validates that an unknown value is a valid axis-angle representation without throwing an error.
@@ -345,15 +329,7 @@ export function ValidateEulerAngles(euler: unknown): euler is TEulerAngles {
  * }
  * ```
  */
-export function ValidateAxisAngle(axisAngle: unknown): axisAngle is TAxisAngle {
-	try {
-		AssertAxisAngle(axisAngle);
-		return true;
-	}
-	catch {
-		return false;
-	}
-}
+export const ValidateAxisAngle: (axisAngle: unknown) => axisAngle is TAxisAngle = makeValidate(AssertAxisAngle);
 
 /**
  * Validates that an unknown value is a valid rotation matrix without throwing an error.
@@ -368,15 +344,7 @@ export function ValidateAxisAngle(axisAngle: unknown): axisAngle is TAxisAngle {
  * }
  * ```
  */
-export function ValidateRotationMatrix(matrix: unknown): matrix is TRotationMatrix {
-	try {
-		AssertRotationMatrix(matrix);
-		return true;
-	}
-	catch {
-		return false;
-	}
-}
+export const ValidateRotationMatrix: (matrix: unknown) => matrix is TRotationMatrix = makeValidate(AssertRotationMatrix);
 
 /**
  * Validates that an unknown value is an array of valid quaternions without throwing an error.

@@ -5,6 +5,7 @@
  */
 
 import { BaseError, type TErrorMetadata } from '@pawells/typescript-common';
+import { makeValidate } from '../internal/make-validate.js';
 import { VECTOR2_SCHEMA, VECTOR3_SCHEMA, VECTOR4_SCHEMA, VECTOR_SCHEMA, type TVector, type TVector2, type TVector3, type TVector4 } from './types.js';
 import z from 'zod/v4';
 
@@ -118,16 +119,7 @@ export function AssertVector(vector: unknown): asserts vector is TVector {
  * }
  * ```
  */
-
-export function ValidateVector(vector: unknown): boolean {
-	try {
-		AssertVector(vector);
-		return true;
-	}
-	catch {
-		return false;
-	}
-}
+export const ValidateVector: (vector: unknown) => vector is TVector = makeValidate(AssertVector);
 
 /**
  * Validates that an unknown value is a valid 2D vector (exactly 2 numeric components).
@@ -168,16 +160,7 @@ export function AssertVector2(vector: unknown): asserts vector is TVector2 {
  * }
  * ```
  */
-
-export function ValidateVector2(vector: unknown): boolean {
-	try {
-		AssertVector2(vector);
-		return true;
-	}
-	catch {
-		return false;
-	}
-}
+export const ValidateVector2: (vector: unknown) => vector is TVector2 = makeValidate(AssertVector2);
 
 /**
  * Validates that an unknown value is a valid 3D vector (exactly 3 numeric components).
@@ -218,16 +201,7 @@ export function AssertVector3(vector: unknown): asserts vector is TVector3 {
  * }
  * ```
  */
-
-export function ValidateVector3(vector: unknown): boolean {
-	try {
-		AssertVector3(vector);
-		return true;
-	}
-	catch {
-		return false;
-	}
-}
+export const ValidateVector3: (vector: unknown) => vector is TVector3 = makeValidate(AssertVector3);
 
 /**
  * Validates that an unknown value is a valid 4D vector (exactly 4 numeric components).
@@ -268,16 +242,7 @@ export function AssertVector4(vector: unknown): asserts vector is TVector4 {
  * }
  * ```
  */
-
-export function ValidateVector4(vector: unknown): boolean {
-	try {
-		AssertVector4(vector);
-		return true;
-	}
-	catch {
-		return false;
-	}
-}
+export const ValidateVector4: (vector: unknown) => vector is TVector4 = makeValidate(AssertVector4);
 
 export const VECTOR_SAME_SIZE_SCHEMA = z.array(VECTOR_SCHEMA).superRefine((vectors, ctx) => {
 	if (!Array.isArray(vectors) || vectors.length === 0) {
@@ -341,8 +306,7 @@ export function AssertVectorSameSize(vectors: unknown[]): asserts vectors is TVe
  * }
  * ```
  */
-
-export function ValidateVectorSameSize(vectors: unknown[]): boolean {
+export function ValidateVectorSameSize(vectors: unknown[]): vectors is TVectorSameSize {
 	try {
 		AssertVectorSameSize(vectors);
 		return true;
