@@ -16,6 +16,16 @@ describe('Matrix Operations for Linear Algebra', () => {
 			expect(MatrixDeterminant(matrix)).toBe(5);
 		});
 
+		test('should calculate determinant of 1x1 zero matrix', () => {
+			const matrix: TMatrix = [[0]];
+			expect(MatrixDeterminant(matrix)).toBe(0);
+		});
+
+		test('should calculate determinant of 1x1 negative matrix', () => {
+			const matrix: TMatrix = [[-7]];
+			expect(MatrixDeterminant(matrix)).toBe(-7);
+		});
+
 		test('should calculate determinant of 2x2 matrix', () => {
 			const matrix: TMatrix = [[1, 2], [3, 4]];
 			expect(MatrixDeterminant(matrix)).toBe(-2); // 1*4 - 2*3 = -2
@@ -24,6 +34,16 @@ describe('Matrix Operations for Linear Algebra', () => {
 		test('should calculate determinant of 2x2 identity matrix', () => {
 			const matrix: TMatrix = [[1, 0], [0, 1]];
 			expect(MatrixDeterminant(matrix)).toBe(1);
+		});
+
+		test('should calculate determinant of 2x2 permutation matrix', () => {
+			const matrix: TMatrix = [[0, 1], [1, 0]];
+			expect(MatrixDeterminant(matrix)).toBe(-1);
+		});
+
+		test('should calculate determinant of singular 2x2 matrix', () => {
+			const matrix: TMatrix = [[1, 2], [2, 4]];
+			expect(MatrixDeterminant(matrix)).toBe(0);
 		});
 
 		test('should calculate determinant of 3x3 matrix', () => {
@@ -53,6 +73,15 @@ describe('Matrix Operations for Linear Algebra', () => {
 			expect(MatrixDeterminant(matrix)).toBe(1);
 		});
 
+		test('should calculate determinant of rank-deficient 3x3 matrix', () => {
+			const matrix: TMatrix = [
+				[1, 2, 3],
+				[2, 4, 6],
+				[3, 6, 9]
+			];
+			expect(MatrixDeterminant(matrix)).toBe(0);
+		});
+
 		test('should calculate determinant of larger matrix using cofactor expansion', () => {
 			const matrix: TMatrix = [
 				[1, 2, 3, 4],
@@ -61,6 +90,16 @@ describe('Matrix Operations for Linear Algebra', () => {
 				[4, 3, 2, 1]
 			];
 			expect(MatrixDeterminant(matrix)).toBe(0);
+		});
+
+		test('should calculate determinant of 4x4 non-singular matrix', () => {
+			const matrix: TMatrix = [
+				[1, 0, 0, 0],
+				[0, 2, 0, 0],
+				[0, 0, 3, 0],
+				[0, 0, 0, 4]
+			];
+			expect(MatrixDeterminant(matrix)).toBe(24); // 1*2*3*4
 		});
 
 		test('should throw error for non-square matrix', () => {
@@ -219,8 +258,32 @@ describe('Matrix Operations for Linear Algebra', () => {
 			expect(product[1]?.[1]).toBeCloseTo(1);
 		});
 
-		test('should throw error for singular matrix', () => {
+		test('should throw error for 1x1 singular matrix (determinant zero)', () => {
+			const matrix: TMatrix = [[0]];
+			expect(() => MatrixInverse(matrix)).toThrow();
+		});
+
+		test('should throw error for 2x2 singular matrix', () => {
 			const matrix: TMatrix = [[1, 2], [2, 4]]; // determinant = 0
+			expect(() => MatrixInverse(matrix)).toThrow();
+		});
+
+		test('should throw error for 3x3 singular matrix', () => {
+			const matrix: TMatrix = [
+				[1, 2, 3],
+				[4, 5, 6],
+				[7, 8, 9]
+			];
+			expect(() => MatrixInverse(matrix)).toThrow();
+		});
+
+		test('should throw error for rank-deficient 4x4 matrix', () => {
+			const matrix: TMatrix = [
+				[1, 0, 1, 0],
+				[0, 1, 0, 1],
+				[2, 0, 2, 0],
+				[0, 2, 0, 2]
+			];
 			expect(() => MatrixInverse(matrix)).toThrow();
 		});
 
@@ -288,6 +351,51 @@ describe('Matrix Operations for Linear Algebra', () => {
 			// Should normalize the single column
 			expect(result[0]?.[0]).toBeCloseTo(0.6); // 3/5
 			expect(result[1]?.[0]).toBeCloseTo(0.8); // 4/5
+		});
+
+		test('should handle linearly dependent columns (second column is multiple of first)', () => {
+			// Second column is 2x the first column
+			const matrix: TMatrix = [
+				[1, 2],
+				[0, 0]
+			];
+			const result = MatrixGramSchmidt(matrix);
+			// Should produce orthonormal basis by replacing dependent column
+			expect(result).toBeDefined();
+			// Check that result has orthonormal structure
+			const col1 = [result[0]?.[0] ?? 0, result[1]?.[0] ?? 0];
+			const col2 = [result[0]?.[1] ?? 0, result[1]?.[1] ?? 0];
+			const norm1 = Math.sqrt(col1.reduce((sum, v) => sum + v * v, 0));
+			const norm2 = Math.sqrt(col2.reduce((sum, v) => sum + v * v, 0));
+			expect(norm1).toBeCloseTo(1, 1);
+			expect(norm2).toBeCloseTo(1, 1);
+		});
+
+		test('should handle zero vector column', () => {
+			const matrix: TMatrix = [
+				[1, 0],
+				[2, 0]
+			];
+			const result = MatrixGramSchmidt(matrix);
+			expect(result).toBeDefined();
+		});
+
+		test('should produce orthonormal columns for 2x2 orthogonal matrix', () => {
+			// Already orthogonal but not necessarily normalized
+			const matrix: TMatrix = [
+				[1, -1],
+				[1, 1]
+			];
+			const result = MatrixGramSchmidt(matrix);
+			// Check orthonormality
+			const col1 = [result[0]?.[0] ?? 0, result[1]?.[0] ?? 0];
+			const col2 = [result[0]?.[1] ?? 0, result[1]?.[1] ?? 0];
+			const norm1 = Math.sqrt(col1.reduce((sum, v) => sum + v * v, 0));
+			const norm2 = Math.sqrt(col2.reduce((sum, v) => sum + v * v, 0));
+			expect(norm1).toBeCloseTo(1);
+			expect(norm2).toBeCloseTo(1);
+			const dot = col1.reduce((sum, v, i) => sum + v * (col2[i] ?? 0), 0);
+			expect(dot).toBeCloseTo(0);
 		});
 	});
 

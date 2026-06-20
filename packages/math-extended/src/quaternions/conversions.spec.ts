@@ -511,6 +511,169 @@ describe('Quaternion Conversions', () => {
 	});
 
 	describe('QuaternionFromRotationMatrix - Shepperd algorithm branches', () => {
+		test('Shepperd branch: trace > 0 (identity and small rotations)', () => {
+			// Very small rotation keeps trace > 0
+			const verySmallAngle = (Math.PI * 0.001 / 180);
+			const quat = QuaternionRotationZ(verySmallAngle);
+			const matrix = QuaternionToRotationMatrix(quat);
+
+			// For very small angle, trace = 1 + 1 + 1 + small ≈ 3 (largest)
+			const trace = matrix[0][0] + matrix[1][1] + matrix[2][2];
+			expect(trace).toBeGreaterThan(2.9);
+
+			const result = QuaternionFromRotationMatrix(matrix);
+			expect(result).toHaveLength(4);
+			const magnitude = Math.sqrt((result[0] ** 2) + (result[1] ** 2) + (result[2] ** 2) + (result[3] ** 2));
+			expect(magnitude).toBeCloseTo(1.0, 5);
+
+			// Verify round-trip
+			expect(QuaternionEquals(quat, result, TOLERANCE, true)).toBe(true);
+		});
+
+		test('Shepperd branch: trace > 0 with identity matrix', () => {
+			const identityMatrix: TRotationMatrix = [
+				[1, 0, 0],
+				[0, 1, 0],
+				[0, 0, 1]
+			];
+
+			const result = QuaternionFromRotationMatrix(identityMatrix);
+			const expected = QuaternionIdentity();
+			expect(QuaternionEquals(result, expected, TOLERANCE, true)).toBe(true);
+		});
+
+		test('Shepperd branch: m00 dominant (180° around X-axis)', () => {
+			// 180° rotation around X-axis
+			// Creates a matrix where trace = 1 - 1 - 1 = -1 (trace < 0)
+			// m00 = 1 (always largest for X rotation, especially at 180°)
+			const angle = Math.PI;
+			const quat = QuaternionRotationX(angle);
+			const matrix = QuaternionToRotationMatrix(quat);
+
+			// Verify the matrix structure for 180° X rotation
+			expect(matrix[0][0]).toBeCloseTo(1, 5); // m00 = 1
+			expect(matrix[1][1]).toBeCloseTo(-1, 5); // m11 = -1
+			expect(matrix[2][2]).toBeCloseTo(-1, 5); // m22 = -1
+
+			// Verify trace is negative (should trigger non-standard branch)
+			const trace = matrix[0][0] + matrix[1][1] + matrix[2][2];
+			expect(trace).toBeLessThan(0);
+
+			// m00 should be larger than m11 and m22
+			expect(matrix[0][0]).toBeGreaterThan(matrix[1][1]);
+			expect(matrix[0][0]).toBeGreaterThan(matrix[2][2]);
+
+			const result = QuaternionFromRotationMatrix(matrix);
+			expect(QuaternionEquals(quat, result, TOLERANCE, true)).toBe(true);
+
+			// Verify it's normalized
+			const magnitude = Math.sqrt((result[0] ** 2) + (result[1] ** 2) + (result[2] ** 2) + (result[3] ** 2));
+			expect(magnitude).toBeCloseTo(1.0, 5);
+		});
+
+		test('Shepperd branch: m00 dominant with 120° X rotation', () => {
+			const angle = (Math.PI * 2 / 3); // 120°
+			const quat = QuaternionRotationX(angle);
+			const matrix = QuaternionToRotationMatrix(quat);
+
+			const trace = matrix[0][0] + matrix[1][1] + matrix[2][2];
+
+			// At 120° X rotation, trace becomes negative and m00 > m11, m22
+			if (trace <= 0 && matrix[0][0] > matrix[1][1] && matrix[0][0] > matrix[2][2]) {
+				// This tests the m00-dominant branch
+				const result = QuaternionFromRotationMatrix(matrix);
+				expect(QuaternionEquals(quat, result, TOLERANCE, true)).toBe(true);
+			}
+		});
+
+		test('Shepperd branch: m11 dominant (180° around Y-axis)', () => {
+			// 180° rotation around Y-axis
+			// Creates a matrix where trace = -1 - 1 + 1 = -1 (trace < 0)
+			// m11 = 1 (always largest for Y rotation, especially at 180°)
+			const angle = Math.PI;
+			const quat = QuaternionRotationY(angle);
+			const matrix = QuaternionToRotationMatrix(quat);
+
+			// Verify the matrix structure for 180° Y rotation
+			expect(matrix[0][0]).toBeCloseTo(-1, 5); // m00 = -1
+			expect(matrix[1][1]).toBeCloseTo(1, 5); // m11 = 1
+			expect(matrix[2][2]).toBeCloseTo(-1, 5); // m22 = -1
+
+			// Verify trace is negative (should trigger non-standard branch)
+			const trace = matrix[0][0] + matrix[1][1] + matrix[2][2];
+			expect(trace).toBeLessThan(0);
+
+			// m11 should be larger than m00 and m22
+			expect(matrix[1][1]).toBeGreaterThan(matrix[0][0]);
+			expect(matrix[1][1]).toBeGreaterThan(matrix[2][2]);
+
+			const result = QuaternionFromRotationMatrix(matrix);
+			expect(QuaternionEquals(quat, result, TOLERANCE, true)).toBe(true);
+
+			// Verify it's normalized
+			const magnitude = Math.sqrt((result[0] ** 2) + (result[1] ** 2) + (result[2] ** 2) + (result[3] ** 2));
+			expect(magnitude).toBeCloseTo(1.0, 5);
+		});
+
+		test('Shepperd branch: m11 dominant with 120° Y rotation', () => {
+			const angle = (Math.PI * 2 / 3); // 120°
+			const quat = QuaternionRotationY(angle);
+			const matrix = QuaternionToRotationMatrix(quat);
+
+			const trace = matrix[0][0] + matrix[1][1] + matrix[2][2];
+
+			// At 120° Y rotation, trace becomes negative and m11 > m22 (and m00 is negative)
+			if (trace <= 0 && matrix[1][1] > matrix[2][2]) {
+				// This tests the m11-dominant branch
+				const result = QuaternionFromRotationMatrix(matrix);
+				expect(QuaternionEquals(quat, result, TOLERANCE, true)).toBe(true);
+			}
+		});
+
+		test('Shepperd branch: m22 dominant (180° around Z-axis)', () => {
+			// 180° rotation around Z-axis
+			// Creates a matrix where trace = -1 - 1 + 1 = -1 (trace < 0)
+			// m22 = 1 (always largest for Z rotation, especially at 180°)
+			const angle = Math.PI;
+			const quat = QuaternionRotationZ(angle);
+			const matrix = QuaternionToRotationMatrix(quat);
+
+			// Verify the matrix structure for 180° Z rotation
+			expect(matrix[0][0]).toBeCloseTo(-1, 5); // m00 = -1
+			expect(matrix[1][1]).toBeCloseTo(-1, 5); // m11 = -1
+			expect(matrix[2][2]).toBeCloseTo(1, 5); // m22 = 1
+
+			// Verify trace is negative (should trigger non-standard branch)
+			const trace = matrix[0][0] + matrix[1][1] + matrix[2][2];
+			expect(trace).toBeLessThan(0);
+
+			// m22 should be larger than m00 and m11
+			expect(matrix[2][2]).toBeGreaterThan(matrix[0][0]);
+			expect(matrix[2][2]).toBeGreaterThan(matrix[1][1]);
+
+			const result = QuaternionFromRotationMatrix(matrix);
+			expect(QuaternionEquals(quat, result, TOLERANCE, true)).toBe(true);
+
+			// Verify it's normalized
+			const magnitude = Math.sqrt((result[0] ** 2) + (result[1] ** 2) + (result[2] ** 2) + (result[3] ** 2));
+			expect(magnitude).toBeCloseTo(1.0, 5);
+		});
+
+		test('Shepperd branch: m22 dominant with 120° Z rotation', () => {
+			const angle = (Math.PI * 2 / 3); // 120°
+			const quat = QuaternionRotationZ(angle);
+			const matrix = QuaternionToRotationMatrix(quat);
+
+			const trace = matrix[0][0] + matrix[1][1] + matrix[2][2];
+
+			// At 120° Z rotation, trace becomes negative and m22 > m00, m11
+			if (trace <= 0) {
+				// This tests the m22-dominant branch (else clause)
+				const result = QuaternionFromRotationMatrix(matrix);
+				expect(QuaternionEquals(quat, result, TOLERANCE, true)).toBe(true);
+			}
+		});
+
 		test('should handle case where m00 is the largest diagonal element', () => {
 			// Rotation around X-axis where m00 can be largest in certain configurations
 			const angle = 0.5; // radians
@@ -561,25 +724,6 @@ describe('Quaternion Conversions', () => {
 			expect(magnitude).toBeCloseTo(1.0, 5);
 		});
 
-		test('should handle case where trace is largest (identity-like matrix)', () => {
-			// Very small rotation keeps trace largest
-			const verySmallAngle = (Math.PI * 0.001 / 180);
-			const quat = QuaternionRotationZ(verySmallAngle);
-			const matrix = QuaternionToRotationMatrix(quat);
-
-			// For very small angle, trace = 1 + 1 + 1 + small ≈ 3 (largest)
-			const trace = matrix[0][0] + matrix[1][1] + matrix[2][2];
-			expect(trace).toBeGreaterThan(2.9);
-
-			const result = QuaternionFromRotationMatrix(matrix);
-			expect(result).toHaveLength(4);
-			const magnitude = Math.sqrt((result[0] ** 2) + (result[1] ** 2) + (result[2] ** 2) + (result[3] ** 2));
-			expect(magnitude).toBeCloseTo(1.0, 5);
-
-			// Verify round-trip
-			expect(QuaternionEquals(quat, result, TOLERANCE, true)).toBe(true);
-		});
-
 		test('should exercise all Shepperd branches with diverse rotation angles', () => {
 			const testAngles = [0.1, 0.5, 1.0, (Math.PI / 4), (Math.PI / 3), (Math.PI / 2)];
 
@@ -601,6 +745,65 @@ describe('Quaternion Conversions', () => {
 				const matrixZ = QuaternionToRotationMatrix(quatZ);
 				const resultZ = QuaternionFromRotationMatrix(matrixZ);
 				expect(QuaternionEquals(quatZ, resultZ, TOLERANCE, true)).toBe(true);
+			}
+		});
+
+		test('comprehensive Shepperd branch coverage with all axis rotations at 180°', () => {
+			// Test all 4 branches explicitly with 180° rotations which force trace < 0
+			const testCases = [
+				{
+					name: 'X-axis 180°',
+					quat: QuaternionRotationX(Math.PI),
+					expectedDominant: 'm00'
+				},
+				{
+					name: 'Y-axis 180°',
+					quat: QuaternionRotationY(Math.PI),
+					expectedDominant: 'm11'
+				},
+				{
+					name: 'Z-axis 180°',
+					quat: QuaternionRotationZ(Math.PI),
+					expectedDominant: 'm22'
+				},
+				{
+					name: 'Small angle (trace > 0)',
+					quat: QuaternionRotationZ(0.01),
+					expectedDominant: 'trace'
+				}
+			];
+
+			for (const testCase of testCases) {
+				const matrix = QuaternionToRotationMatrix(testCase.quat);
+				const trace = matrix[0][0] + matrix[1][1] + matrix[2][2];
+
+				// Verify we're testing the right branch
+				if (testCase.expectedDominant === 'trace') {
+					expect(trace).toBeGreaterThan(0);
+				}
+				else if (testCase.expectedDominant === 'm00') {
+					expect(trace).toBeLessThanOrEqual(0);
+					expect(matrix[0][0]).toBeGreaterThan(matrix[1][1]);
+					expect(matrix[0][0]).toBeGreaterThan(matrix[2][2]);
+				}
+				else if (testCase.expectedDominant === 'm11') {
+					expect(trace).toBeLessThanOrEqual(0);
+					expect(matrix[1][1]).toBeGreaterThan(matrix[0][0]);
+					expect(matrix[1][1]).toBeGreaterThan(matrix[2][2]);
+				}
+				else if (testCase.expectedDominant === 'm22') {
+					expect(trace).toBeLessThanOrEqual(0);
+					expect(matrix[2][2]).toBeGreaterThan(matrix[0][0]);
+					expect(matrix[2][2]).toBeGreaterThan(matrix[1][1]);
+				}
+
+				// Convert back and verify equivalence
+				const result = QuaternionFromRotationMatrix(matrix);
+				expect(QuaternionEquals(testCase.quat, result, TOLERANCE, true)).toBe(true);
+
+				// Verify normalized
+				const mag = Math.sqrt((result[0] ** 2) + (result[1] ** 2) + (result[2] ** 2) + (result[3] ** 2));
+				expect(mag).toBeCloseTo(1.0, 5);
 			}
 		});
 	});

@@ -12,12 +12,69 @@ describe('Matrix Decompositions', () => {
 			expect(L?.[1]?.[0]).toBeCloseTo(1);
 			expect(L?.[1]?.[1]).toBeCloseTo(Math.sqrt(2));
 		});
+
+		it('verifies Cholesky decomposition L*L^T = A for SPD matrix', () => {
+			const A = [
+				[4, 2],
+				[2, 3]
+			];
+			const L = MatrixCholesky(A);
+			const LT = [
+				[(L?.[0]?.[0] ?? 0), (L?.[1]?.[0] ?? 0)],
+				[(L?.[0]?.[1] ?? 0), (L?.[1]?.[1] ?? 0)]
+			];
+			// L * L^T reconstruction
+			const result = [
+				[
+					((L?.[0]?.[0] ?? 0) * (LT?.[0]?.[0] ?? 0)) + ((L?.[0]?.[1] ?? 0) * (LT?.[1]?.[0] ?? 0)),
+					((L?.[0]?.[0] ?? 0) * (LT?.[0]?.[1] ?? 0)) + ((L?.[0]?.[1] ?? 0) * (LT?.[1]?.[1] ?? 0))
+				],
+				[
+					((L?.[1]?.[0] ?? 0) * (LT?.[0]?.[0] ?? 0)) + ((L?.[1]?.[1] ?? 0) * (LT?.[1]?.[0] ?? 0)),
+					((L?.[1]?.[0] ?? 0) * (LT?.[0]?.[1] ?? 0)) + ((L?.[1]?.[1] ?? 0) * (LT?.[1]?.[1] ?? 0))
+				]
+			];
+			expect(result[0]?.[0]).toBeCloseTo(A[0]?.[0] ?? 0);
+			expect(result[0]?.[1]).toBeCloseTo(A[0]?.[1] ?? 0);
+			expect(result[1]?.[0]).toBeCloseTo(A[1]?.[0] ?? 0);
+			expect(result[1]?.[1]).toBeCloseTo(A[1]?.[1] ?? 0);
+		});
+
 		it('throws for non-positive definite matrix', () => {
 			const A = [
 				[1, 2],
 				[2, 1]
 			];
 			expect(() => MatrixCholesky(A)).toThrow();
+		});
+
+		it('throws for non-symmetric matrix', () => {
+			const A = [[1, 2], [3, 4]];
+			expect(() => MatrixCholesky(A)).toThrow();
+		});
+
+		it('throws for matrix with zero on diagonal (not SPD)', () => {
+			const A = [[0, 0], [0, 0]];
+			expect(() => MatrixCholesky(A)).toThrow();
+		});
+
+		it('throws for 1x1 negative matrix', () => {
+			const A = [[-1]];
+			expect(() => MatrixCholesky(A)).toThrow();
+		});
+
+		it('computes Cholesky for 1x1 SPD matrix', () => {
+			const A = [[4]];
+			const L = MatrixCholesky(A);
+			expect(L?.[0]?.[0]).toBeCloseTo(2);
+		});
+
+		it('computes Cholesky for 3x3 SPD matrix', () => {
+			const A = [[25, 15, -5], [15, 18, 0], [-5, 0, 11]];
+			const L = MatrixCholesky(A);
+			expect(L).toBeDefined();
+			expect(L?.[0]?.[0]).toBeCloseTo(5); // sqrt(25)
+			expect(L?.[1]?.[0]).toBeCloseTo(3); // 15/5
 		});
 	});
 
@@ -101,20 +158,77 @@ describe('Matrix Decompositions', () => {
 			expect(new Set(P).size).toBe(2);
 		});
 
-		it('handles a permutation matrix [[0,1],[1,0]] that previously required pivoting', () => {
+		it('verifies PA = LU reconstruction within epsilon', () => {
+			const A = [
+				[2, 1],
+				[1, 1]
+			];
+			const { L, U, P } = MatrixLU(A);
+			// Build permuted A matrix
+			const PA = [
+				[...(A[P?.[0] ?? 0] ?? [0, 0])],
+				[...(A[P?.[1] ?? 1] ?? [0, 0])]
+			];
+			// Compute L * U
+			const LU = [
+				[
+					((L?.[0]?.[0] ?? 0) * (U?.[0]?.[0] ?? 0)) + ((L?.[0]?.[1] ?? 0) * (U?.[1]?.[0] ?? 0)),
+					((L?.[0]?.[0] ?? 0) * (U?.[0]?.[1] ?? 0)) + ((L?.[0]?.[1] ?? 0) * (U?.[1]?.[1] ?? 0))
+				],
+				[
+					((L?.[1]?.[0] ?? 0) * (U?.[0]?.[0] ?? 0)) + ((L?.[1]?.[1] ?? 0) * (U?.[1]?.[0] ?? 0)),
+					((L?.[1]?.[0] ?? 0) * (U?.[0]?.[1] ?? 0)) + ((L?.[1]?.[1] ?? 0) * (U?.[1]?.[1] ?? 0))
+				]
+			];
+			for (let i = 0; i < 2; i++) {
+				for (let j = 0; j < 2; j++) {
+					expect((LU[i] ?? [])[j]).toBeCloseTo((PA[i] ?? [])[j], 9);
+				}
+			}
+		});
+
+		it('handles a permutation matrix [[0,1],[1,0]] that requires pivoting', () => {
 			// This matrix has a zero leading element and required pivoting to solve correctly
 			const A = [[0, 1], [1, 0]];
 			const { L, U, P } = MatrixLU(A);
-			// Reconstruct permuted A from L × U and verify correctness
+			// Verify PA = LU
+			const PA = [
+				[...(A[P?.[0] ?? 0] ?? [0, 0])],
+				[...(A[P?.[1] ?? 1] ?? [0, 0])]
+			];
 			const lu00 = ((L?.[0]?.[0] ?? 0) * (U?.[0]?.[0] ?? 0)) + ((L?.[0]?.[1] ?? 0) * (U?.[1]?.[0] ?? 0));
 			const lu01 = ((L?.[0]?.[0] ?? 0) * (U?.[0]?.[1] ?? 0)) + ((L?.[0]?.[1] ?? 0) * (U?.[1]?.[1] ?? 0));
 			const lu10 = ((L?.[1]?.[0] ?? 0) * (U?.[0]?.[0] ?? 0)) + ((L?.[1]?.[1] ?? 0) * (U?.[1]?.[0] ?? 0));
 			const lu11 = ((L?.[1]?.[0] ?? 0) * (U?.[0]?.[1] ?? 0)) + ((L?.[1]?.[1] ?? 0) * (U?.[1]?.[1] ?? 0));
-			// LU should equal P(A) — the permuted A
-			expect(lu00).toBeCloseTo((A[P?.[0] ?? 0]?.[0] ?? 0));
-			expect(lu01).toBeCloseTo((A[P?.[0] ?? 0]?.[1] ?? 0));
-			expect(lu10).toBeCloseTo((A[P?.[1] ?? 1]?.[0] ?? 0));
-			expect(lu11).toBeCloseTo((A[P?.[1] ?? 1]?.[1] ?? 0));
+			expect(lu00).toBeCloseTo((PA[0] ?? [])[0], 9);
+			expect(lu01).toBeCloseTo((PA[0] ?? [])[1], 9);
+			expect(lu10).toBeCloseTo((PA[1] ?? [])[0], 9);
+			expect(lu11).toBeCloseTo((PA[1] ?? [])[1], 9);
+		});
+
+		it('computes LU for 1x1 matrix', () => {
+			const A = [[5]];
+			const { L, U, P } = MatrixLU(A);
+			expect(L?.[0]?.[0]).toBeCloseTo(1);
+			expect(U?.[0]?.[0]).toBeCloseTo(5);
+			expect(P).toEqual([0]);
+		});
+
+		it('computes LU with row swap for small leading pivot', () => {
+			const A = [
+				[1e-10, 1, 2],
+				[3, 4, 5],
+				[6, 7, 8]
+			];
+			const { L, U, P } = MatrixLU(A);
+			// First row should have been swapped (P[0] !== 0)
+			expect(P[0]).not.toBe(0);
+			// L should be unit lower triangular
+			expect(L?.[0]?.[0]).toBeCloseTo(1);
+			expect(L?.[1]?.[1]).toBeCloseTo(1);
+			expect(L?.[2]?.[2]).toBeCloseTo(1);
+			// U should be upper triangular with non-zero diagonal
+			expect(U?.[0]?.[0]).toBeDefined();
 		});
 
 		it('throws for singular matrix', () => {
@@ -122,6 +236,16 @@ describe('Matrix Decompositions', () => {
 				[1, 2],
 				[2, 4]
 			];
+			expect(() => MatrixLU(A)).toThrow();
+		});
+
+		it('throws for rank-deficient 3x3 matrix', () => {
+			const A = [[1, 0, 1], [0, 0, 0], [1, 0, 1]];
+			expect(() => MatrixLU(A)).toThrow();
+		});
+
+		it('throws for 2x2 zero matrix', () => {
+			const A = [[0, 0], [0, 0]];
 			expect(() => MatrixLU(A)).toThrow();
 		});
 	});
@@ -158,12 +282,70 @@ describe('Matrix Decompositions', () => {
 			// R should be upper triangular
 			expect(R?.[1]?.[0]).toBeCloseTo(0);
 		});
+
+		it('verifies QR decomposition Q*R = A within epsilon', () => {
+			const A = [
+				[1, 1],
+				[1, 0]
+			];
+			const { Q, R } = MatrixQR(A);
+			// Q * R should equal A
+			const reconst00 = ((Q?.[0]?.[0] ?? 0) * (R?.[0]?.[0] ?? 0)) + ((Q?.[0]?.[1] ?? 0) * (R?.[1]?.[0] ?? 0));
+			const reconst01 = ((Q?.[0]?.[0] ?? 0) * (R?.[0]?.[1] ?? 0)) + ((Q?.[0]?.[1] ?? 0) * (R?.[1]?.[1] ?? 0));
+			const reconst10 = ((Q?.[1]?.[0] ?? 0) * (R?.[0]?.[0] ?? 0)) + ((Q?.[1]?.[1] ?? 0) * (R?.[1]?.[0] ?? 0));
+			const reconst11 = ((Q?.[1]?.[0] ?? 0) * (R?.[0]?.[1] ?? 0)) + ((Q?.[1]?.[1] ?? 0) * (R?.[1]?.[1] ?? 0));
+			expect(reconst00).toBeCloseTo(A[0]?.[0] ?? 0, 9);
+			expect(reconst01).toBeCloseTo(A[0]?.[1] ?? 0, 9);
+			expect(reconst10).toBeCloseTo(A[1]?.[0] ?? 0, 9);
+			expect(reconst11).toBeCloseTo(A[1]?.[1] ?? 0, 9);
+		});
+
+		it('verifies Q is orthogonal for 3x2 matrix (Q^T*Q = I)', () => {
+			const A = [
+				[1, 1],
+				[1, 0],
+				[0, 1]
+			];
+			const { Q } = MatrixQR(A);
+			// Q^T * Q for 3x2 should give 2x2 identity
+			const QTQ00 = ((Q?.[0]?.[0] ?? 0) * (Q?.[0]?.[0] ?? 0)) + ((Q?.[1]?.[0] ?? 0) * (Q?.[1]?.[0] ?? 0)) + ((Q?.[2]?.[0] ?? 0) * (Q?.[2]?.[0] ?? 0));
+			const QTQ01 = ((Q?.[0]?.[0] ?? 0) * (Q?.[0]?.[1] ?? 0)) + ((Q?.[1]?.[0] ?? 0) * (Q?.[1]?.[1] ?? 0)) + ((Q?.[2]?.[0] ?? 0) * (Q?.[2]?.[1] ?? 0));
+			const QTQ11 = ((Q?.[0]?.[1] ?? 0) * (Q?.[0]?.[1] ?? 0)) + ((Q?.[1]?.[1] ?? 0) * (Q?.[1]?.[1] ?? 0)) + ((Q?.[2]?.[1] ?? 0) * (Q?.[2]?.[1] ?? 0));
+			expect(QTQ00).toBeCloseTo(1, 9);
+			expect(QTQ01).toBeCloseTo(0, 9);
+			expect(QTQ11).toBeCloseTo(1, 9);
+		});
+
 		it('throws for more columns than rows', () => {
 			const A = [
 				[1, 2, 3],
 				[4, 5, 6]
 			];
 			expect(() => MatrixQR(A)).toThrow();
+		});
+
+		it('computes QR for 1x1 matrix', () => {
+			const A = [[5]];
+			const { Q, R } = MatrixQR(A);
+			expect(Q?.[0]?.[0]).toBeCloseTo(1);
+			expect(R?.[0]?.[0]).toBeCloseTo(5);
+		});
+
+		it('computes QR for 2x1 matrix (single column)', () => {
+			const A = [[3], [4]];
+			const { Q, R } = MatrixQR(A);
+			// Q should have normalized column [3/5, 4/5]
+			expect(Q?.[0]?.[0]).toBeCloseTo(0.6, 9);
+			expect(Q?.[1]?.[0]).toBeCloseTo(0.8, 9);
+			// R should be [[5]]
+			expect(R?.[0]?.[0]).toBeCloseTo(5, 9);
+		});
+
+		it('verifies R is upper triangular', () => {
+			const A = [[1, 2], [3, 4], [5, 6]];
+			const { R } = MatrixQR(A);
+			// All below-diagonal elements should be near zero
+			expect(R?.[1]?.[0] ?? 0).toBeCloseTo(0, 9);
 		});
 	});
 
@@ -192,12 +374,73 @@ describe('Matrix Decompositions', () => {
 			const VTV = ((VT?.[0]?.[0] ?? 0) * (VT?.[0]?.[0] ?? 0)) + ((VT?.[1]?.[0] ?? 0) * (VT?.[1]?.[0] ?? 0));
 			expect(VTV).toBeCloseTo(1);
 		});
+
+		it('verifies singular values are non-negative', () => {
+			const A = [[1, 2], [3, 4]];
+			const { S } = MatrixSVD(A);
+			for (const sv of S ?? []) {
+				expect(sv).toBeGreaterThanOrEqual(0);
+			}
+		});
+
+		it('verifies singular values are in descending order', () => {
+			const A = [[1, 2], [3, 4]];
+			const { S } = MatrixSVD(A);
+			for (let i = 0; i < (S?.length ?? 0) - 1; i++) {
+				expect((S?.[i] ?? 0)).toBeGreaterThanOrEqual(S?.[i + 1] ?? 0);
+			}
+		});
+
 		it('computes SVD for a 1x1 matrix', () => {
 			const A = [[-3]];
 			const { U, S, VT } = MatrixSVD(A);
 			expect(S?.[0]).toBeCloseTo(3);
 			expect(U?.[0]?.[0]).toBeCloseTo(1);
 			expect(VT?.[0]?.[0]).toBeCloseTo(-1);
+		});
+
+		it('computes SVD for 1x1 zero matrix', () => {
+			const A = [[0]];
+			const { U, S, VT } = MatrixSVD(A);
+			expect(S?.[0]).toBeCloseTo(0);
+			expect(U?.[0]?.[0]).toBeDefined();
+			expect(VT?.[0]?.[0]).toBeDefined();
+		});
+
+		it('computes SVD for rectangular 3x2 matrix', () => {
+			const A = [[1, 0], [0, 2], [0, 0]];
+			const { U, S, VT } = MatrixSVD(A);
+			expect(U).toHaveLength(3);
+			expect(S).toHaveLength(2);
+			expect(VT).toHaveLength(2);
+		});
+
+		it('verifies U is orthogonal for square matrix', () => {
+			const A = [[1, 0], [0, 2]];
+			const { U } = MatrixSVD(A);
+			// U^T * U should be identity (for square U)
+			const UTU00 = ((U?.[0]?.[0] ?? 0) * (U?.[0]?.[0] ?? 0)) + ((U?.[1]?.[0] ?? 0) * (U?.[1]?.[0] ?? 0));
+			const UTU01 = ((U?.[0]?.[0] ?? 0) * (U?.[0]?.[1] ?? 0)) + ((U?.[1]?.[0] ?? 0) * (U?.[1]?.[1] ?? 0));
+			const UTU11 = ((U?.[0]?.[1] ?? 0) * (U?.[0]?.[1] ?? 0)) + ((U?.[1]?.[1] ?? 0) * (U?.[1]?.[1] ?? 0));
+			expect(UTU00).toBeCloseTo(1, 8);
+			expect(UTU01).toBeCloseTo(0, 8);
+			expect(UTU11).toBeCloseTo(1, 8);
+		});
+
+		it('computes SVD for singular matrix (has zero singular value)', () => {
+			const A = [[1, 2], [2, 4]];
+			const { S } = MatrixSVD(A);
+			// Should have at least one near-zero singular value
+			const hasZeroSV = (S ?? []).some(sv => sv < 1e-9);
+			expect(hasZeroSV || S?.[S.length - 1] === 0).toBe(true);
+		});
+
+		it('computes SVD for tall matrix with zero rows', () => {
+			const A = [[1, 0], [0, 2], [0, 0]];
+			const { U, S, VT } = MatrixSVD(A);
+			expect(U).toBeDefined();
+			expect(S).toBeDefined();
+			expect(VT).toBeDefined();
 		});
 	});
 

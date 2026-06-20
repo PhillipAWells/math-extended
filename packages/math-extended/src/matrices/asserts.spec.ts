@@ -4,12 +4,15 @@ import {
 	AssertMatrix2,
 	AssertMatrix3,
 	AssertMatrix4,
+	AssertMatrixSquare,
+	AssertMatricesCompatible,
 	MatrixError,
 	ValidateMatrix,
 	ValidateMatrix1,
 	ValidateMatrix2,
 	ValidateMatrix3,
-	ValidateMatrix4
+	ValidateMatrix4,
+	ValidateMatrixSquare
 } from './asserts.js';
 
 describe('Matrix Assertions', () => {
@@ -319,6 +322,21 @@ describe('Matrix Assertions', () => {
 			expect(() => AssertMatrix(matrix)).toThrow('Matrix must have at least one row and one column');
 		});
 
+		test('should throw for matrix with jagged rows (inconsistent column count)', () => {
+			const matrix = [[1, 2], [3, 4, 5]];
+			expect(() => AssertMatrix(matrix)).toThrow('All matrix rows must have the same length');
+		});
+
+		test('should throw for matrix with Infinity', () => {
+			const matrix = [[1, Infinity], [3, 4]];
+			expect(() => AssertMatrix(matrix)).toThrow('Expected finite number');
+		});
+
+		test('should throw for matrix with -Infinity', () => {
+			const matrix = [[1, -Infinity], [3, 4]];
+			expect(() => AssertMatrix(matrix)).toThrow('Expected finite number');
+		});
+
 		test('should handle very large numbers', () => {
 			const matrix = [[Number.MAX_VALUE, Number.MIN_VALUE]];
 			expect(() => AssertMatrix(matrix)).not.toThrow();
@@ -327,6 +345,129 @@ describe('Matrix Assertions', () => {
 		test('should handle very small numbers', () => {
 			const matrix = [[Number.EPSILON, -Number.EPSILON]];
 			expect(() => AssertMatrix(matrix)).not.toThrow();
+		});
+
+		test('should throw for non-numeric elements in matrix', () => {
+			const matrix = [[1, 'text'], [3, 4]];
+			expect(() => AssertMatrix(matrix)).toThrow('Expected number');
+		});
+
+		test('should throw for object elements in matrix', () => {
+			const matrix = [[1, {}], [3, 4]];
+			expect(() => AssertMatrix(matrix)).toThrow('Expected number');
+		});
+	});
+
+	describe('AssertMatrixSquare', () => {
+		test('should accept valid square matrix 2x2', () => {
+			const matrix = [[1, 2], [3, 4]];
+			expect(() => AssertMatrixSquare(matrix)).not.toThrow();
+		});
+
+		test('should accept valid square matrix 3x3', () => {
+			const matrix = [[1, 2, 3], [4, 5, 6], [7, 8, 9]];
+			expect(() => AssertMatrixSquare(matrix)).not.toThrow();
+		});
+
+		test('should accept 1x1 matrix', () => {
+			const matrix = [[5]];
+			expect(() => AssertMatrixSquare(matrix)).not.toThrow();
+		});
+
+		test('should throw for rectangular matrix 2x3', () => {
+			const matrix = [[1, 2, 3], [4, 5, 6]];
+			expect(() => AssertMatrixSquare(matrix)).toThrow('Matrix must be square');
+		});
+
+		test('should throw for rectangular matrix 3x2', () => {
+			const matrix = [[1, 2], [3, 4], [5, 6]];
+			expect(() => AssertMatrixSquare(matrix)).toThrow('Matrix must be square');
+		});
+
+		test('should throw for empty matrix', () => {
+			const matrix: number[][] = [];
+			expect(() => AssertMatrixSquare(matrix)).toThrow('Matrix must be square');
+		});
+
+		test('should throw for non-array input', () => {
+			expect(() => AssertMatrixSquare('not a matrix')).toThrow('Expected array');
+			expect(() => AssertMatrixSquare(42)).toThrow('Expected array');
+		});
+
+		test('should throw for non-array rows', () => {
+			const matrix = [1, 2, 3] as unknown;
+			expect(() => AssertMatrixSquare(matrix)).toThrow('Expected array');
+		});
+
+		test('should throw for non-numeric elements in square matrix', () => {
+			const matrix = [[1, 'x'], ['y', 4]];
+			expect(() => AssertMatrixSquare(matrix)).toThrow('Expected number');
+		});
+
+		test('should throw for NaN in square matrix', () => {
+			const matrix = [[1, NaN], [3, 4]];
+			expect(() => AssertMatrixSquare(matrix)).toThrow('Expected finite number');
+		});
+	});
+
+	describe('AssertMatricesCompatible', () => {
+		test('should accept compatible 2x2 matrices', () => {
+			const a = [[1, 2], [3, 4]];
+			const b = [[5, 6], [7, 8]];
+			expect(() => AssertMatricesCompatible(a, b)).not.toThrow();
+		});
+
+		test('should accept multiple compatible matrices', () => {
+			const a = [[1, 2], [3, 4]];
+			const b = [[5, 6], [7, 8]];
+			const c = [[9, 10], [11, 12]];
+			expect(() => AssertMatricesCompatible(a, b, c)).not.toThrow();
+		});
+
+		test('should accept single matrix', () => {
+			const a = [[1, 2], [3, 4]];
+			expect(() => AssertMatricesCompatible(a)).not.toThrow();
+		});
+
+		test('should throw for incompatible dimensions (different rows)', () => {
+			const a = [[1, 2], [3, 4]];
+			const b = [[5, 6, 7]];
+			expect(() => AssertMatricesCompatible(a, b)).toThrow('must have the same dimensions');
+		});
+
+		test('should throw for incompatible dimensions (different columns)', () => {
+			const a = [[1, 2], [3, 4]];
+			const b = [[5, 6, 7], [8, 9, 10]];
+			expect(() => AssertMatricesCompatible(a, b)).toThrow('must have the same dimensions');
+		});
+
+		test('should throw for no matrices provided', () => {
+			expect(() => AssertMatricesCompatible()).toThrow('At least one matrix must be provided');
+		});
+
+		test('should throw when first matrix is invalid', () => {
+			const a = 'not a matrix';
+			const b = [[1, 2], [3, 4]];
+			expect(() => AssertMatricesCompatible(a, b)).toThrow();
+		});
+
+		test('should throw when second matrix is invalid', () => {
+			const a = [[1, 2], [3, 4]];
+			const b = 'not a matrix';
+			expect(() => AssertMatricesCompatible(a, b)).toThrow();
+		});
+
+		test('should throw for jagged matrix in compatibility check', () => {
+			const a = [[1, 2], [3, 4]];
+			const b = [[5, 6], [7, 8, 9]];
+			expect(() => AssertMatricesCompatible(a, b)).toThrow();
+		});
+
+		test('should report correct index when incompatibility is found', () => {
+			const a = [[1, 2], [3, 4]];
+			const b = [[5, 6], [7, 8]];
+			const c = [[9, 10, 11]];
+			expect(() => AssertMatricesCompatible(a, b, c)).toThrow('at index 2');
 		});
 	});
 
@@ -433,6 +574,43 @@ describe('Matrix Assertions', () => {
 		test('should not throw on invalid input', () => {
 			expect(() => ValidateMatrix4('invalid')).not.toThrow();
 			expect(() => ValidateMatrix4(null)).not.toThrow();
+		});
+	});
+
+	describe('ValidateMatrixSquare', () => {
+		test('should return true for valid square matrices', () => {
+			expect(ValidateMatrixSquare([[1]])).toBe(true);
+			expect(ValidateMatrixSquare([[1, 2], [3, 4]])).toBe(true);
+			expect(ValidateMatrixSquare([[1, 2, 3], [4, 5, 6], [7, 8, 9]])).toBe(true);
+		});
+
+		test('should return false for rectangular matrices', () => {
+			expect(ValidateMatrixSquare([[1, 2], [3, 4], [5, 6]])).toBe(false);
+			expect(ValidateMatrixSquare([[1, 2, 3], [4, 5, 6]])).toBe(false);
+		});
+
+		test('should return false for empty matrix', () => {
+			expect(ValidateMatrixSquare([])).toBe(false);
+		});
+
+		test('should return false for invalid input', () => {
+			expect(ValidateMatrixSquare('invalid')).toBe(false);
+			expect(ValidateMatrixSquare(null)).toBe(false);
+			expect(ValidateMatrixSquare(42)).toBe(false);
+		});
+
+		test('should return false for matrix with NaN', () => {
+			expect(ValidateMatrixSquare([[1, NaN], [3, 4]])).toBe(false);
+		});
+
+		test('should return false for matrix with non-array rows', () => {
+			const matrix = [1, 2] as unknown;
+			expect(ValidateMatrixSquare(matrix)).toBe(false);
+		});
+
+		test('should not throw on invalid input', () => {
+			expect(() => ValidateMatrixSquare('invalid')).not.toThrow();
+			expect(() => ValidateMatrixSquare([[1, 2, 3], [4, 5, 6]])).not.toThrow();
 		});
 	});
 });
