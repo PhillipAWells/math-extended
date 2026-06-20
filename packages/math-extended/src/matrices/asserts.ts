@@ -274,9 +274,19 @@ export function AssertMatricesCompatible(...matrices: unknown[]): void {
 	}
 
 	// Validate that all matrices have the same dimensions
-	const [firstRows, firstCols] = MatrixSize(matrices[0] as TMatrix);
+	const first = matrices[0];
+	if (first === undefined) {
+		throw new MatrixError('At least one matrix must be provided');
+	}
+	AssertMatrix(first);
+	const [firstRows, firstCols] = MatrixSize(first);
 	for (let i = 1; i < matrices.length; i++) {
-		const [rows, cols] = MatrixSize(matrices[i] as TMatrix);
+		const matrix = matrices[i];
+		if (matrix === undefined) {
+			throw new MatrixError(`Matrix at index ${i} is undefined`);
+		}
+		AssertMatrix(matrix);
+		const [rows, cols] = MatrixSize(matrix);
 		if (rows !== firstRows || cols !== firstCols) {
 			throw new MatrixError(
 				`All matrices must have the same dimensions. Expected [${firstRows}, ${firstCols}], but got [${rows}, ${cols}] at index ${i}`

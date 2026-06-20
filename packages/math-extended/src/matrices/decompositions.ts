@@ -7,6 +7,23 @@ import { MatrixGramSchmidt } from './linear-algebra.js';
 import type { TMatrix } from './types.js';
 
 const MATRIX_NUMERICAL_TOLERANCE = 1e-12;
+
+/**
+ * Safely retrieves a row from a matrix and throws MatrixError if out of bounds.
+ * @param matrix - The matrix to access
+ * @param index - The row index
+ * @returns The row at the given index
+ * @throws {MatrixError} If the row index is out of bounds
+ */
+function getRow(matrix: TMatrix, index: number): number[] {
+	const row = matrix[index];
+	if (row === undefined) {
+		throw new MatrixError(`Matrix row ${index} is out of bounds`, {
+			cause: undefined
+		});
+	}
+	return row;
+}
 const EIGEN_CONVERGENCE_TOLERANCE = 1e-10;
 const EIGEN_MAX_ITERATIONS = 50;
 
@@ -463,17 +480,20 @@ export function MatrixLU(matrix: TMatrix): TLUDecompositionResult {
 
 	// Initialize L's diagonal with 1's (unit lower triangular)
 	for (let i = 0; i < n; i++) {
-		(L[i] as number[])[i] = 1;
+		const lRow = getRow(L, i);
+		lRow[i] = 1;
 	}
 
 	// Doolittle's method with partial (column) pivoting
 	for (let i = 0; i < n; i++) {
 		// --- Partial pivoting: find row with largest |A[k][i]| for k >= i ---
-		let maxVal = Math.abs((A[i] as number[])[i] as number);
+		const aRowI = getRow(A, i);
+		let maxVal = Math.abs(aRowI[i]);
 		let maxRow = i;
 
 		for (let k = i + 1; k < n; k++) {
-			const val = Math.abs((A[k] as number[])[i] as number);
+			const aRowK = getRow(A, k);
+			const val = Math.abs(aRowK[i]);
 
 			if (val > maxVal) {
 				maxVal = val;
@@ -483,30 +503,38 @@ export function MatrixLU(matrix: TMatrix): TLUDecompositionResult {
 
 		if (maxRow !== i) {
 			// Swap rows in A
-			[A[i], A[maxRow]] = [A[maxRow] as number[], A[i] as number[]];
+			const tempA = A[i];
+			A[i] = A[maxRow];
+			A[maxRow] = tempA;
 			// Swap rows in P
-			[P[i], P[maxRow]] = [P[maxRow] as number, P[i] as number];
+			[P[i], P[maxRow]] = [P[maxRow], P[i]];
 			// Swap already-computed L columns (indices 0..i-1)
+			const lRowI = getRow(L, i);
+			const lRowMax = getRow(L, maxRow);
 			for (let j = 0; j < i; j++) {
-				const tmp = (L[i] as number[])[j] as number;
-				(L[i] as number[])[j] = (L[maxRow] as number[])[j] as number;
-				(L[maxRow] as number[])[j] = tmp;
+				const tmp = lRowI[j];
+				lRowI[j] = lRowMax[j];
+				lRowMax[j] = tmp;
 			}
 		}
 
 		// Compute U row i first — the actual pivot is U[i][i] (Schur complement),
 		// which may be zero even if A[i][i] is non-zero for singular matrices.
+		const lRowI = getRow(L, i);
+		const aRowI2 = getRow(A, i);
+		const uRowI = getRow(U, i);
 		for (let j = i; j < n; j++) {
 			let sum = 0;
 
 			for (let k = 0; k < i; k++) {
-				sum += ((L[i] as number[])[k] as number) * ((U[k] as number[])[j] as number);
+				const uRowK = getRow(U, k);
+				sum += lRowI[k] * uRowK[j];
 			}
-			(U[i] as number[])[j] = (A[i] as number[])[j] as number - sum;
+			uRowI[j] = aRowI2[j] - sum;
 		}
 
 		// Check for zero pivot after computing U[i][i]
-		const pivot = (U[i] as number[])[i] as number;
+		const pivot = uRowI[i];
 
 		if (Math.abs(pivot) < MATRIX_NUMERICAL_TOLERANCE) {
 			throw new MatrixError('Matrix is singular (zero pivot element)');
@@ -517,9 +545,13 @@ export function MatrixLU(matrix: TMatrix): TLUDecompositionResult {
 			let sum = 0;
 
 			for (let k = 0; k < i; k++) {
-				sum += ((L[j] as number[])[k] as number) * ((U[k] as number[])[i] as number);
+				const lRowJ = getRow(L, j);
+				const uRowK = getRow(U, k);
+				sum += lRowJ[k] * uRowK[i];
 			}
-			(L[j] as number[])[i] = ((A[j] as number[])[i] as number - sum) / pivot;
+			const lRowJ = getRow(L, j);
+			const aRowJ = getRow(A, j);
+			lRowJ[i] = (aRowJ[i] - sum) / pivot;
 		}
 	}
 
@@ -600,7 +632,8 @@ export function MatrixQR(matrix: TMatrix, allowDependentColumns = false): TQRDec
 				for (let i = 0; i < m; i++) {
 					const qRow = Q[i];
 					const qVal = qRow[j];
-					dot += (qVal as number) * (candidate[i] as number);
+					if (typeof qVal !== 'number') throw new Error(`Q[${i}][${j}] is not a number`);
+					dot += qVal * candidate[i];
 				}
 
 				for (let i = 0; i < m; i++) {
@@ -617,7 +650,9 @@ export function MatrixQR(matrix: TMatrix, allowDependentColumns = false): TQRDec
 				for (let i = 0; i < m; i++) {
 					const qRow = Q[i];
 					if (!Array.isArray(qRow)) throw new MatrixError(`Internal error: Q[${i}] is not an array`);
-					qRow[k] = (candidate[i] as number) / candNorm;
+					const candVal = candidate[i];
+					if (typeof candVal !== 'number') throw new Error(`candidate[${i}] is not a number`);
+					qRow[k] = candVal / candNorm;
 				}
 			}
 			else {
@@ -753,10 +788,11 @@ export function MatrixSVD(matrix: TMatrix): TSVDDecompositionResult {
 
 	// Handle single row or single column
 	if (m === 1 || n === 1) {
-		const vec = m === 1 ? matrix[0] ?? [0] : matrix.map(row => row?.[0] ?? 0);
-		const norm = Math.sqrt(vec.reduce((sum, v) => sum + ((v ?? 0) * (v ?? 0)), 0));
-		const U = m === 1 ? [[1]] : matrix.map(row => [(row?.[0] ?? 0) / (norm > 0 ? norm : 1)]);
-		const VT = n === 1 ? [[1]] : [(matrix[0] ?? []).map(v => (v ?? 0) / (norm > 0 ? norm : 1))];
+		const vec = m === 1 ? getRow(matrix, 0) : matrix.map(row => row[0] ?? 0);
+		const norm = Math.sqrt(vec.reduce((sum, v) => sum + (v * v), 0));
+		const U = m === 1 ? [[1]] : matrix.map(row => [row[0] / (norm > 0 ? norm : 1)]);
+		const firstRow = getRow(matrix, 0);
+		const VT = n === 1 ? [[1]] : [firstRow.map(v => v / (norm > 0 ? norm : 1))];
 
 		return {
 
@@ -778,33 +814,60 @@ export function MatrixSVD(matrix: TMatrix): TSVDDecompositionResult {
 
 	// Singular values are sqrt of eigenvalues; sort descending
 	const S = eigenvalues.map(ev => Math.sqrt(Math.max(ev, 0)));
-	const indices = ArraySortBy(S.map((_, i) => i), i => S[i] as number, 'desc');
+	const indices = ArraySortBy(S.map((_, i) => i), i => S[i], 'desc');
 
-	const sSorted: number[] = indices.map(i => S[i] as number);
+	const sSorted: number[] = indices.map(i => S[i]);
 
 	// V columns: each is the eigenvector at the sorted index
 	// eigenvectors is stored row-major, so eigenvectors[row][col] = component `row` of eigenvector `col`
-	const V: number[][] = indices.map(i => eigenvectors.map(row => (row as number[])[i] as number));
+	const V: number[][] = indices.map((i) => {
+		return eigenvectors.map((row) => {
+			if (typeof row !== 'object' || row === null || !Array.isArray(row)) {
+				throw new Error('Eigenvector row is not an array');
+			}
+			const val = row[i];
+			if (typeof val !== 'number') throw new Error(`Eigenvector component at index ${i} is not a number`);
+			return val;
+		});
+	});
 
 	// vMat: n × n matrix where each row is a right singular vector
-	const vColLength = V.length > 0 ? (V[0] as number[]).length : 0;
+	const vColLength = V.length > 0 ? V[0].length : 0;
 	const vMat: TMatrix = Array.from({ length: vColLength }, (_, rowIdx) =>
-		V.map(col => (col as number[])[rowIdx] as number)
+		V.map((col) => {
+			if (typeof col !== 'object' || col === null || !Array.isArray(col)) {
+				throw new Error('V column is not an array');
+			}
+			const val = col[rowIdx];
+			if (typeof val !== 'number') throw new Error(`V component at index ${rowIdx} is not a number`);
+			return val;
+		})
 	);
 
 	// Step 3: Compute U = AVΣ⁻¹ (m × n)
 	const U: TMatrix = MatrixCreate(m, n);
 
 	for (let j = 0; j < n; j++) {
-		const sigma = sSorted[j] as number;
+		const sigma = sSorted[j];
 
 		if (sigma > MATRIX_NUMERICAL_TOLERANCE) {
 			// Multiply A by the j-th right singular vector (n×1 column)
-			const vjCol: TMatrix = vMat.map(row => [(row as number[])[j] as number]);
+			const vjCol: TMatrix = vMat.map((row) => {
+				if (typeof row !== 'object' || row === null || !Array.isArray(row)) {
+					throw new Error('vMat row is not an array');
+				}
+				const val = row[j];
+				if (typeof val !== 'number') throw new Error(`vMat component at index ${j} is not a number`);
+				return [val];
+			});
 			const av = MatrixMultiply(matrix, vjCol); // m×1
 
 			for (let i = 0; i < m; i++) {
-				(U[i] as number[])[j] = ((av[i] as number[])[0] as number) / sigma;
+				const avRow = getRow(av, i);
+				const uRow = getRow(U, i);
+				const avVal = avRow[0];
+				if (typeof avVal !== 'number') throw new Error(`av[${i}][0] is not a number`);
+				uRow[j] = avVal / sigma;
 			}
 		}
 		// U column j remains zero for near-zero singular values (already zero from MatrixCreate)

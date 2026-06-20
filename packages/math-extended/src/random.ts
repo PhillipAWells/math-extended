@@ -138,9 +138,13 @@ export function RandomSample<T>(array: T[], count: number): T[] {
 
 	for (let i = 0; i < count; i++) {
 		const j = RandomInt(i, copy.length - 1);
-		const temp = copy[i] as T;
-		copy[i] = copy[j] as T;
-		copy[j] = temp;
+		const a = copy[i];
+		const b = copy[j];
+		if (a === undefined || b === undefined) {
+			throw new RangeError('RandomSample: index out of bounds');
+		}
+		copy[i] = b;
+		copy[j] = a;
 	}
 
 	return copy.slice(0, count);
@@ -167,8 +171,12 @@ export function RandomShuffle<T>(array: T[], clone?: boolean): T[] {
 	for (let i = targetArray.length - 1; i > 0; i--) {
 		const j = RandomInt(0, i);
 		const temp = targetArray[i];
-		targetArray[i] = targetArray[j] as T;
-		targetArray[j] = temp as T;
+		const elem = targetArray[j];
+		if (temp === undefined || elem === undefined) {
+			throw new RangeError('RandomShuffle: index out of bounds');
+		}
+		targetArray[i] = elem;
+		targetArray[j] = temp;
 	}
 
 	return targetArray;

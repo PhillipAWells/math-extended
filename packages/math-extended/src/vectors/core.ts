@@ -5,7 +5,7 @@
 
 import { Clamp } from '../clamp.js';
 import { AssertVector, AssertVector2, AssertVector3, AssertVectorNonZero, AssertVectorSameSize, ValidateVectorSameSize, VectorError } from './asserts.js';
-import type { TAnyVector, TVectorResult, TVector, TVector2, TVector3 } from './types.js';
+import type { TAnyVector, TVectorResult, TVector, TVector2, TVector3, TVector4 } from './types.js';
 
 /**
  * Creates a deep copy of a vector.
@@ -24,7 +24,7 @@ import type { TAnyVector, TVectorResult, TVector, TVector2, TVector3 } from './t
  */
 export function VectorClone<T extends TAnyVector>(vector: T): TVectorResult<T> {
 	AssertVector(vector);
-	return vector.map(v => v) as TVectorResult<T>;
+	return [...vector] as TVectorResult<T>;
 }
 
 /**
@@ -838,13 +838,72 @@ export function VectorClamp<T extends TAnyVector>(a: T, min: T | number, max: T 
 
 	for (let i = 0; i < a.length; i++) {
 		const av = a[i];
-		const minV = Array.isArray(min) ? (min[i] as number) : min;
-		const maxV = Array.isArray(max) ? (max[i] as number) : max;
+		let minV: number;
+		let maxV: number;
+
+		if (Array.isArray(min)) {
+			const minVal = min[i];
+			if (minVal === undefined) {
+				throw new VectorError(`Clamp: min vector index [${i}] is out of bounds`, { cause: undefined });
+			}
+			minV = minVal;
+		}
+		else {
+			minV = min;
+		}
+
+		if (Array.isArray(max)) {
+			const maxVal = max[i];
+			if (maxVal === undefined) {
+				throw new VectorError(`Clamp: max vector index [${i}] is out of bounds`, { cause: undefined });
+			}
+			maxV = maxVal;
+		}
+		else {
+			maxV = max;
+		}
+
 		result.push(Math.max(minV, Math.min(av, maxV)));
 	}
 
 	return result as TVectorResult<T>;
 }
+
+/**
+ * Performs Gram-Schmidt orthogonalization on a set of vectors.
+ * Converts a set of linearly independent vectors into an orthogonal (or orthonormal) set.
+ * Essential for creating coordinate systems and orthogonal bases.
+ *
+ * @param vectors - Array of 2D vectors to orthogonalize
+ * @param normalize - Whether to normalize the resulting vectors (default: false)
+ * @returns Array of orthogonal (or orthonormal) 2D vectors
+ * @throws {VectorError} If vectors are linearly dependent or invalid
+ */
+export function VectorGramSchmidt(vectors: TVector2[], normalize?: boolean): TVector2[];
+
+/**
+ * Performs Gram-Schmidt orthogonalization on a set of vectors.
+ * Converts a set of linearly independent vectors into an orthogonal (or orthonormal) set.
+ * Essential for creating coordinate systems and orthogonal bases.
+ *
+ * @param vectors - Array of 3D vectors to orthogonalize
+ * @param normalize - Whether to normalize the resulting vectors (default: false)
+ * @returns Array of orthogonal (or orthonormal) 3D vectors
+ * @throws {VectorError} If vectors are linearly dependent or invalid
+ */
+export function VectorGramSchmidt(vectors: TVector3[], normalize?: boolean): TVector3[];
+
+/**
+ * Performs Gram-Schmidt orthogonalization on a set of vectors.
+ * Converts a set of linearly independent vectors into an orthogonal (or orthonormal) set.
+ * Essential for creating coordinate systems and orthogonal bases.
+ *
+ * @param vectors - Array of 4D vectors to orthogonalize
+ * @param normalize - Whether to normalize the resulting vectors (default: false)
+ * @returns Array of orthogonal (or orthonormal) 4D vectors
+ * @throws {VectorError} If vectors are linearly dependent or invalid
+ */
+export function VectorGramSchmidt(vectors: TVector4[], normalize?: boolean): TVector4[];
 
 /**
  * Performs Gram-Schmidt orthogonalization on a set of vectors.
@@ -864,7 +923,7 @@ export function VectorClamp<T extends TAnyVector>(a: T, min: T | number, max: T 
  * const orthonormal = VectorGramSchmidt(vectors, true); // Orthonormal set
  * ```
  */
-export function VectorGramSchmidt<T extends TAnyVector>(vectors: T[], normalize = false): TVectorResult<T>[] {
+export function VectorGramSchmidt(vectors: number[][], normalize = false): number[][] {
 	if (vectors.length === 0) throw new VectorError('GramSchmidt: Empty Vector Set');
 	const [firstVector] = vectors;
 	if (!firstVector) throw new VectorError('GramSchmidt: Undefined First Vector');
@@ -875,25 +934,23 @@ export function VectorGramSchmidt<T extends TAnyVector>(vectors: T[], normalize 
 		AssertVectorNonZero(vector, `GramSchmidt vector at index ${i}`);
 	}
 
-	const result: TVectorResult<T>[] = [];
+	const result: number[][] = [];
 
 	for (const [i, currentVector] of vectors.entries()) {
 		AssertVector(currentVector);
 
-		// Start with a clone; TVectorResult<T> is dimensionally equivalent to T at runtime
-		const orthogonalBase = VectorClone(currentVector) as unknown as TVectorResult<T>;
-		let orthogonalVector: TVectorResult<T> = orthogonalBase;
+		const orthogonalBase = VectorClone(currentVector);
+		let orthogonalVector = orthogonalBase;
 
 		for (let j = 0; j < i; j++) {
 			const previousVector = result[j];
 			AssertVector(previousVector);
 
-			// Project current onto previous: TVectorResult<T> shares dimensionality with T
-			const projection = VectorProject(currentVector as unknown as TVectorResult<T>, previousVector);
-			orthogonalVector = VectorSubtract(orthogonalVector as unknown as T, projection as unknown as T) as TVectorResult<T>;
+			const projection = VectorProject(currentVector, previousVector);
+			orthogonalVector = VectorSubtract(orthogonalVector, projection);
 		}
 		AssertVectorNonZero(orthogonalVector, `GramSchmidt orthogonalized vector at index ${i}`);
-		if (normalize) orthogonalVector = VectorNormalize(orthogonalVector as unknown as T) as TVectorResult<T>;
+		if (normalize) orthogonalVector = VectorNormalize(orthogonalVector);
 		result.push(orthogonalVector);
 	}
 

@@ -224,19 +224,19 @@ export function MatrixRotation3D(rollOrVector: number | TVector3, pitch?: number
 	if (typeof rollOrVector === 'number') {
 		// Called with individual parameters
 		AssertNumber(rollOrVector, { finite: true }, { message: 'Roll angle must be a number' });
-		AssertNumber(pitch as number, { finite: true }, { message: 'Pitch angle must be a number' });
-		AssertNumber(yaw as number, { finite: true }, { message: 'Yaw angle must be a number' });
+		AssertNumber(pitch, { finite: true }, { message: 'Pitch angle must be a number' });
+		AssertNumber(yaw, { finite: true }, { message: 'Yaw angle must be a number' });
 
 		const rollMatrix = MatrixRotation3DRoll(rollOrVector);
-		const pitchMatrix = MatrixRotation3DPitch(pitch as number);
-		const yawMatrix = MatrixRotation3DYaw(yaw as number);
+		const pitchMatrix = MatrixRotation3DPitch(pitch);
+		const yawMatrix = MatrixRotation3DYaw(yaw);
 
 		// Apply rotations in order: Roll → Pitch → Yaw
 		// Note: Matrix multiplication is applied right to left
 		const pitchRoll = MatrixMultiply(pitchMatrix, rollMatrix);
 		const result = MatrixMultiply(yawMatrix, pitchRoll);
 		AssertMatrix4(result);
-		return result as TMatrix4;
+		return result;
 	}
 	// Called with vector parameter
 	AssertVector3(rollOrVector);
@@ -275,13 +275,13 @@ export function MatrixRotation3DEulerAngles(v: TVector3): TMatrix4;
 export function MatrixRotation3DEulerAngles(rollOrVector: number | TVector3, pitch?: number, yaw?: number): TMatrix4 {
 	if (typeof rollOrVector === 'number') {
 		AssertNumber(rollOrVector, { finite: true }, { message: 'Roll angle must be a number' });
-		AssertNumber(pitch as number, { finite: true }, { message: 'Pitch angle must be a number' });
-		AssertNumber(yaw as number, { finite: true }, { message: 'Yaw angle must be a number' });
+		AssertNumber(pitch, { finite: true }, { message: 'Pitch angle must be a number' });
+		AssertNumber(yaw, { finite: true }, { message: 'Yaw angle must be a number' });
 
 		// Convert degrees to radians
 		const rollRad = (rollOrVector * Math.PI) / DEGREES_PER_HALF_REVOLUTION;
-		const pitchRad = ((pitch as number) * Math.PI) / DEGREES_PER_HALF_REVOLUTION;
-		const yawRad = ((yaw as number) * Math.PI) / DEGREES_PER_HALF_REVOLUTION;
+		const pitchRad = (pitch * Math.PI) / DEGREES_PER_HALF_REVOLUTION;
+		const yawRad = (yaw * Math.PI) / DEGREES_PER_HALF_REVOLUTION;
 
 		return MatrixRotation3D(rollRad, pitchRad, yawRad);
 	}
@@ -430,12 +430,12 @@ export function MatrixScale3D(scaleOrX: number | TVector3, y?: number, z?: numbe
 		}
 		// Independent scaling - separate scale factors for X, Y, and Z axes
 		AssertNumber(scaleOrX, { finite: true }, { message: 'X scale factor must be a finite number' });
-		AssertNumber(y as number, { finite: true }, { message: 'Y scale factor must be a finite number' });
-		AssertNumber(z as number, { finite: true }, { message: 'Z scale factor must be a finite number' });
+		AssertNumber(y, { finite: true }, { message: 'Y scale factor must be a finite number' });
+		AssertNumber(z, { finite: true }, { message: 'Z scale factor must be a finite number' });
 		return [
 			[scaleOrX, 0, 0, 0],
-			[0, y as number, 0, 0],
-			[0, 0, z as number, 0],
+			[0, y, 0, 0],
+			[0, 0, z, 0],
 			[0, 0, 0, 1]
 		];
 	}
@@ -547,12 +547,12 @@ export function MatrixTranslation3D(translationOrX: number | TVector3, y?: numbe
 		}
 		// Independent translation - separate distances for X, Y, and Z axes
 		AssertNumber(translationOrX, { finite: true }, { message: 'X translation distance must be a finite number' });
-		AssertNumber(y as number, { finite: true }, { message: 'Y translation distance must be a finite number' });
-		AssertNumber(z as number, { finite: true }, { message: 'Z translation distance must be a finite number' });
+		AssertNumber(y, { finite: true }, { message: 'Y translation distance must be a finite number' });
+		AssertNumber(z, { finite: true }, { message: 'Z translation distance must be a finite number' });
 		return [
 			[1, 0, 0, translationOrX], // [1, 0, 0, tx]
-			[0, 1, 0, y as number], // [0, 1, 0, ty]
-			[0, 0, 1, z as number], // [0, 0, 1, tz]
+			[0, 1, 0, y], // [0, 1, 0, ty]
+			[0, 0, 1, z], // [0, 0, 1, tz]
 			[0, 0, 0, 1] // [0, 0, 0,  1]
 		];
 	}
@@ -742,7 +742,7 @@ export function MatrixView(eye: TVector3, target: TVector3, up: TVector3): TMatr
 	// Combine transformations: View = Rotation * Translation
 	const result = MatrixMultiply(rotation, translation);
 	AssertMatrix4(result);
-	return result as TMatrix4;
+	return result;
 }
 
 /**
@@ -780,16 +780,14 @@ export function MatrixPerspective(fovY: number, aspect: number, near: number, fa
 
 	// Initialize perspective projection matrix
 	// The matrix maps view space to clip space with perspective division
-	if (result[0] && result[1] && result[2] && result[3]) {
-		result[0][0] = 1 / (aspect * tanHalfFovY); // X scaling based on aspect ratio and FOV
-		result[1][1] = 1 / tanHalfFovY; // Y scaling based on FOV
-		result[2][2] = -(far + near) / (far - near); // Z mapping for depth buffer
-		result[2][3] = -(2 * far * near) / (far - near); // Z translation for depth buffer
-		result[3][2] = -1; // Perspective division trigger
-		result[3][3] = 0; // Clear diagonal element
-	}
+	result[0][0] = 1 / (aspect * tanHalfFovY); // X scaling based on aspect ratio and FOV
+	result[1][1] = 1 / tanHalfFovY; // Y scaling based on FOV
+	result[2][2] = -(far + near) / (far - near); // Z mapping for depth buffer
+	result[2][3] = -(2 * far * near) / (far - near); // Z translation for depth buffer
+	result[3][2] = -1; // Perspective division trigger
+	result[3][3] = 0; // Clear diagonal element
 
-	return result as TMatrix4;
+	return result;
 }
 
 /**
@@ -825,20 +823,18 @@ export function MatrixOrthographic(left: number, right: number, bottom: number, 
 
 	// Initialize orthographic projection matrix
 	// The matrix performs scaling and translation to map the orthographic volume to [-1, 1]³
-	if (result[0] && result[1] && result[2] && result[3]) {
-		// Scale factors to normalize each axis to [-1, 1] range
-		result[0][0] = 2 / (right - left); // X scaling
-		result[1][1] = 2 / (top - bottom); // Y scaling
-		result[2][2] = -2 / (far - near); // Z scaling (negated for right-handed system)
+	// Scale factors to normalize each axis to [-1, 1] range
+	result[0][0] = 2 / (right - left); // X scaling
+	result[1][1] = 2 / (top - bottom); // Y scaling
+	result[2][2] = -2 / (far - near); // Z scaling (negated for right-handed system)
 
-		// Translation to center the projection volume at origin
-		result[0][3] = -(right + left) / (right - left); // X translation
-		result[1][3] = -(top + bottom) / (top - bottom); // Y translation
-		result[2][3] = -(far + near) / (far - near); // Z translation
+	// Translation to center the projection volume at origin
+	result[0][3] = -(right + left) / (right - left); // X translation
+	result[1][3] = -(top + bottom) / (top - bottom); // Y translation
+	result[2][3] = -(far + near) / (far - near); // Z translation
 
-		// Homogeneous coordinate (no perspective division needed)
-		result[3][3] = 1;
-	}
+	// Homogeneous coordinate (no perspective division needed)
+	result[3][3] = 1;
 
-	return result as TMatrix4;
+	return result;
 }

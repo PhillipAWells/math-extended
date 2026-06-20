@@ -111,12 +111,7 @@ export function AssertQuaternion(quaternion: unknown): asserts quaternion is TQu
 export function AssertNormalizedQuaternion(quaternion: TQuaternion, tolerance = 1e-6): void {
 	AssertQuaternion(quaternion);
 
-	// Type guard to establish type narrowing for TypeScript
-	if (!Array.isArray(quaternion) || quaternion.length !== 4) {
-		throw new QuaternionError('Quaternion must be an array of 4 numbers');
-	}
-
-	const [x, y, z, w] = quaternion as [number, number, number, number];
+	const [x, y, z, w] = quaternion;
 	const magnitude = Math.sqrt((x * x) + (y * y) + (z * z) + (w * w));
 
 	if (Math.abs(magnitude - 1) > tolerance) {

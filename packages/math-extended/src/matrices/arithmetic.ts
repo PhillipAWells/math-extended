@@ -3,7 +3,24 @@ import { AssertMatricesCompatible, AssertMatrix, AssertMatrix1, AssertMatrix2, A
 import { MatrixCreate, MatrixSize, MatrixTranspose } from './core.js';
 import type { TMatrix, TMatrix1, TMatrix2, TMatrix3, TMatrix4, TMatrixResult } from './types.js';
 import type { TVector, TVector2, TVector3, TVector4 } from '../vectors/types.js';
-import { ValidateVector, AssertVector } from '../vectors/asserts.js';
+import { AssertVector } from '../vectors/asserts.js';
+
+/**
+ * Safely retrieves a row from a matrix and throws MatrixError if out of bounds.
+ * @param matrix - The matrix to access
+ * @param index - The row index
+ * @returns The row at the given index
+ * @throws {MatrixError} If the row index is out of bounds
+ */
+function getRow(matrix: TMatrix, index: number): number[] {
+	const row = matrix[index];
+	if (row === undefined) {
+		throw new MatrixError(`Matrix row ${index} is out of bounds`, {
+			cause: undefined
+		});
+	}
+	return row;
+}
 
 /**
  * Performs element-wise addition of two matrices.
@@ -263,10 +280,20 @@ export function MatrixMultiply(a: TMatrix, b: number): TMatrix;
 export function MatrixMultiply(a: TMatrix, b: TMatrix | TVector | number): TMatrix | TVector {
 	AssertMatrix(a);
 
-	// Route to appropriate multiplication algorithm based on operand type
 	if (typeof b === 'number') return matrixMultiplyScalar(a, b);
-	if (ValidateVector(b)) return matrixMultiplyVector(a, b as TVector);
-	return matrixMultiplyMatrix(a, b as TMatrix);
+
+	// Distinguish matrix (2D array) from vector (1D array)
+	// Matrix: b[0] is an array (number[])
+	// Vector: b[0] is a number
+	if (Array.isArray(b[0])) {
+		// b is a matrix
+		AssertMatrix(b);
+		return matrixMultiplyMatrix(a, b);
+	}
+
+	// b is a vector
+	AssertVector(b);
+	return matrixMultiplyVector(a, b);
 }
 
 /**
@@ -594,7 +621,8 @@ function matrixMultiplyMatrix(a: TMatrix, b: TMatrix): TMatrix {
 
 			for (let j = 0; j < bcols; j++) {
 				// BT is bcols × acols, access BT[j][k] which is B[k][j]
-				resultRow[j] += aVal * ((BT[j] as number[])[k] as number);
+				const btRow = getRow(BT, j);
+				resultRow[j] += aVal * btRow[k];
 			}
 		}
 	}

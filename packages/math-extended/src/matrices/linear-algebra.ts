@@ -9,6 +9,23 @@ import type { TVector } from '../vectors/types.js';
 const GRAM_SCHMIDT_TOLERANCE = 1e-10;
 
 /**
+ * Safely retrieves a row from a matrix and throws MatrixError if out of bounds.
+ * @param matrix - The matrix to access
+ * @param index - The row index
+ * @returns The row at the given index
+ * @throws {MatrixError} If the row index is out of bounds
+ */
+function getRow(matrix: TMatrix, index: number): number[] {
+	const row = matrix[index];
+	if (row === undefined) {
+		throw new MatrixError(`Matrix row ${index} is out of bounds`, {
+			cause: undefined
+		});
+	}
+	return row;
+}
+
+/**
  * Computes the determinant of a square matrix using a hybrid algorithm.
  *
  * For 1×1, 2×2, and 3×3 matrices, uses direct formulas (Sarrus' rule for 3×3).
@@ -206,9 +223,10 @@ export function MatrixInverse(matrix: TMatrix): TMatrix {
 			let sum = 0;
 
 			for (let k = 0; k < i; k++) {
-				sum += ((L[i] as number[])[k] as number) * (y[k] as number);
+				const lRow = getRow(L, i);
+				sum += lRow[k] * y[k];
 			}
-			y[i] = (eCol[i] as number) - sum;
+			y[i] = eCol[i] - sum;
 		}
 
 		// Back substitution: Ux = y
@@ -216,10 +234,14 @@ export function MatrixInverse(matrix: TMatrix): TMatrix {
 			let sum = 0;
 
 			for (let k = i + 1; k < size; k++) {
-				sum += ((U[i] as number[])[k] as number) * ((result[k] as number[])[col] as number);
+				const uRow = getRow(U, i);
+				const resultRow = getRow(result, k);
+				sum += uRow[k] * resultRow[col];
 			}
-			const uDiag = (U[i] as number[])[i] as number;
-			(result[i] as number[])[col] = ((y[i] as number) - sum) / uDiag;
+			const uRow = getRow(U, i);
+			const uDiag = uRow[i];
+			const resultRow = getRow(result, i);
+			resultRow[col] = (y[i] - sum) / uDiag;
 		}
 	}
 
@@ -293,10 +315,10 @@ export function MatrixGramSchmidt(matrix: TMatrix): TMatrix {
 			const projection = VectorProject(orthogonalVector, previousVector);
 
 			for (let k = 0; k < orthogonalVector.length; k++) {
-				if (typeof projection[k] !== 'number' || typeof orthogonalVector[k] !== 'number') throw new Error(`Projection or orthogonal vector component at index ${k} is undefined`);
-				// Defensive: if undefined, skip
-				if (projection[k] === undefined || orthogonalVector[k] === undefined) continue;
-				orthogonalVector[k] = (orthogonalVector[k] as number) - (projection[k] as number);
+				const projVal = projection[k];
+				const orthVal = orthogonalVector[k];
+				if (typeof projVal !== 'number' || typeof orthVal !== 'number') throw new Error(`Projection or orthogonal vector component at index ${k} is undefined`);
+				orthogonalVector[k] = orthVal - projVal;
 			}
 		}
 
@@ -316,8 +338,10 @@ export function MatrixGramSchmidt(matrix: TMatrix): TMatrix {
 			const resultRow = result[k];
 			if (!resultRow) throw new Error(`Result matrix row at index ${k} is undefined`);
 			const basisVec = orthonormalBasis[i];
-			if (!basisVec || typeof basisVec[k] !== 'number') continue;
-			resultRow[i] = basisVec[k] as number;
+			if (!basisVec) continue;
+			const basisVal = basisVec[k];
+			if (typeof basisVal !== 'number') continue;
+			resultRow[i] = basisVal;
 		}
 	}
 
