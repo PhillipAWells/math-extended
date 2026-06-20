@@ -9,8 +9,9 @@
 
 /**
  * Constraints for numeric validation.
+ * @internal
  */
-interface INumberConstraints {
+export interface INumberConstraints {
 	/** Value must be an integer */
 	integer?: boolean;
 	/** Value must be finite (not NaN or Infinity) */
@@ -29,8 +30,9 @@ interface INumberConstraints {
 
 /**
  * Constraints for array validation.
+ * @internal
  */
-interface IArrayConstraints {
+export interface IArrayConstraints {
 	/** Array must have exactly this many elements */
 	size?: number;
 	/** Array must have at least this many elements */
@@ -41,8 +43,9 @@ interface IArrayConstraints {
 
 /**
  * Exception details for error messages.
+ * @internal
  */
-interface IExceptionDetails {
+export interface IExceptionDetails {
 	/** Custom error message */
 	message?: string;
 	/** Error code (unused in lightweight guards, kept for compatibility) */

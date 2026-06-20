@@ -10,11 +10,11 @@ const NORMALIZE_EPSILON = 1e-10; // Epsilon for floating-point boundary cleanup
  * @returns Angle in radians
  *
  * @example
-	 * ```typescript
-	 * DegreesToRadians(180)  // Math.PI
-	 * DegreesToRadians(90)   // Math.PI / 2
-	 * DegreesToRadians(0)    // 0
-	 * ```
+ * ```typescript
+ * DegreesToRadians(180)  // Math.PI
+ * DegreesToRadians(90)   // Math.PI / 2
+ * DegreesToRadians(0)    // 0
+ * ```
  */
 import { AssertNumber } from './internal/guards.js';
 
@@ -28,11 +28,11 @@ export function DegreesToRadians(degrees: number): number {
  * @returns Angle in degrees
  *
  * @example
-	 * ```typescript
-	 * RadiansToDegrees(Math.PI)     // 180
-	 * RadiansToDegrees(Math.PI / 2) // 90
-	 * RadiansToDegrees(0)           // 0
-	 * ```
+ * ```typescript
+ * RadiansToDegrees(Math.PI)     // 180
+ * RadiansToDegrees(Math.PI / 2) // 90
+ * RadiansToDegrees(0)           // 0
+ * ```
  */
 export function RadiansToDegrees(radians: number): number {
 	return (radians * DEGREES_PER_HALF_REVOLUTION) / Math.PI;
@@ -43,14 +43,15 @@ export function RadiansToDegrees(radians: number): number {
  * @param radians - Angle in radians
  * @returns String representation of the angle
  *
+ * @throws {Error} If radians is not finite (NaN or Infinity)
  * @example
-	 * ```typescript
-	 * FormatRadians(0)             // '0'
-	 * FormatRadians(Math.PI)       // 'π'
-	 * FormatRadians(Math.PI / 2)   // 'π/2'
-	 * FormatRadians(Math.PI / 4)   // 'π/4'
-	 * FormatRadians(-Math.PI)      // '-π'
-	 * ```
+ * ```typescript
+ * FormatRadians(0)             // '0'
+ * FormatRadians(Math.PI)       // 'π'
+ * FormatRadians(Math.PI / 2)   // 'π/2'
+ * FormatRadians(Math.PI / 4)   // 'π/4'
+ * FormatRadians(-Math.PI)      // '-π'
+ * ```
  */
 export function FormatRadians(radians: number): string {
 	AssertNumber(radians, { finite: true });
@@ -83,12 +84,13 @@ export function FormatRadians(radians: number): string {
  * @param radians - Angle in radians
  * @returns Normalized angle in radians in the range [0, 2π)
  *
+ * @throws {Error} If radians is not finite (NaN or Infinity)
  * @example
-	 * ```typescript
-	 * NormalizeRadians(3 * Math.PI)  // Math.PI  (wraps around)
-	 * NormalizeRadians(-Math.PI)     // Math.PI  (negative angles normalized)
-	 * NormalizeRadians(0)            // 0
-	 * ```
+ * ```typescript
+ * NormalizeRadians(3 * Math.PI)  // Math.PI  (wraps around)
+ * NormalizeRadians(-Math.PI)     // Math.PI  (negative angles normalized)
+ * NormalizeRadians(0)            // 0
+ * ```
  */
 export function NormalizeRadians(radians: number): number {
 	AssertNumber(radians, { finite: true });
@@ -106,13 +108,14 @@ export function NormalizeRadians(radians: number): number {
  * @param degrees - Angle in degrees
  * @returns Normalized angle in degrees in the range [0°, 360°)
  *
+ * @throws {Error} If degrees is not finite (NaN or Infinity)
  * @example
-	 * ```typescript
-	 * NormalizeDegrees(450)   // 90  (wraps around 360°)
-	 * NormalizeDegrees(-90)   // 270 (negative angles normalized)
-	 * NormalizeDegrees(0)     // 0
-	 * NormalizeDegrees(360 - 1e-11) // 0  (boundary epsilon snap)
-	 * ```
+ * ```typescript
+ * NormalizeDegrees(450)   // 90  (wraps around 360°)
+ * NormalizeDegrees(-90)   // 270 (negative angles normalized)
+ * NormalizeDegrees(0)     // 0
+ * NormalizeDegrees(360 - 1e-11) // 0  (boundary epsilon snap)
+ * ```
  */
 export function NormalizeDegrees(degrees: number): number {
 	AssertNumber(degrees, { finite: true });

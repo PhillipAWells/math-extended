@@ -244,6 +244,20 @@ export function AssertVector4(vector: unknown): asserts vector is TVector4 {
  */
 export const ValidateVector4: (vector: unknown) => vector is TVector4 = makeValidate(AssertVector4);
 
+/**
+ * Zod schema that validates a non-empty array of vectors where every element is
+ * itself a valid vector (array of numbers) and all vectors share the same length.
+ *
+ * Rejects empty arrays, non-array inputs, elements that are not arrays, and
+ * collections where any two vectors differ in component count.
+ *
+ * @example
+ * ```typescript
+ * VECTOR_SAME_SIZE_SCHEMA.parse([[1, 2], [3, 4]]); // passes
+ * VECTOR_SAME_SIZE_SCHEMA.parse([[1, 2], [3, 4, 5]]); // throws — mismatched sizes
+ * VECTOR_SAME_SIZE_SCHEMA.parse([]); // throws — empty array
+ * ```
+ */
 export const VECTOR_SAME_SIZE_SCHEMA = z.array(VECTOR_SCHEMA).superRefine((vectors, ctx) => {
 	if (!Array.isArray(vectors) || vectors.length === 0) {
 		ctx.addIssue({
@@ -280,7 +294,27 @@ export const VECTOR_SAME_SIZE_SCHEMA = z.array(VECTOR_SCHEMA).superRefine((vecto
 		}
 	}
 });
+/**
+ * TypeScript type inferred from {@link VECTOR_SAME_SIZE_SCHEMA}.
+ * Represents a non-empty array of vectors that all share the same component count.
+ */
 export type TVectorSameSize = z.infer<typeof VECTOR_SAME_SIZE_SCHEMA>;
+
+/**
+ * Asserts that every vector in the array is a valid vector and that all vectors
+ * share the same number of components.
+ *
+ * @param vectors - The array of values to validate as same-sized vectors
+ * @throws {VectorError} If the input is empty, contains a non-array element, or
+ *   if any two vectors differ in component count
+ *
+ * @example
+ * ```typescript
+ * AssertVectorSameSize([[1, 2, 3], [4, 5, 6]]); // passes
+ * AssertVectorSameSize([[1, 2], [3, 4, 5]]);    // throws VectorError — mismatched sizes
+ * AssertVectorSameSize([]);                       // throws VectorError — empty array
+ * ```
+ */
 export function AssertVectorSameSize(vectors: unknown[]): asserts vectors is TVectorSameSize {
 	try {
 		VECTOR_SAME_SIZE_SCHEMA.parse(vectors);

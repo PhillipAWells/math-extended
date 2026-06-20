@@ -104,6 +104,14 @@ export function VectorSmoothStep<T extends TVector>(a: T, b: T, t: number): TVec
  * @param b - End vector
  * @param t - Interpolation parameter (clamped to [0,1])
  * @returns Very smoothly interpolated vector with smooth acceleration/deceleration
+ * @throws {VectorError} If either vector is invalid or if `t` is non-finite
+ *
+ * @example
+ * ```typescript
+ * const start = [0, 0, 0];
+ * const end = [10, 20, 30];
+ * const result = VectorSmootherStep(start, end, 0.5); // [5, 10, 15]
+ * ```
  */
 export function VectorSmootherStep<T extends TVector>(a: T, b: T, t: number): TVectorResult<T> {
 	return vectorInterpolate(a, b, t, SmootherStep);
@@ -118,6 +126,14 @@ export function VectorSmootherStep<T extends TVector>(a: T, b: T, t: number): TV
  * @param b - End vector
  * @param t - Interpolation parameter [0,1]
  * @returns Vector with quadratic acceleration from start
+ * @throws {VectorError} If either vector is invalid or if `t` is non-finite
+ *
+ * @example
+ * ```typescript
+ * const start = [0, 0];
+ * const end = [10, 20];
+ * const result = VectorQuadraticEaseIn(start, end, 0.5); // [2.5, 5]
+ * ```
  */
 export function VectorQuadraticEaseIn<T extends TVector>(a: T, b: T, t: number): TVectorResult<T> {
 	return vectorInterpolate(a, b, t, QuadraticEaseIn);
@@ -132,6 +148,14 @@ export function VectorQuadraticEaseIn<T extends TVector>(a: T, b: T, t: number):
  * @param b - End vector
  * @param t - Interpolation parameter [0,1]
  * @returns Vector with quadratic deceleration toward end
+ * @throws {VectorError} If either vector is invalid or if `t` is non-finite
+ *
+ * @example
+ * ```typescript
+ * const start = [0, 0];
+ * const end = [10, 20];
+ * const result = VectorQuadraticEaseOut(start, end, 0.5); // [7.5, 15]
+ * ```
  */
 export function VectorQuadraticEaseOut<T extends TVector>(a: T, b: T, t: number): TVectorResult<T> {
 	return vectorInterpolate(a, b, t, QuadraticEaseOut);
@@ -146,6 +170,14 @@ export function VectorQuadraticEaseOut<T extends TVector>(a: T, b: T, t: number)
  * @param b - End vector
  * @param t - Interpolation parameter [0,1]
  * @returns Vector with cubic acceleration from start
+ * @throws {VectorError} If either vector is invalid or if `t` is non-finite
+ *
+ * @example
+ * ```typescript
+ * const start = [0, 0];
+ * const end = [10, 20];
+ * const result = VectorCubicEaseIn(start, end, 0.5); // [1.25, 2.5]
+ * ```
  */
 export function VectorCubicEaseIn<T extends TVector>(a: T, b: T, t: number): TVectorResult<T> {
 	return vectorInterpolate(a, b, t, CubicEaseIn);
@@ -160,6 +192,14 @@ export function VectorCubicEaseIn<T extends TVector>(a: T, b: T, t: number): TVe
  * @param b - End vector
  * @param t - Interpolation parameter [0,1]
  * @returns Vector with cubic deceleration toward end
+ * @throws {VectorError} If either vector is invalid or if `t` is non-finite
+ *
+ * @example
+ * ```typescript
+ * const start = [0, 0];
+ * const end = [10, 20];
+ * const result = VectorCubicEaseOut(start, end, 0.5); // [8.75, 17.5]
+ * ```
  */
 export function VectorCubicEaseOut<T extends TVector>(a: T, b: T, t: number): TVectorResult<T> {
 	return vectorInterpolate(a, b, t, CubicEaseOut);
@@ -174,6 +214,14 @@ export function VectorCubicEaseOut<T extends TVector>(a: T, b: T, t: number): TV
  * @param b - End vector
  * @param t - Interpolation parameter [0,1]
  * @returns Vector interpolated using cosine curve
+ * @throws {VectorError} If either vector is invalid or if `t` is non-finite
+ *
+ * @example
+ * ```typescript
+ * const start = [0, 0];
+ * const end = [10, 20];
+ * const result = VectorCosineInterpolation(start, end, 0.5); // [5, 10]
+ * ```
  */
 export function VectorCosineInterpolation<T extends TVector>(a: T, b: T, t: number): TVectorResult<T> {
 	return vectorInterpolate(a, b, t, CosineInterpolation);
@@ -188,6 +236,14 @@ export function VectorCosineInterpolation<T extends TVector>(a: T, b: T, t: numb
  * @param b - End vector
  * @param t - Interpolation parameter [0,1]
  * @returns Vector with sine-based acceleration from start
+ * @throws {VectorError} If either vector is invalid or if `t` is non-finite
+ *
+ * @example
+ * ```typescript
+ * const start = [0, 0];
+ * const end = [10, 20];
+ * const result = VectorSineEaseIn(start, end, 0.5); // approx [2.93, 5.86]
+ * ```
  */
 export function VectorSineEaseIn<T extends TVector>(a: T, b: T, t: number): TVectorResult<T> {
 	return vectorInterpolate(a, b, t, SineEaseIn);
@@ -202,6 +258,14 @@ export function VectorSineEaseIn<T extends TVector>(a: T, b: T, t: number): TVec
  * @param b - End vector
  * @param t - Interpolation parameter [0,1]
  * @returns Vector with sine-based deceleration toward end
+ * @throws {VectorError} If either vector is invalid or if `t` is non-finite
+ *
+ * @example
+ * ```typescript
+ * const start = [0, 0];
+ * const end = [10, 20];
+ * const result = VectorSineEaseOut(start, end, 0.5); // approx [7.07, 14.14]
+ * ```
  */
 export function VectorSineEaseOut<T extends TVector>(a: T, b: T, t: number): TVectorResult<T> {
 	return vectorInterpolate(a, b, t, SineEaseOut);
@@ -216,6 +280,14 @@ export function VectorSineEaseOut<T extends TVector>(a: T, b: T, t: number): TVe
  * @param b - End vector
  * @param t - Interpolation parameter [0,1]
  * @returns Vector with exponential acceleration from start
+ * @throws {VectorError} If either vector is invalid or if `t` is non-finite
+ *
+ * @example
+ * ```typescript
+ * const start = [0, 0];
+ * const end = [10, 20];
+ * const result = VectorExponentialEaseIn(start, end, 0.5); // approx [0.31, 0.63]
+ * ```
  */
 export function VectorExponentialEaseIn<T extends TVector>(a: T, b: T, t: number): TVectorResult<T> {
 	return vectorInterpolate(a, b, t, ExponentialEaseIn);
@@ -230,6 +302,14 @@ export function VectorExponentialEaseIn<T extends TVector>(a: T, b: T, t: number
  * @param b - End vector
  * @param t - Interpolation parameter [0,1]
  * @returns Vector with exponential deceleration toward end
+ * @throws {VectorError} If either vector is invalid or if `t` is non-finite
+ *
+ * @example
+ * ```typescript
+ * const start = [0, 0];
+ * const end = [10, 20];
+ * const result = VectorExponentialEaseOut(start, end, 0.5); // approx [9.69, 19.37]
+ * ```
  */
 export function VectorExponentialEaseOut<T extends TVector>(a: T, b: T, t: number): TVectorResult<T> {
 	return vectorInterpolate(a, b, t, ExponentialEaseOut);
@@ -244,6 +324,14 @@ export function VectorExponentialEaseOut<T extends TVector>(a: T, b: T, t: numbe
  * @param b - End vector
  * @param t - Interpolation parameter [0,1]
  * @returns Vector with elastic bounce effect toward end
+ * @throws {VectorError} If either vector is invalid or if `t` is non-finite
+ *
+ * @example
+ * ```typescript
+ * const start = [0, 0];
+ * const end = [10, 20];
+ * const result = VectorElasticEaseOut(start, end, 0.5); // overshoots then returns near [10, 20]
+ * ```
  */
 export function VectorElasticEaseOut<T extends TVector>(a: T, b: T, t: number): TVectorResult<T> {
 	return vectorInterpolate(a, b, t, ElasticEaseOut);
@@ -258,6 +346,14 @@ export function VectorElasticEaseOut<T extends TVector>(a: T, b: T, t: number): 
  * @param b - End vector
  * @param t - Interpolation parameter [0,1]
  * @returns Vector with back overshoot effect toward end
+ * @throws {VectorError} If either vector is invalid or if `t` is non-finite
+ *
+ * @example
+ * ```typescript
+ * const start = [0, 0];
+ * const end = [10, 20];
+ * const result = VectorBackEaseOut(start, end, 0.5); // overshoots then settles near [10, 20]
+ * ```
  */
 export function VectorBackEaseOut<T extends TVector>(a: T, b: T, t: number): TVectorResult<T> {
 	return vectorInterpolate(a, b, t, BackEaseOut);
@@ -272,6 +368,14 @@ export function VectorBackEaseOut<T extends TVector>(a: T, b: T, t: number): TVe
  * @param b - End vector
  * @param t - Interpolation parameter [0,1]
  * @returns Vector with bouncing effect toward end
+ * @throws {VectorError} If either vector is invalid or if `t` is non-finite
+ *
+ * @example
+ * ```typescript
+ * const start = [0, 0];
+ * const end = [10, 20];
+ * const result = VectorBounceEaseOut(start, end, 0.5); // bounces near the end position
+ * ```
  */
 export function VectorBounceEaseOut<T extends TVector>(a: T, b: T, t: number): TVectorResult<T> {
 	return vectorInterpolate(a, b, t, BounceEaseOut);
@@ -299,6 +403,8 @@ export function VectorBounceEaseOut<T extends TVector>(a: T, b: T, t: number): T
  * ];
  * const smooth = VectorCatmullRomInterpolation(...path, 0.5);
  * ```
+ * @throws {VectorError} If any control point is not a valid vector, if the control
+ *   points differ in component count, or if `t` is non-finite
  */
 export function VectorCatmullRomInterpolation<T extends TVector>(p0: T, p1: T, p2: T, p3: T, t: number): TVectorResult<T> {
 	AssertVector(p0);
@@ -341,6 +447,8 @@ export function VectorCatmullRomInterpolation<T extends TVector>(p0: T, p1: T, p
  * const endTangent = [0, 5];   // Vertical tangent at end
  * const curved = VectorHermiteInterpolation(start, end, startTangent, endTangent, 0.5);
  * ```
+ * @throws {VectorError} If any vector argument is invalid, if the vectors differ in
+ *   component count, or if `t` is non-finite
  */
 export function VectorHermiteInterpolation<T extends TVector>(p0: T, p1: T, t0: T, t1: T, t: number): TVectorResult<T> {
 	AssertVector(p0);
@@ -372,6 +480,14 @@ export function VectorHermiteInterpolation<T extends TVector>(p0: T, p1: T, t0: 
  * @param b - End vector
  * @param t - Interpolation parameter [0,1]
  * @returns Vector with circular acceleration from start
+ * @throws {VectorError} If either vector is invalid or if `t` is non-finite
+ *
+ * @example
+ * ```typescript
+ * const start = [0, 0];
+ * const end = [10, 20];
+ * const result = VectorCircularEaseIn(start, end, 0.5); // approx [1.34, 2.68]
+ * ```
  */
 export function VectorCircularEaseIn<T extends TVector>(a: T, b: T, t: number): TVectorResult<T> {
 	return vectorInterpolate(a, b, t, CircularEaseIn);
@@ -386,6 +502,14 @@ export function VectorCircularEaseIn<T extends TVector>(a: T, b: T, t: number): 
  * @param b - End vector
  * @param t - Interpolation parameter [0,1]
  * @returns Vector with circular deceleration toward end
+ * @throws {VectorError} If either vector is invalid or if `t` is non-finite
+ *
+ * @example
+ * ```typescript
+ * const start = [0, 0];
+ * const end = [10, 20];
+ * const result = VectorCircularEaseOut(start, end, 0.5); // approx [8.66, 17.32]
+ * ```
  */
 export function VectorCircularEaseOut<T extends TVector>(a: T, b: T, t: number): TVectorResult<T> {
 	return vectorInterpolate(a, b, t, CircularEaseOut);
@@ -409,6 +533,8 @@ export function VectorCircularEaseOut<T extends TVector>(a: T, b: T, t: number):
  * const result1 = VectorStepInterpolation(off, on, 0.3); // [0, 0] (< 0.5)
  * const result2 = VectorStepInterpolation(off, on, 0.7); // [1, 1] (>= 0.5)
  * ```
+ * @throws {VectorError} If either vector is invalid, if the vectors differ in component
+ *   count, or if `t` or `threshold` is non-finite
  */
 export function VectorStepInterpolation<T extends TVector>(a: T, b: T, t: number, threshold = 0.5): TVectorResult<T> {
 	AssertVector(a);
@@ -437,6 +563,14 @@ export function VectorStepInterpolation<T extends TVector>(a: T, b: T, t: number
  * @param b - End vector
  * @param t - Interpolation parameter [0,1]
  * @returns Component-wise interpolated vector with quadratic symmetric easing
+ * @throws {VectorError} If either vector is invalid or if `t` is non-finite
+ *
+ * @example
+ * ```typescript
+ * const start = [0, 0];
+ * const end = [10, 20];
+ * const result = VectorQuadraticEaseInOut(start, end, 0.5); // [5, 10]
+ * ```
  */
 export function VectorQuadraticEaseInOut<T extends TVector>(a: T, b: T, t: number): TVectorResult<T> {
 	return vectorInterpolate(a, b, t, QuadraticEaseInOut);
@@ -451,6 +585,14 @@ export function VectorQuadraticEaseInOut<T extends TVector>(a: T, b: T, t: numbe
  * @param b - End vector
  * @param t - Interpolation parameter [0,1]
  * @returns Component-wise interpolated vector with cubic symmetric easing
+ * @throws {VectorError} If either vector is invalid or if `t` is non-finite
+ *
+ * @example
+ * ```typescript
+ * const start = [0, 0];
+ * const end = [10, 20];
+ * const result = VectorCubicEaseInOut(start, end, 0.5); // [5, 10]
+ * ```
  */
 export function VectorCubicEaseInOut<T extends TVector>(a: T, b: T, t: number): TVectorResult<T> {
 	return vectorInterpolate(a, b, t, CubicEaseInOut);
@@ -465,6 +607,14 @@ export function VectorCubicEaseInOut<T extends TVector>(a: T, b: T, t: number): 
  * @param b - End vector
  * @param t - Interpolation parameter [0,1]
  * @returns Component-wise interpolated vector with sine symmetric easing
+ * @throws {VectorError} If either vector is invalid or if `t` is non-finite
+ *
+ * @example
+ * ```typescript
+ * const start = [0, 0];
+ * const end = [10, 20];
+ * const result = VectorSineEaseInOut(start, end, 0.5); // [5, 10]
+ * ```
  */
 export function VectorSineEaseInOut<T extends TVector>(a: T, b: T, t: number): TVectorResult<T> {
 	return vectorInterpolate(a, b, t, SineEaseInOut);
@@ -479,6 +629,14 @@ export function VectorSineEaseInOut<T extends TVector>(a: T, b: T, t: number): T
  * @param b - End vector
  * @param t - Interpolation parameter [0,1]
  * @returns Component-wise interpolated vector with exponential symmetric easing
+ * @throws {VectorError} If either vector is invalid or if `t` is non-finite
+ *
+ * @example
+ * ```typescript
+ * const start = [0, 0];
+ * const end = [10, 20];
+ * const result = VectorExponentialEaseInOut(start, end, 0.5); // [5, 10]
+ * ```
  */
 export function VectorExponentialEaseInOut<T extends TVector>(a: T, b: T, t: number): TVectorResult<T> {
 	return vectorInterpolate(a, b, t, ExponentialEaseInOut);
@@ -493,6 +651,14 @@ export function VectorExponentialEaseInOut<T extends TVector>(a: T, b: T, t: num
  * @param b - End vector
  * @param t - Interpolation parameter [0,1]
  * @returns Component-wise interpolated vector with circular symmetric easing
+ * @throws {VectorError} If either vector is invalid or if `t` is non-finite
+ *
+ * @example
+ * ```typescript
+ * const start = [0, 0];
+ * const end = [10, 20];
+ * const result = VectorCircularEaseInOut(start, end, 0.5); // [5, 10]
+ * ```
  */
 export function VectorCircularEaseInOut<T extends TVector>(a: T, b: T, t: number): TVectorResult<T> {
 	return vectorInterpolate(a, b, t, CircularEaseInOut);
@@ -507,6 +673,14 @@ export function VectorCircularEaseInOut<T extends TVector>(a: T, b: T, t: number
  * @param b - End vector
  * @param t - Interpolation parameter [0,1]
  * @returns Component-wise interpolated vector with elastic acceleration from start
+ * @throws {VectorError} If either vector is invalid or if `t` is non-finite
+ *
+ * @example
+ * ```typescript
+ * const start = [0, 0];
+ * const end = [10, 20];
+ * const result = VectorElasticEaseIn(start, end, 0.5); // oscillates near start before launching
+ * ```
  */
 export function VectorElasticEaseIn<T extends TVector>(a: T, b: T, t: number): TVectorResult<T> {
 	return vectorInterpolate(a, b, t, ElasticEaseIn);
@@ -521,6 +695,14 @@ export function VectorElasticEaseIn<T extends TVector>(a: T, b: T, t: number): T
  * @param b - End vector
  * @param t - Interpolation parameter [0,1]
  * @returns Component-wise interpolated vector with elastic oscillation at both ends
+ * @throws {VectorError} If either vector is invalid or if `t` is non-finite
+ *
+ * @example
+ * ```typescript
+ * const start = [0, 0];
+ * const end = [10, 20];
+ * const result = VectorElasticEaseInOut(start, end, 0.5); // [5, 10] at midpoint
+ * ```
  */
 export function VectorElasticEaseInOut<T extends TVector>(a: T, b: T, t: number): TVectorResult<T> {
 	return vectorInterpolate(a, b, t, ElasticEaseInOut);
@@ -535,6 +717,14 @@ export function VectorElasticEaseInOut<T extends TVector>(a: T, b: T, t: number)
  * @param b - End vector
  * @param t - Interpolation parameter [0,1]
  * @returns Component-wise interpolated vector with back overshoot at start
+ * @throws {VectorError} If either vector is invalid or if `t` is non-finite
+ *
+ * @example
+ * ```typescript
+ * const start = [0, 0];
+ * const end = [10, 20];
+ * const result = VectorBackEaseIn(start, end, 0.5); // dips back before accelerating
+ * ```
  */
 export function VectorBackEaseIn<T extends TVector>(a: T, b: T, t: number): TVectorResult<T> {
 	return vectorInterpolate(a, b, t, BackEaseIn);
@@ -549,6 +739,14 @@ export function VectorBackEaseIn<T extends TVector>(a: T, b: T, t: number): TVec
  * @param b - End vector
  * @param t - Interpolation parameter [0,1]
  * @returns Component-wise interpolated vector with back overshoot at both ends
+ * @throws {VectorError} If either vector is invalid or if `t` is non-finite
+ *
+ * @example
+ * ```typescript
+ * const start = [0, 0];
+ * const end = [10, 20];
+ * const result = VectorBackEaseInOut(start, end, 0.5); // [5, 10] at midpoint
+ * ```
  */
 export function VectorBackEaseInOut<T extends TVector>(a: T, b: T, t: number): TVectorResult<T> {
 	return vectorInterpolate(a, b, t, BackEaseInOut);
@@ -563,6 +761,14 @@ export function VectorBackEaseInOut<T extends TVector>(a: T, b: T, t: number): T
  * @param b - End vector
  * @param t - Interpolation parameter [0,1]
  * @returns Component-wise interpolated vector with bounce effect at start
+ * @throws {VectorError} If either vector is invalid or if `t` is non-finite
+ *
+ * @example
+ * ```typescript
+ * const start = [0, 0];
+ * const end = [10, 20];
+ * const result = VectorBounceEaseIn(start, end, 0.5); // bounces near start position
+ * ```
  */
 export function VectorBounceEaseIn<T extends TVector>(a: T, b: T, t: number): TVectorResult<T> {
 	return vectorInterpolate(a, b, t, BounceEaseIn);
@@ -577,6 +783,14 @@ export function VectorBounceEaseIn<T extends TVector>(a: T, b: T, t: number): TV
  * @param b - End vector
  * @param t - Interpolation parameter [0,1]
  * @returns Component-wise interpolated vector with bounce effect at both ends
+ * @throws {VectorError} If either vector is invalid or if `t` is non-finite
+ *
+ * @example
+ * ```typescript
+ * const start = [0, 0];
+ * const end = [10, 20];
+ * const result = VectorBounceEaseInOut(start, end, 0.5); // [5, 10] at midpoint
+ * ```
  */
 export function VectorBounceEaseInOut<T extends TVector>(a: T, b: T, t: number): TVectorResult<T> {
 	return vectorInterpolate(a, b, t, BounceEaseInOut);
@@ -603,6 +817,8 @@ const SLERP_LINEARITY_THRESHOLD = 0.001;
  * const slerp = VectorSphericalLinearInterpolation(dir1, dir2, 0.5);
  * // Result maintains unit length and follows shortest spherical path
  * ```
+ * @throws {VectorError} If either vector is invalid, if the vectors differ in component
+ *   count, if either vector has fewer than 2 dimensions, or if `t` is non-finite
  */
 export function VectorSphericalLinearInterpolation<T extends TVector>(a: T, b: T, t: number): TVectorResult<T> {
 	AssertVector(a);

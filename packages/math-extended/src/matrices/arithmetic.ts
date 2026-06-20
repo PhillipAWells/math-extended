@@ -49,7 +49,6 @@ function getRow(matrix: TMatrix, index: number): number[] {
  *
  * @example
  * ```typescript
- * ```typescript
  * // Adding 2×2 matrices
  * MatrixAdd([[1, 2], [3, 4]], [[5, 6], [7, 8]]) // Returns [[6, 8], [10, 12]]
  * // Adding 1×3 row vectors
@@ -58,7 +57,6 @@ function getRow(matrix: TMatrix, index: number): number[] {
  * const matrixA: TMatrix2 = [[1, 2], [3, 4]];
  * const matrixB: TMatrix2 = [[5, 6], [7, 8]];
  * const result: TMatrix2 = MatrixAdd(matrixA, matrixB);
- * ```
  * ```
  */
 export function MatrixAdd<T extends TMatrix>(a: T, b: T): TMatrixResult<T> {
@@ -123,7 +121,6 @@ export function MatrixAdd<T extends TMatrix>(a: T, b: T): TMatrixResult<T> {
  *
  * @example
  * ```typescript
- * ```typescript
  * // Subtracting 2×2 matrices
  * MatrixSubtract([[10, 8], [6, 4]], [[3, 2], [1, 1]]) // Returns [[7, 6], [5, 3]]
  * // Order matters: A - B ≠ B - A
@@ -131,7 +128,6 @@ export function MatrixAdd<T extends TMatrix>(a: T, b: T): TMatrixResult<T> {
  * MatrixSubtract([[3, 4]], [[1, 2]]) // Returns [[2, 2]]
  * // Self-subtraction produces zero matrix
  * MatrixSubtract([[5, 6]], [[5, 6]]) // Returns [[0, 0]]
- * ```
  * ```
  */
 export function MatrixSubtract<T extends TMatrix>(a: T, b: T): TMatrixResult<T> {
@@ -221,7 +217,6 @@ export function MatrixSubtract<T extends TMatrix>(a: T, b: T): TMatrixResult<T> 
  *
  * @example
  * ```typescript
- * ```typescript
  * // Type-safe scalar multiplication with specific matrix types
  * const matrix2: TMatrix2 = [[1, 2], [3, 4]];
  * const scalar2Result: TMatrix2 = MatrixMultiply(matrix2, 2); // [[2, 4], [6, 8]]
@@ -245,7 +240,6 @@ export function MatrixSubtract<T extends TMatrix>(a: T, b: T): TMatrixResult<T> 
  * const scalarResult = MatrixMultiply(matrixA, 5);        // Scalar multiplication
  * const vectorResult2 = MatrixMultiply(matrixA, vector2);  // Vector multiplication
  * const matrixResult2 = MatrixMultiply(matrixA, matrixB); // Matrix multiplication
- * ```
  * ```
  */
 
@@ -330,7 +324,6 @@ export function MatrixMultiply(a: TMatrix, b: TMatrix | TVector | number): TMatr
  *
  * @example
  * ```typescript
- * ```typescript
 	 * // Type-safe scalar multiplication with specific matrix types
 	 * const matrix2: TMatrix2 = [[1, 2], [3, 4]];
 	 * const result2: TMatrix2 = matrixMultiplyScalar(matrix2, 3); // [[3, 6], [9, 12]]
@@ -344,7 +337,6 @@ export function MatrixMultiply(a: TMatrix, b: TMatrix | TVector | number): TMatr
 	 * matrixMultiplyScalar([[1, -2]], -1) // Returns [[-1, 2]]
 	 * // Identity scaling preserves matrix
 	 * matrixMultiplyScalar([[5, 7], [2, 9]], 1) // Returns [[5, 7], [2, 9]]
- * ```
  * ```
  */
 function matrixMultiplyScalar(matrix: TMatrix1, scalar: number): TMatrix1;
@@ -410,7 +402,6 @@ function matrixMultiplyScalar(matrix: TMatrix, scalar: number): TMatrix {
  *
  * @example
  * ```typescript
- * ```typescript
  * // Type-safe matrix-vector multiplication with specific types
  * const matrix2: TMatrix2 = [[1, 2], [3, 4]];
  * const vector2: TVector2 = [5, 6];
@@ -430,7 +421,6 @@ function matrixMultiplyScalar(matrix: TMatrix, scalar: number): TMatrix {
  * // 3×2 matrix with 2D vector
  * matrixMultiplyVector([[1, 2], [3, 4], [5, 6]], [10, 20])
  * // Returns [50, 110, 170]
- * ```
  * ```
  */
 function matrixMultiplyVector(matrix: TMatrix2, vector: TVector2): TVector2;
@@ -525,7 +515,6 @@ function matrixMultiplyVector(matrix: TMatrix, vector: TVector): TVector {
  *
  * @example
  * ```typescript
- * ```typescript
  * // Type-safe matrix multiplication with specific matrix types
  * const matrixA: TMatrix2 = [[1, 2], [3, 4]];
  * const matrixB: TMatrix2 = [[5, 6], [7, 8]];
@@ -550,7 +539,6 @@ function matrixMultiplyVector(matrix: TMatrix, vector: TVector): TVector {
  * // Large matrix automatically uses Strassen algorithm
  * const large = MatrixCreate(64, 64); // 64×64 matrices
  * const result = matrixMultiplyMatrix(large, large); // Uses Strassen internally
- * ```
  * ```
  */
 function matrixMultiplyMatrix(a: TMatrix1, b: TMatrix1): TMatrix1;
@@ -653,7 +641,6 @@ function matrixMultiplyMatrix(a: TMatrix, b: TMatrix): TMatrix {
  *
  * @example
  * ```typescript
- * ```typescript
 	 * // Simple scalar values in matrix form
 	 * matrixMultiplyMatrix1([[5]], [[3]]) // Returns [[15]]
 	 * // Decimal multiplication
@@ -662,7 +649,6 @@ function matrixMultiplyMatrix(a: TMatrix, b: TMatrix): TMatrix {
 	 * matrixMultiplyMatrix1([[-3]], [[7]]) // Returns [[-21]]
 	 * // Zero multiplication
 	 * matrixMultiplyMatrix1([[0]], [[999]]) // Returns [[0]]
- * ```
  * ```
  */
 function matrixMultiplyMatrix1(a: TMatrix1, b: TMatrix1): TMatrix1 {
@@ -697,7 +683,6 @@ function matrixMultiplyMatrix1(a: TMatrix1, b: TMatrix1): TMatrix1 {
  * @returns {TMatrix2} The product as a 2×2 matrix
  * @example
  * ```typescript
- * ```typescript
  * // Standard 2x2 multiplication
  * matrixMultiplyMatrix2([[1, 2], [3, 4]], [[5, 6], [7, 8]])
  * // Returns [[19, 22], [43, 50]]
@@ -710,7 +695,6 @@ function matrixMultiplyMatrix1(a: TMatrix1, b: TMatrix1): TMatrix1 {
  * // Scaling transformation
  * matrixMultiplyMatrix2([[2, 0], [0, 3]], [[1, 2], [3, 4]])
  * // Returns [[2, 4], [9, 12]]
- * ```
  * ```
  */
 function matrixMultiplyMatrix2(a: TMatrix2, b: TMatrix2): TMatrix2 {
@@ -757,7 +741,6 @@ function matrixMultiplyMatrix2(a: TMatrix2, b: TMatrix2): TMatrix2 {
  * @returns {TMatrix3} The product as a 3×3 matrix
  * @example
  * ```typescript
- * ```typescript
  * // 3D rotation matrix multiplication (combining rotations)
  * const rotX = [[1, 0, 0], [0, 0.707, -0.707], [0, 0.707, 0.707]]; // X rotation
  * const rotY = [[0.707, 0, 0.707], [0, 1, 0], [-0.707, 0, 0.707]]; // Y rotation
@@ -768,7 +751,6 @@ function matrixMultiplyMatrix2(a: TMatrix2, b: TMatrix2): TMatrix2 {
  * // Scaling transformation
  * matrixMultiplyMatrix3([[2, 0, 0], [0, 3, 0], [0, 0, 4]], [[1, 1, 1], [1, 1, 1], [1, 1, 1]])
  * // Returns [[2, 2, 2], [3, 3, 3], [4, 4, 4]]
- * ```
  * ```
  */
 function matrixMultiplyMatrix3(a: TMatrix3, b: TMatrix3): TMatrix3 {
@@ -830,7 +812,6 @@ function matrixMultiplyMatrix3(a: TMatrix3, b: TMatrix3): TMatrix3 {
  * @returns {TMatrix4} The product as a 4×4 matrix (combined transformation)
  * @example
  * ```typescript
- * ```typescript
  * // Combine translation and rotation matrices (common in 3D graphics)
  * const translation = [[1,0,0,5], [0,1,0,3], [0,0,1,0], [0,0,0,1]]; // Translate by (5,3,0)
  * const rotation = [[0,-1,0,0], [1,0,0,0], [0,0,1,0], [0,0,0,1]];    // 90° Z rotation
@@ -843,7 +824,6 @@ function matrixMultiplyMatrix3(a: TMatrix3, b: TMatrix3): TMatrix3 {
  * const projection = [[2,0,0,0], [0,2,0,0], [0,0,-1,-1], [0,0,-2,0]];
  * const view = [[1,0,0,0], [0,1,0,0], [0,0,1,-10], [0,0,0,1]];
  * matrixMultiplyMatrix4(projection, view); // Combined projection-view matrix
- * ```
  * ```
  */
 function matrixMultiplyMatrix4(a: TMatrix4, b: TMatrix4): TMatrix4 {
@@ -930,7 +910,6 @@ function matrixMultiplyMatrix4(a: TMatrix4, b: TMatrix4): TMatrix4 {
  *
  * @example
  * ```typescript
- * ```typescript
  * // Large matrix multiplication (automatically used for 32×32 and larger)
  * const size = 256;
  * const largeA = MatrixCreate(size, size); // Create 256×256 matrix
@@ -946,7 +925,6 @@ function matrixMultiplyMatrix4(a: TMatrix4, b: TMatrix4): TMatrix4 {
  * // Base case automatically falls back to standard algorithm
  * const small = MatrixCreate(16, 16); // Uses standard algorithm (< 32×32)
  * const result3 = matrixMultiplyStrassen(small, small);
- * ```
  * ```
  */
 function matrixMultiplyStrassen(a: TMatrix, b: TMatrix): TMatrix {
@@ -1048,15 +1026,20 @@ function matrixMultiplyStrassen(a: TMatrix, b: TMatrix): TMatrix {
  * Time Complexity: O(width × height) - linear in extracted region size
  * Space Complexity: O(width × height) - size of extracted submatrix
  *
+ * @remarks
+ * **Parameter order warning:** The position arguments are `(startCol, startRow)` — column index
+ * comes **before** row index. This is the opposite of the conventional (row, column) order used
+ * in most matrix APIs. Passing `(row, col)` instead of `(col, row)` will silently extract the
+ * wrong region without throwing an error.
+ *
  * @param matrix - Source matrix to extract from
- * @param startCol - Starting column index (0-based, inclusive) — note reversed order
- * @param startRow - Starting row index (0-based, inclusive) — note reversed order
+ * @param startCol - Starting **column** index (0-based, inclusive) — this is the FIRST position argument, not the row
+ * @param startRow - Starting **row** index (0-based, inclusive) — this is the SECOND position argument, not the column
  * @param width - Number of columns to extract (must be positive)
  * @param height - Number of rows to extract (must be positive)
  * @returns {TMatrix} The extracted submatrix with dimensions height×width
  * @throws {Error} If extraction bounds exceed matrix dimensions or contain invalid values
  * @example
- * ```typescript
  * ```typescript
  * const matrix = [
  *   [1,  2,  3,  4],
@@ -1077,7 +1060,6 @@ function matrixMultiplyStrassen(a: TMatrix, b: TMatrix): TMatrix {
  * const topRight = MatrixSubmatrix(large, 4, 0, 4, 4);    // Top-right 4×4 block
  * const bottomLeft = MatrixSubmatrix(large, 0, 4, 4, 4);  // Bottom-left 4×4 block
  * const bottomRight = MatrixSubmatrix(large, 4, 4, 4, 4); // Bottom-right 4×4 block
- * ```
  * ```
  */
 export function MatrixSubmatrix(matrix: TMatrix, startCol: number, startRow: number, width: number, height: number): TMatrix {
@@ -1141,7 +1123,6 @@ export function MatrixSubmatrix(matrix: TMatrix, startCol: number, startRow: num
  * @throws {Error} If new dimensions are smaller than current dimensions
  * @example
  * ```typescript
- * ```typescript
  * const matrix = [[1, 2], [3, 4]]; // 2×2 matrix
  * // Pad to 4×4 matrix (symmetric padding)
  * MatrixPad(matrix, 4, 4)
@@ -1165,7 +1146,6 @@ export function MatrixSubmatrix(matrix: TMatrix, startCol: number, startRow: num
  * // Image border padding for convolution
  * const image = MatrixCreate(28, 28); // 28×28 image
  * const padded = MatrixPad(image, 32, 32); // Add border for valid convolution
- * ```
  * ```
  */
 export function MatrixPad(matrix: TMatrix, newRows: number, newCols: number): TMatrix {
@@ -1241,7 +1221,6 @@ export function MatrixPad(matrix: TMatrix, newRows: number, newCols: number): TM
  *
  * @example
  * ```typescript
- * ```typescript
  * // Basic 2×2 quadrant combination
  * const topLeft = [[1, 2], [3, 4]];
  * const topRight = [[5, 6], [7, 8]];
@@ -1268,7 +1247,6 @@ export function MatrixPad(matrix: TMatrix, newRows: number, newCols: number): TM
  *   processedTopLeft, processedTopRight,
  *   processedBottomLeft, processedBottomRight
  * );
- * ```
  * ```
  */
 export function MatrixCombine(c11: TMatrix, c12: TMatrix, c21: TMatrix, c22: TMatrix): TMatrix {

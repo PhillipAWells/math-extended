@@ -35,6 +35,15 @@ export function MatrixFrobeniusNorm(matrix: TMatrix): number {
 /**
  * Computes the spectral norm (2-norm) of a matrix.
  * This is the largest singular value of the matrix.
+ *
+ * @remarks
+ * This function computes a full Singular Value Decomposition (SVD) internally
+ * to find the largest singular value. SVD is an O(n³) or worse operation
+ * depending on the matrix dimensions and the number of iterations required.
+ * Avoid calling this repeatedly in performance-critical loops on large matrices;
+ * prefer cheaper norms (e.g. {@link MatrixFrobeniusNorm}) when an exact spectral
+ * norm is not required.
+ *
  * @param matrix - The input matrix
  * @returns {number} The spectral norm (always non-negative)
  * @throws {Error} If the matrix contains invalid values
@@ -127,6 +136,15 @@ export function MatrixInfinityNorm(matrix: TMatrix): number {
 /**
  * Computes the nuclear norm (trace norm) of a matrix.
  * This is the sum of all singular values.
+ *
+ * @remarks
+ * This function computes a full Singular Value Decomposition (SVD) internally
+ * to sum all singular values. SVD is an O(n³) or worse operation depending on
+ * the matrix dimensions and the number of iterations required. Avoid calling
+ * this repeatedly in performance-critical loops on large matrices; prefer
+ * cheaper norms (e.g. {@link MatrixFrobeniusNorm}) when an exact nuclear norm
+ * is not required.
+ *
  * @param matrix - The input matrix
  * @returns {number} The nuclear norm (always non-negative)
  * @throws {Error} If the matrix contains invalid values

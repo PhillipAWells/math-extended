@@ -31,8 +31,9 @@ export function SetPRNG(prng: IPRNG): void {
 }
 
 /**
- * Gets the current PRNG function.
- * @internal
+ * Returns the currently active PRNG function used by all random utilities.
+ * Useful for saving and restoring the PRNG around a block of deterministic code.
+ *
  * @returns The currently configured PRNG function
  * @example
  * ```typescript
@@ -46,9 +47,17 @@ export function GetPRNG(): IPRNG {
 
 /**
  * Generates a random integer within the specified range (inclusive).
+ *
+ * @remarks
+ * When `min > max` the range is invalid and the function returns `Number.NaN`
+ * rather than throwing. Callers that pass dynamic bounds should guard for NaN
+ * in the return value. Note the asymmetry with `RandomFloat`, which treats
+ * `min === max` as invalid (returns NaN) whereas this function does not
+ * (a range of one value is valid and always returns that value).
+ *
  * @param min - Minimum value (inclusive)
  * @param max - Maximum value (inclusive)
- * @returns Random integer between min and max. Returns Number.NaN when min > max.
+ * @returns Random integer between min and max. Returns `Number.NaN` when `min > max`.
  * @example
  * ```typescript
  * RandomInt(1, 6) // Returns 1, 2, 3, 4, 5, or 6 (dice roll)
@@ -70,10 +79,19 @@ export function RandomInt(min: number, max: number): number {
 
 /**
  * Generates a random floating-point number within the specified range.
- * Note: Asymmetry with RandomInt — this function returns NaN when min >= max (not just min > max).
+ *
+ * @remarks
+ * When `min >= max` the range is invalid and the function returns `Number.NaN`
+ * rather than throwing. This includes the case where `min === max`, which
+ * produces a zero-width interval. Note the asymmetry with `RandomInt`: that
+ * function only returns NaN when `min > max` (a single-value range is valid
+ * for integers), whereas this function also returns NaN when `min === max`
+ * (a zero-width interval produces no valid float). Callers that pass dynamic
+ * bounds should guard for NaN in the return value.
+ *
  * @param min - Minimum value (inclusive)
  * @param max - Maximum value (exclusive)
- * @returns Random float between min (inclusive) and max (exclusive). Returns Number.NaN when min >= max.
+ * @returns Random float between min (inclusive) and max (exclusive). Returns `Number.NaN` when `min >= max`.
  * @example
  * ```typescript
  * RandomFloat(0, 1) // Returns 0.0 to 0.999...
@@ -184,6 +202,14 @@ export function RandomShuffle<T>(array: T[], clone?: boolean): T[] {
 
 /**
  * Generates a random boolean value.
+ *
+ * @remarks
+ * Intentionally throws a built-in `RangeError` rather than a domain-specific
+ * error class. The scalar module has no `ScalarError` counterpart, so `RangeError`
+ * is the most semantically correct standard error for an out-of-range probability.
+ * This is a deliberate deviation from the custom-error-class pattern used in the
+ * vector, matrix, and quaternion domains.
+ *
  * @param probability - Probability of returning true (0.0 to 1.0, default: 0.5)
  * @returns Random boolean based on probability
  * @throws {RangeError} If probability is outside the range [0, 1]

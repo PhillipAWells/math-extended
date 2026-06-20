@@ -53,6 +53,15 @@ export function QuaternionNLERP(a: TQuaternion, b: TQuaternion, t: number): TQua
  * Performs spherical quadrangle interpolation (SQUAD) for smooth interpolation
  * through multiple quaternions. This is useful for creating smooth animation paths.
  *
+ * @remarks
+ * Implements the Shoemake (1987) SQUAD formulation. Intermediate control points
+ * `s_i` are computed via `quaternionSquadControlPoint` using the formula:
+ * `s_i = q_i * exp(-( log(q_i^{-1} * q_{i-1}) + log(q_i^{-1} * q_{i+1}) ) / 4)`.
+ * The final result is `SLERP(SLERP(q1, q2, t), SLERP(s1, s2, t), 2t(1-t))`,
+ * which produces C1-continuous rotation curves across the full quaternion sequence.
+ *
+ * @see {@link https://dl.acm.org/doi/10.1145/37401.37407 | Shoemake, K. (1985). Animating rotation with quaternion curves. SIGGRAPH '85.}
+ *
  * @param q0 - Previous quaternion (for tangent calculation)
  * @param q1 - Start quaternion
  * @param q2 - End quaternion

@@ -4,32 +4,6 @@ import { MatrixSize } from './core.js';
 import { MATRIX1_SCHEMA, MATRIX2_SCHEMA, MATRIX3_SCHEMA, MATRIX4_SCHEMA, MATRIX_SCHEMA, MATRIX_SQUARE_SCHEMA, type TMatrix, type TMatrix1, type TMatrix2, type TMatrix3, type TMatrix4, type TMatrixSquare } from './types.js';
 
 /**
- * Validates that an unknown value is a valid matrix conforming to the TMatrix interface.
- *
- * This function performs comprehensive validation of matrix structure including:
- * - Type checking to ensure the value is a proper matrix
- * - Dimensional constraints (min/max/exact rows and columns)
- * - Square matrix validation if required
- * - Size validation against specified dimensions
- *
- * @param matrix - The value to validate as a matrix
- * @param args - Validation configuration options
- * @param exception - Custom exception details if validation fails
- * @throws {MatrixError} When the matrix doesn't meet the specified criteria
- *
- * @example
- * ```typescript
- * ```typescript
- * // Validate a 3x3 square matrix
- * AssertMatrix(someValue, { square: true, size: 3 });
- * // Validate minimum dimensions
- * AssertMatrix(someValue, { minRows: 2, minColumns: 3 });
- * // Validate exact dimensions
- * AssertMatrix(someValue, { rows: 4, columns: 5 });
- * ```
- * ```
- */
-/**
  * Matrix error class for validation failures and matrix operations.
  * Extends Error to provide detailed error information with optional cause chain.
  *
@@ -93,6 +67,25 @@ export class MatrixError extends BaseError<TMatrixErrorMetadata> {
  */
 export type TMatrixErrorMetadata = TErrorMetadata;
 
+/**
+ * Asserts that an unknown value is a valid matrix conforming to TMatrix.
+ *
+ * Throws a {@link MatrixError} if the value is not a valid matrix. Use this
+ * function at runtime boundaries to narrow `unknown` input to `TMatrix` before
+ * performing any matrix operations.
+ *
+ * @param matrix - The value to assert as a valid matrix
+ * @throws {MatrixError} If the value is not a valid TMatrix (not a 2-D array of finite numbers)
+ *
+ * @example
+ * ```typescript
+ * import { AssertMatrix } from '@pawells/math-extended';
+ *
+ * const input: unknown = [[1, 2], [3, 4]];
+ * AssertMatrix(input); // no-op if valid
+ * // input is now narrowed to TMatrix
+ * ```
+ */
 export function AssertMatrix(matrix: unknown): asserts matrix is TMatrix {
 	try {
 		MATRIX_SCHEMA.parse(matrix);
@@ -250,6 +243,28 @@ export function AssertMatrixSquare(matrix: unknown): asserts matrix is TMatrixSq
  */
 export const ValidateMatrixSquare: (value: unknown) => value is TMatrixSquare = makeValidate(AssertMatrixSquare);
 
+/**
+ * Asserts that all provided values are valid matrices with identical dimensions.
+ *
+ * Validates each argument is a `TMatrix` and that every matrix shares the same
+ * number of rows and columns as the first. Use before element-wise operations
+ * (add, subtract, etc.) that require conforming dimensions.
+ *
+ * @param matrices - One or more values to validate as dimension-compatible matrices
+ * @throws {MatrixError} If any value is not a valid TMatrix, or if matrices do not all share the same dimensions
+ *
+ * @example
+ * ```typescript
+ * import { AssertMatricesCompatible } from '@pawells/math-extended';
+ *
+ * const a = [[1, 2], [3, 4]];
+ * const b = [[5, 6], [7, 8]];
+ * AssertMatricesCompatible(a, b); // passes — both are 2×2
+ *
+ * // Throws MatrixError:
+ * // AssertMatricesCompatible([[1, 2]], [[1, 2, 3]]);
+ * ```
+ */
 export function AssertMatricesCompatible(...matrices: unknown[]): void {
 	for (const matrix of matrices) {
 		AssertMatrix(matrix);
