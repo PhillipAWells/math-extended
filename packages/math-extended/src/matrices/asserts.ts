@@ -1,5 +1,5 @@
 import { BaseError, GetErrorMessage, type TErrorMetadata } from '@pawells/typescript-common';
-import { MatrixSize } from '../index.js';
+import { MatrixSize } from './core.js';
 import { MATRIX1_SCHEMA, MATRIX2_SCHEMA, MATRIX3_SCHEMA, MATRIX4_SCHEMA, MATRIX_SCHEMA, MATRIX_SQUARE_SCHEMA, type TMatrix, type TMatrix1, type TMatrix2, type TMatrix3, type TMatrix4, type TMatrixSquare } from './types.js';
 
 /**

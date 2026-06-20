@@ -17,7 +17,7 @@
 import { AssertNumber, AssertNotEquals } from '../internal/guards.js';
 import { MatrixCreate } from './core.js';
 import { MatrixMultiply } from './arithmetic.js';
-import { AssertMatrix3, AssertMatrix4 } from './asserts.js';
+import { AssertMatrix3, AssertMatrix4, MatrixError } from './asserts.js';
 import type { TMatrix3, TMatrix4 } from './types.js';
 import type { TVector2, TVector3, TVector4 } from '../vectors/types.js';
 import { AssertVector2, AssertVector3, AssertVector4 } from '../vectors/asserts.js';
@@ -616,7 +616,9 @@ export function MatrixTransform2D(vector: TVector2, matrix: TMatrix3): TVector2 
 		(matrix[2][0] * homogeneous[0]) + (matrix[2][1] * homogeneous[1]) + (matrix[2][2] * homogeneous[2]) // w'
 	];
 	// Ensure w component is not near zero (would indicate degenerate transformation)
-	AssertNumber(Math.abs(result[2]), { gte: 1e-10 }, { message: '2D transformation w component near zero' });
+	if (Math.abs(result[2]) < 1e-10) {
+		throw new MatrixError('2D transformation w component near zero');
+	}
 
 	// Convert back from homogeneous coordinates by dividing by w
 	return [result[0] / result[2], result[1] / result[2]];
@@ -655,7 +657,9 @@ export function MatrixTransform3D(vector: TVector3, transform: TMatrix4): TVecto
 		(transform[3][0] * homogeneous[0]) + (transform[3][1] * homogeneous[1]) + (transform[3][2] * homogeneous[2]) + (transform[3][3] * homogeneous[3])
 	];
 	// Ensure w component is not near zero (would indicate degenerate transformation)
-	AssertNumber(Math.abs(result[3]), { gte: 1e-10 }, { message: '3D transformation w component near zero' });
+	if (Math.abs(result[3]) < 1e-10) {
+		throw new MatrixError('3D transformation w component near zero');
+	}
 
 	// Convert back from homogeneous coordinates by dividing by w
 	return [result[0] / result[3], result[1] / result[3], result[2] / result[3]];

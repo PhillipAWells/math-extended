@@ -1,5 +1,5 @@
 import { AssertNumber } from '../internal/guards.js';
-import { AssertMatrix1, AssertMatrix2, AssertMatrix3, AssertMatrixSquare } from './asserts.js';
+import { AssertMatrix1, AssertMatrix2, AssertMatrix3, AssertMatrixSquare, MatrixError } from './asserts.js';
 import { MatrixCreate, MatrixSize, MatrixSizeSquare, MatrixTranspose } from './core.js';
 import { MatrixLU } from './decompositions.js';
 import type { TMatrix } from './types.js';
@@ -70,9 +70,11 @@ export function MatrixDeterminant(matrix: TMatrix): number {
 
 		return sign * product;
 	}
-	catch {
-		// Singular matrix (zero pivot): determinant is 0
-		return 0;
+	catch (error) {
+		if (error instanceof MatrixError && error.message.includes('singular')) {
+			return 0;
+		}
+		throw error;
 	}
 }
 
@@ -168,7 +170,7 @@ export function MatrixInverse(matrix: TMatrix): TMatrix {
 	// For 1–3×3 use the adjugate/cofactor method (closed-form, exact)
 	if (size <= 3) {
 		const det = MatrixDeterminant(matrix);
-		if (det === 0) throw new Error('Matrix is not invertible (determinant is zero)');
+		if (det === 0) throw new MatrixError('Matrix is not invertible (determinant is zero)');
 
 		const cof = MatrixCofactor(matrix);
 		const transposed = MatrixTranspose(cof);

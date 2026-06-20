@@ -420,7 +420,7 @@ function matrixMultiplyVector(matrix: TMatrix, vector: TVector): TVector {
 	const [matrixRows, matrixCols] = MatrixSize(matrix);
 
 	// Verify dimensional compatibility: matrix columns must equal vector length
-	if (matrixCols !== vector.length) throw new Error(`Matrix-vector multiplication requires matrix columns (${matrixCols}) to equal vector length (${vector.length})`);
+	if (matrixCols !== vector.length) throw new MatrixError(`Matrix-vector multiplication requires matrix columns (${matrixCols}) to equal vector length (${vector.length})`);
 
 	// Initialize result vector with same length as matrix rows
 	const result: number[] = new Array(matrixRows);
