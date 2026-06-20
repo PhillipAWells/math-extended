@@ -121,16 +121,17 @@ export function AssertNormalizedQuaternion(quaternion: TQuaternion, tolerance = 
 
 /**
  * Validates that a value is proper Euler angles.
- * Euler angles must be an array of exactly 3 finite numbers.
+ * Euler angles must be an array of exactly 3 numbers. NaN is rejected; Infinity is intentionally permitted.
  *
  * @param euler - The value to validate as Euler angles
- * @throws {QuaternionError} If the input is not an array, if it does not have exactly 3 components, or if any component is not a finite number
+ * @throws {QuaternionError} If the input is not an array, if it does not have exactly 3 components, or if any component is NaN
  *
  * @example
  * ```typescript
  * AssertEulerAngles([0.5, 1.0, 1.5]); // Valid - passes silently
  * AssertEulerAngles([0.5, 1.0]);      // Throws QuaternionError - wrong length
  * AssertEulerAngles([0.5, 1.0, NaN]); // Throws QuaternionError - contains NaN
+ * AssertEulerAngles([0.5, Infinity, 1.5]); // Valid - Infinity is permitted
  * ```
  */
 export function AssertEulerAngles(euler: unknown): asserts euler is TEulerAngles {
@@ -142,7 +143,7 @@ export function AssertEulerAngles(euler: unknown): asserts euler is TEulerAngles
 		throw new QuaternionError(`Euler angles must have exactly 3 components, got ${euler.length}`);
 	}
 
-	// Validate each element is a number (NaN is rejected, but Infinity is allowed)
+	// Validate each element is a number (NaN is rejected; Infinity is intentionally permitted)
 	for (let i = 0; i < 3; i++) {
 		if (typeof euler[i] !== 'number' || Number.isNaN(euler[i])) {
 			throw new QuaternionError(`Invalid Euler angles: component ${i} must be a number (not ${typeof euler[i]})`);
@@ -152,16 +153,17 @@ export function AssertEulerAngles(euler: unknown): asserts euler is TEulerAngles
 
 /**
  * Validates that a value is proper axis-angle representation.
- * Axis-angle must be an array of exactly 4 finite numbers.
+ * Axis-angle must be an array of exactly 4 numbers. NaN is rejected; Infinity is intentionally permitted.
  *
  * @param axisAngle - The value to validate as axis-angle
- * @throws {QuaternionError} If the input is not an array, if it does not have exactly 4 components, or if any component is not a finite number
+ * @throws {QuaternionError} If the input is not an array, if it does not have exactly 4 components, or if any component is NaN
  *
  * @example
  * ```typescript
  * AssertAxisAngle([0, 0, 1, Math.PI / 2]); // Valid - passes silently
  * AssertAxisAngle([0, 0, 1]);              // Throws QuaternionError - wrong length
  * AssertAxisAngle([0, 0, 1, NaN]);         // Throws QuaternionError - contains NaN
+ * AssertAxisAngle([0, 0, 0, Infinity]);    // Valid - Infinity is permitted
  * ```
  */
 export function AssertAxisAngle(axisAngle: unknown): asserts axisAngle is TAxisAngle {
@@ -173,7 +175,7 @@ export function AssertAxisAngle(axisAngle: unknown): asserts axisAngle is TAxisA
 		throw new QuaternionError(`Axis-angle must have exactly 4 components, got ${axisAngle.length}`);
 	}
 
-	// Validate each element is a number (NaN is rejected, but Infinity is allowed)
+	// Validate each element is a number (NaN is rejected; Infinity is intentionally permitted)
 	for (let i = 0; i < 4; i++) {
 		if (typeof axisAngle[i] !== 'number' || Number.isNaN(axisAngle[i])) {
 			throw new QuaternionError(`Invalid axis-angle: component ${i} must be a number (not ${typeof axisAngle[i]})`);
@@ -183,16 +185,17 @@ export function AssertAxisAngle(axisAngle: unknown): asserts axisAngle is TAxisA
 
 /**
  * Validates that a value is a proper rotation matrix.
- * Rotation matrix must be a 3x3 matrix (TMatrix3).
+ * Rotation matrix must be a 3x3 matrix (TMatrix3). NaN is rejected; Infinity is intentionally permitted.
  *
  * @param matrix - The value to validate as a rotation matrix
- * @throws {QuaternionError} If the input is not an array, if it is not 3x3, or if any element is not a finite number
+ * @throws {QuaternionError} If the input is not an array, if it is not 3x3, or if any element is NaN
  *
  * @example
  * ```typescript
  * const matrix = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]; // Identity matrix
  * AssertRotationMatrix(matrix); // Valid - passes silently
  * AssertRotationMatrix([[1, 0, 0], [0, 1, 0]]); // Throws - not 3x3
+ * AssertRotationMatrix([[Infinity, 0, 0], [0, 1, 0], [0, 0, 1]]); // Valid - Infinity is permitted
  * ```
  */
 export function AssertRotationMatrix(matrix: unknown): asserts matrix is TRotationMatrix {
@@ -214,7 +217,7 @@ export function AssertRotationMatrix(matrix: unknown): asserts matrix is TRotati
 			throw new QuaternionError(`Rotation matrix row ${i} must have exactly 3 elements, got ${matrix[i].length}`);
 		}
 
-		// Validate each element is a number (NaN is rejected, but Infinity is allowed)
+		// Validate each element is a number (NaN is rejected; Infinity is intentionally permitted)
 		for (let j = 0; j < 3; j++) {
 			if (typeof matrix[i][j] !== 'number' || Number.isNaN(matrix[i][j])) {
 				throw new QuaternionError(`Invalid rotation matrix row ${i}: component ${j} must be a number (not ${typeof matrix[i][j]})`);

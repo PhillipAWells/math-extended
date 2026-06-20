@@ -196,11 +196,17 @@ export function QuaternionCreatePath(
 	return (t: number): TQuaternion => {
 		AssertNumber(t, { gte: 0, lte: 1 });
 
-		const [firstQuaternion] = quaternions;
-		const lastQuaternion = quaternions[quaternions.length - 1];
+		const first = quaternions[0];
+		if (first === undefined) {
+			throw new QuaternionError('Quaternion array is empty');
+		}
+		if (t === 0) return first;
 
-		if (t === 0 && firstQuaternion) return firstQuaternion;
-		if (t === 1 && lastQuaternion) return lastQuaternion;
+		const last = quaternions[quaternions.length - 1];
+		if (last === undefined) {
+			throw new QuaternionError('Quaternion array is empty');
+		}
+		if (t === 1) return last;
 
 		// Calculate which segment we're in
 		const segments = quaternions.length - 1;

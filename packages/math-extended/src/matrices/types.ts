@@ -31,7 +31,7 @@ export type TMatrix = z.infer<typeof MATRIX_SCHEMA>;
  * const scalar: TMatrix1 = [[5]]; // Single value in matrix format
  * ```
  */
-export const MATRIX1_SCHEMA = z.array(z.array(z.number())).refine(arr => arr.length === 1 && arr[0].length === 1, { message: 'Matrix must be exactly 1×1' }).refine(arr => arr[0].length > 0, { message: 'Matrix rows cannot be empty' });
+export const MATRIX1_SCHEMA = z.array(z.array(z.number())).refine(arr => arr.length === 1 && arr[0].length === 1, { message: 'Matrix must be exactly 1×1' });
 export type TMatrix1 = z.infer<typeof MATRIX1_SCHEMA>;
 
 /**
@@ -44,7 +44,7 @@ export type TMatrix1 = z.infer<typeof MATRIX1_SCHEMA>;
  * const scale2D: TMatrix2 = [[2, 0], [0, 3]]; // Scale transformation
  * ```
  */
-export const MATRIX2_SCHEMA = z.array(z.array(z.number())).refine(arr => arr.length === 2 && arr[0].length === 2 && arr[1].length === 2, { message: 'Matrix must be exactly 2×2' }).refine(arr => arr.every(row => row.length > 0), { message: 'Matrix rows cannot be empty' });
+export const MATRIX2_SCHEMA = z.array(z.array(z.number())).refine(arr => arr.length === 2 && arr[0].length === 2 && arr[1].length === 2, { message: 'Matrix must be exactly 2×2' });
 export type TMatrix2 = z.infer<typeof MATRIX2_SCHEMA>;
 
 /**
@@ -57,7 +57,7 @@ export type TMatrix2 = z.infer<typeof MATRIX2_SCHEMA>;
  * const rotation3D: TMatrix3|TMatrix4 = [[1, 0, 0], [0, 0, -1], [0, 1, 0]]; // X-axis rotation
  * ```
  */
-export const MATRIX3_SCHEMA = z.array(z.array(z.number())).refine(arr => arr.length === 3 && arr[0].length === 3 && arr[1].length === 3 && arr[2].length === 3, { message: 'Matrix must be exactly 3×3' }).refine(arr => arr.every(row => row.length > 0), { message: 'Matrix rows cannot be empty' });
+export const MATRIX3_SCHEMA = z.array(z.array(z.number())).refine(arr => arr.length === 3 && arr[0].length === 3 && arr[1].length === 3 && arr[2].length === 3, { message: 'Matrix must be exactly 3×3' });
 export type TMatrix3 = z.infer<typeof MATRIX3_SCHEMA>;
 
 /**
@@ -74,19 +74,8 @@ export type TMatrix3 = z.infer<typeof MATRIX3_SCHEMA>;
  * ];
  * ```
  */
-export const MATRIX4_SCHEMA = z.array(z.array(z.number())).refine(arr => arr.length === 4 && arr[0].length === 4 && arr[1].length === 4 && arr[2].length === 4 && arr[3].length === 4, { message: 'Matrix must be exactly 4×4' }).refine(arr => arr.every(row => row.length > 0), { message: 'Matrix rows cannot be empty' });
+export const MATRIX4_SCHEMA = z.array(z.array(z.number())).refine(arr => arr.length === 4 && arr[0].length === 4 && arr[1].length === 4 && arr[2].length === 4 && arr[3].length === 4, { message: 'Matrix must be exactly 4×4' });
 export type TMatrix4 = z.infer<typeof MATRIX4_SCHEMA>;
-
-/**
- * Configuration options for matrix operations.
- * Provides control over how matrix operations are performed.
- *
- * @interface IMatrixOperationOptions
- */
-export interface IMatrixOperationOptions {
-	/** Whether to perform the operation in-place (modifying the original matrix) */
-	inplace?: boolean;
-}
 
 /**
  * Union type representing any matrix type.

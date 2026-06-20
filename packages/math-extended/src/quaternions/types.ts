@@ -19,15 +19,12 @@ import z from 'zod/v4';
  * const rotation90Y: TQuaternion = [0, 0.707, 0, 0.707]; // 90° rotation around Y-axis
  * ```
  */
-export const QUATERNION_SCHEMA = z.array(
-	z.unknown().refine(
-		val => typeof val === 'number' && !Number.isNaN(val),
-		{ message: 'Component must be a number' }
-	)
-).refine(
-	arr => arr.length === 4,
-	{ message: 'Quaternion must have exactly 4 components' }
-);
+export const QUATERNION_SCHEMA = z.tuple([
+	z.custom<number>(value => typeof value === 'number' && !Number.isNaN(value), { message: 'Quaternion component must be a number' }),
+	z.custom<number>(value => typeof value === 'number' && !Number.isNaN(value), { message: 'Quaternion component must be a number' }),
+	z.custom<number>(value => typeof value === 'number' && !Number.isNaN(value), { message: 'Quaternion component must be a number' }),
+	z.custom<number>(value => typeof value === 'number' && !Number.isNaN(value), { message: 'Quaternion component must be a number' })
+]);
 export type TQuaternion = [number, number, number, number];
 
 /**

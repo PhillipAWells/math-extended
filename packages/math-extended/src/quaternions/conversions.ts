@@ -4,6 +4,7 @@
  */
 
 import type { TMatrix4 } from '../matrices/types.js';
+import { AssertMatrix4 } from '../matrices/asserts.js';
 import { AssertNormalizedQuaternion, AssertRotationMatrix } from './asserts.js';
 import type { TQuaternion, TRotationMatrix } from './types.js';
 
@@ -145,6 +146,8 @@ export function QuaternionToTransformationMatrix(quaternion: TQuaternion): TMatr
  * ```
  */
 export function QuaternionFromTransformationMatrix(matrix: TMatrix4): TQuaternion {
+	AssertMatrix4(matrix);
+
 	// Extract 3x3 rotation matrix from 4x4 transformation matrix
 	const rotationMatrix: TRotationMatrix = [
 		[matrix[0][0], matrix[0][1], matrix[0][2]],

@@ -6,6 +6,7 @@
 import { VectorClone, VectorDot, VectorMagnitude, VectorNormalize, VectorEquals, Vector3Cross } from '../vectors/core.js';
 import type { TVector3 } from '../vectors/types.js';
 import { AssertQuaternion, AssertNormalizedQuaternion, AssertEulerAngles, AssertAxisAngle, QuaternionError } from './asserts.js';
+import { VectorError } from '../vectors/asserts.js';
 import type { TQuaternion, TEulerAngles, TAxisAngle } from './types.js';
 
 const QUATERNION_MAGNITUDE_TOLERANCE = 1e-10;
@@ -237,8 +238,8 @@ export function QuaternionFromAxisAngle(axis: TVector3, angle: number): TQuatern
 	}
 	catch (err) {
 		// Convert VectorError to QuaternionError
-		if (err instanceof Error && err.message.includes('Cannot Normalize')) {
-			throw new QuaternionError(`Invalid axis vector: ${err.message}`);
+		if (err instanceof VectorError) {
+			throw new QuaternionError(`Invalid axis vector: ${err.message}`, { cause: err });
 		}
 		throw err;
 	}

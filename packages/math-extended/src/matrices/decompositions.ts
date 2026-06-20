@@ -82,7 +82,7 @@ export type TQRDecompositionResult = {
  * and V^T (right singular vectors transposed). This is essential for principal component
  * analysis, matrix approximation, and solving least squares problems.
  */
-type TSVDDecompositionResult = {
+export type TSVDDecompositionResult = {
 	/** Matrix of left singular vectors (orthogonal columns) */
 
 	readonly U: TMatrix;
@@ -366,7 +366,7 @@ export function MatrixEigen(matrix: TMatrix): TEigenDecompositionResult {
  * @complexity O(n³) per iteration, typically converges in O(n) iterations
  * @see {@link MatrixQR} For the QR decomposition used in each iteration
  */
-export function MatrixEigenQRIteration(matrix: TMatrix, iterations: number = EIGEN_MAX_ITERATIONS): TEigenDecompositionResult {
+function MatrixEigenQRIteration(matrix: TMatrix, iterations: number = EIGEN_MAX_ITERATIONS): TEigenDecompositionResult {
 	const [n] = MatrixSize(matrix);
 
 	// Copy matrix for iteration to avoid modifying the original

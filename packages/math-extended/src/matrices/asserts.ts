@@ -266,7 +266,7 @@ export function AssertMatrixSquare(matrix: unknown): asserts matrix is TMatrixSq
  * }
  * ```
  */
-export const ValidateMatrixSquare: (value: unknown) => value is TMatrix = makeValidate(AssertMatrixSquare);
+export const ValidateMatrixSquare: (value: unknown) => value is TMatrixSquare = makeValidate(AssertMatrixSquare);
 
 export function AssertMatricesCompatible(...matrices: unknown[]): void {
 	for (const matrix of matrices) {
