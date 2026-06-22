@@ -24,7 +24,7 @@
 		"prepare": "husky"
 	},
 	"devDependencies": {
-		"@eslint/js": "^9.8.0",
+		"@eslint/js": "^10.0.1",
 		"@nx/devkit": "22.7.5",
 		"@nx/eslint": "22.7.5",
 		"@nx/eslint-plugin": "22.7.5",
@@ -33,9 +33,9 @@
 		"@nx/vitest": "22.7.5",
 		"@stylistic/eslint-plugin": "^5.10.0",
 		"@types/node": "^25.9.1",
-		"@typescript-eslint/parser": "^8.0.0",
+		"@typescript-eslint/parser": "^8.62.0",
 		"@vitest/coverage-v8": "~4.1.0",
-		"eslint": "^9.8.0",
+		"eslint": "^10.5.0",
 		"husky": "^9.1.7",
 		"jsonc-eslint-parser": "^2.1.0",
 		"nx": "22.7.5",
