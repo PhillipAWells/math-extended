@@ -1,5 +1,6 @@
 export * from './angles.js';
 export * from './clamp.js';
+export * from './constants.js';
 export * from './core.js';
 export * from './interpolation.js';
 export * from './matrices/index.js';
