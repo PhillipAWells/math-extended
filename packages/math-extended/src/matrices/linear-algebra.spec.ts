@@ -5,8 +5,11 @@ import {
 	MatrixAdjoint,
 	MatrixInverse,
 	MatrixGramSchmidt,
-	MatrixMinor
+	MatrixMinor,
+	MatrixPseudoInverse,
+	MatrixNullSpace
 } from './linear-algebra.js';
+import { MatrixMultiply } from './arithmetic.js';
 import { type TMatrix } from './types.js';
 
 describe('Matrix Operations for Linear Algebra', () => {
@@ -516,6 +519,173 @@ describe('Matrix Operations for Linear Algebra', () => {
 					expect(dotProduct).toBeCloseTo(0, 5);
 				}
 			}
+		});
+
+		describe('MatrixPseudoInverse', () => {
+			test('should compute pseudoinverse of identity matrix', () => {
+				const identity: TMatrix = [[1, 0], [0, 1]];
+				const pseudoInv = MatrixPseudoInverse(identity);
+
+				// pseudoInv should be 2×2
+				expect(pseudoInv.length).toBe(2);
+				expect(pseudoInv[0]?.length).toBe(2);
+				expect(pseudoInv[1]?.length).toBe(2);
+
+				// For identity, pseudoinverse should be identity
+				for (let i = 0; i < 2; i++) {
+					for (let j = 0; j < 2; j++) {
+						const expected = i === j ? 1 : 0;
+						expect(pseudoInv[i]?.[j]).toBeCloseTo(expected, 10);
+					}
+				}
+			});
+
+			test('should verify Moore-Penrose property A × A⁺ × A ≈ A for rank-deficient 2x2', () => {
+				// [[1, 2], [2, 4]]: rank 1 (second row = 2 × first row)
+				const rankDeficient: TMatrix = [[1, 2], [2, 4]];
+				const pseudoInv = MatrixPseudoInverse(rankDeficient);
+
+				// pseudoInv should be 2×2
+				expect(pseudoInv.length).toBe(2);
+
+				// Verify Moore-Penrose property: A × A⁺ × A ≈ A
+				const aaPlusA = MatrixMultiply(
+					MatrixMultiply(rankDeficient, pseudoInv) as TMatrix,
+					rankDeficient
+				) as TMatrix;
+				for (let i = 0; i < 2; i++) {
+					for (let j = 0; j < 2; j++) {
+						expect(aaPlusA[i]?.[j]).toBeCloseTo(rankDeficient[i]?.[j] ?? 0, 7);
+					}
+				}
+			});
+
+			test('should compute pseudoinverse of tall 3x2 matrix', () => {
+				// Simple tall matrix with clear rank
+				const tall: TMatrix = [[1, 0], [0, 1], [1, 1]];
+				const pseudoInv = MatrixPseudoInverse(tall);
+
+				// pseudoInv should be 2×3
+				expect(pseudoInv.length).toBe(2);
+				expect(pseudoInv[0]?.length).toBe(3);
+				expect(pseudoInv[1]?.length).toBe(3);
+			});
+
+			test('should throw error for matrix with NaN', () => {
+				const invalid: unknown = [[1, 2, NaN], [3, 4, 5]];
+				expect(() => MatrixPseudoInverse(invalid as TMatrix)).toThrow();
+			});
+
+			test('should handle full-rank square matrix close to inverse', () => {
+				const square: TMatrix = [[1, 0], [0, 1]];
+				const pseudoInv = MatrixPseudoInverse(square);
+				const trueInverse = MatrixInverse(square);
+
+				// For identity-like matrices, values should be similar
+				for (let i = 0; i < 2; i++) {
+					for (let j = 0; j < 2; j++) {
+						expect(pseudoInv[i]?.[j]).toBeCloseTo(trueInverse[i]?.[j] ?? 0, 8);
+					}
+				}
+			});
+		});
+
+		describe('MatrixNullSpace', () => {
+			test('should return empty matrix for full-rank 2x2 matrix', () => {
+				const fullRank: TMatrix = [[1, 2], [3, 4]];
+				const nullBasis = MatrixNullSpace(fullRank);
+
+				// Full-rank matrix has trivial null space; should return empty matrix
+				expect(nullBasis.length).toBe(0);
+			});
+
+			test('should find null space of rank-deficient 2x2 matrix', () => {
+				// [[1, 2], [2, 4]]: rank 1, null space dimension = 2 - 1 = 1
+				const rankDeficient: TMatrix = [[1, 2], [2, 4]];
+				const nullBasis = MatrixNullSpace(rankDeficient);
+
+				// Should have 2 rows (dimension of null space vectors) and 1 column (basis dimension)
+				expect(nullBasis.length).toBe(2);
+				expect(nullBasis[0]?.length).toBe(1);
+				expect(nullBasis[1]?.length).toBe(1);
+
+				// Each column of nullBasis should be a vector v such that A × v ≈ 0
+				const v: number[] = [nullBasis[0]?.[0] ?? 0, nullBasis[1]?.[0] ?? 0];
+				const result = MatrixMultiply(rankDeficient, v) as number[];
+				expect(Math.abs(result[0] ?? 0)).toBeLessThan(1e-9);
+				expect(Math.abs(result[1] ?? 0)).toBeLessThan(1e-9);
+			});
+
+			test('should return empty null space for full-rank matrix', () => {
+				const fullRank: TMatrix = [[1, 0, 0], [0, 1, 0], [0, 0, 1]];
+				const nullBasis = MatrixNullSpace(fullRank);
+
+				// Full rank = 3, null space dimension = 3 - 3 = 0
+				expect(nullBasis.length).toBe(0);
+			});
+
+			test('should verify null space basis is orthonormal', () => {
+				const rankDeficient: TMatrix = [[1, 2], [2, 4]];
+				const nullBasis = MatrixNullSpace(rankDeficient);
+
+				if (nullBasis.length > 0 && (nullBasis[0]?.length ?? 0) > 0) {
+					// Extract basis vectors as columns
+					const numBasisVectors = nullBasis[0]?.length ?? 0;
+					const basisVectors: number[][] = [];
+					for (let colIdx = 0; colIdx < numBasisVectors; colIdx++) {
+						const v: number[] = [];
+						for (let rowIdx = 0; rowIdx < nullBasis.length; rowIdx++) {
+							v.push(nullBasis[rowIdx]?.[colIdx] ?? 0);
+						}
+						basisVectors.push(v);
+					}
+
+					// Check orthonormality: each vector has unit norm and pairwise orthogonal
+					for (let i = 0; i < basisVectors.length; i++) {
+						const norm = Math.sqrt(basisVectors[i].reduce((sum, v) => sum + v * v, 0));
+						expect(norm).toBeCloseTo(1, 10);
+
+						for (let j = i + 1; j < basisVectors.length; j++) {
+							const dot = basisVectors[i].reduce((sum, v, k) => sum + v * (basisVectors[j]?.[k] ?? 0), 0);
+							expect(dot).toBeCloseTo(0, 10);
+						}
+					}
+				}
+			});
+
+			test('should handle 3x2 tall full-rank matrix', () => {
+				const tallMatrix: TMatrix = [[1, 0], [0, 1], [1, 1]];
+				const nullBasis = MatrixNullSpace(tallMatrix);
+
+				// rank = 2, null space dimension = 2 - 2 = 0 (should be empty)
+				expect(nullBasis.length).toBe(0); // Empty matrix for full rank
+			});
+
+			test('should throw error for matrix with invalid input', () => {
+				const invalid: unknown = [[1, 2, Infinity], [3, 4, 5]];
+				expect(() => MatrixNullSpace(invalid as TMatrix)).toThrow();
+			});
+
+			test('should compute null space for various matrices', () => {
+				// Test that MatrixNullSpace returns proper dimensions and orthonormal basis
+				const rankDef: TMatrix = [[1, 2], [2, 4]];
+				const nullBasis = MatrixNullSpace(rankDef);
+
+				// For this rank-1 matrix, null space should have dimension 1
+				expect(nullBasis.length).toBe(2);
+				expect(nullBasis[0]?.length).toBe(1);
+
+				// Basis vectors should be orthonormal
+				if (nullBasis.length > 0 && (nullBasis[0]?.length ?? 0) > 0) {
+					const v: number[] = [];
+					for (let i = 0; i < nullBasis.length; i++) {
+						v.push(nullBasis[i]?.[0] ?? 0);
+					}
+					// Check that the vector has unit norm
+					const norm = Math.sqrt(v.reduce((sum, x) => sum + x * x, 0));
+					expect(norm).toBeCloseTo(1, 10);
+				}
+			});
 		});
 	});
 });
