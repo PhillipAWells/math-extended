@@ -4,6 +4,7 @@
  */
 
 import type { TMatrix4 } from '../matrices/types.js';
+import { EPSILON_LOOSE } from '../constants.js';
 import { AssertMatrix4 } from '../matrices/asserts.js';
 import { AssertNormalizedQuaternion, AssertRotationMatrix, QuaternionError } from './asserts.js';
 import type { TQuaternion, TRotationMatrix } from './types.js';
@@ -175,7 +176,7 @@ export function QuaternionFromTransformationMatrix(matrix: TMatrix4): TQuaternio
  * console.log(IsValidRotationMatrix(matrix)); // true
  * ```
  */
-export function IsValidRotationMatrix(matrix: TRotationMatrix, tolerance = 1e-6): boolean {
+export function IsValidRotationMatrix(matrix: TRotationMatrix, tolerance = EPSILON_LOOSE): boolean {
 	AssertRotationMatrix(matrix);
 
 	const [[m00, m01, m02], [m10, m11, m12], [m20, m21, m22]] = matrix;

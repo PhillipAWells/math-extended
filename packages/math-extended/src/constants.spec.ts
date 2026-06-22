@@ -1,4 +1,4 @@
-import { EPSILON, EPSILON_LOOSE, EPSILON_TIGHT } from './constants.js';
+import { EPSILON, EPSILON_LOOSE, EPSILON_TIGHT, EPSILON_COMPARISON, EPSILON_ORTHOGONAL, EPSILON_STRUCTURAL, EPSILON_DECOMPOSITION } from './constants.js';
 
 describe('Math Extended > Constants', () => {
 	test('EPSILON is a small positive number suitable for general tolerance', () => {
@@ -38,5 +38,21 @@ describe('Math Extended > Constants', () => {
 	test('Tolerance constants have expected ordering', () => {
 		expect(EPSILON_TIGHT < EPSILON).toBe(true);
 		expect(EPSILON < EPSILON_LOOSE).toBe(true);
+	});
+
+	test('EPSILON_COMPARISON is the standard default tolerance for value equality', () => {
+		expect(EPSILON_COMPARISON).toBe(1e-8);
+	});
+
+	test('EPSILON_ORTHOGONAL is the tolerance for orthogonality checks', () => {
+		expect(EPSILON_ORTHOGONAL).toBe(1e-9);
+	});
+
+	test('EPSILON_STRUCTURAL is the tight tolerance for structural predicates', () => {
+		expect(EPSILON_STRUCTURAL).toBe(1e-14);
+	});
+
+	test('EPSILON_DECOMPOSITION is the tolerance for matrix decompositions', () => {
+		expect(EPSILON_DECOMPOSITION).toBe(1e-12);
 	});
 });

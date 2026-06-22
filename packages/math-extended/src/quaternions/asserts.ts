@@ -4,6 +4,7 @@
  */
 
 import { BaseError, type TErrorMetadata } from '@pawells/typescript-common';
+import { EPSILON_LOOSE } from '../constants.js';
 import { makeValidate } from '../internal/make-validate.js';
 import { type TQuaternion, type TEulerAngles, type TAxisAngle, type TRotationMatrix } from './types.js';
 
@@ -109,7 +110,7 @@ export function AssertQuaternion(quaternion: unknown): asserts quaternion is TQu
  * AssertNormalizedQuaternion([1, 1, 1, 1]); // Throws - not normalized
  * ```
  */
-export function AssertNormalizedQuaternion(quaternion: TQuaternion, tolerance = 1e-6): void {
+export function AssertNormalizedQuaternion(quaternion: TQuaternion, tolerance = EPSILON_LOOSE): void {
 	AssertQuaternion(quaternion);
 
 	const [x, y, z, w] = quaternion;
@@ -291,7 +292,7 @@ export const ValidateQuaternion: (quaternion: unknown) => quaternion is TQuatern
  * }
  * ```
  */
-export function ValidateNormalizedQuaternion(quaternion: TQuaternion, tolerance = 1e-6): boolean {
+export function ValidateNormalizedQuaternion(quaternion: TQuaternion, tolerance = EPSILON_LOOSE): boolean {
 	try {
 		AssertNormalizedQuaternion(quaternion, tolerance);
 		return true;

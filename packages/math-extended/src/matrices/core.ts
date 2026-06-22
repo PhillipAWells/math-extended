@@ -1,4 +1,5 @@
 import { AssertNumber } from '../internal/guards.js';
+import { EPSILON_COMPARISON, EPSILON_STRUCTURAL, EPSILON } from '../constants.js';
 import { AssertMatrix, AssertMatrixSquare, MatrixError } from './asserts.js';
 import type { TMatrix, TMatrix1, TMatrix2, TMatrix3, TMatrix4, TMatrixResult } from './types.js';
 
@@ -133,7 +134,7 @@ export function MatrixSizeSquare(matrix: TMatrix): number {
  * MatrixIsZero([[0.1, 0], [0, 0]]) // false
  * ```
  */
-export function MatrixIsZero(matrix: TMatrix, threshold = 1e-14): boolean {
+export function MatrixIsZero(matrix: TMatrix, threshold = EPSILON_STRUCTURAL): boolean {
 	AssertMatrix(matrix);
 
 	const [rows, cols] = MatrixSize(matrix);
@@ -170,7 +171,7 @@ export function MatrixIsZero(matrix: TMatrix, threshold = 1e-14): boolean {
  * MatrixIsIdentity([[1, 1], [0, 1]]) // false
  * ```
  */
-export function MatrixIsIdentity(matrix: TMatrix, threshold = 1e-14): boolean {
+export function MatrixIsIdentity(matrix: TMatrix, threshold = EPSILON_STRUCTURAL): boolean {
 	AssertMatrix(matrix);
 
 	const [rows, cols] = MatrixSize(matrix);
@@ -267,7 +268,7 @@ export function MatrixIsFinite(matrix: unknown): boolean {
  * MatrixIsSymmetric([[1, 2, 3], [2, 5, 4], [3, 4, 6]]) // true
  * ```
  */
-export function MatrixIsSymmetric(matrix: TMatrix, threshold = 1e-14): boolean {
+export function MatrixIsSymmetric(matrix: TMatrix, threshold = EPSILON_STRUCTURAL): boolean {
 	AssertMatrix(matrix);
 
 	const [rows, cols] = MatrixSize(matrix);
@@ -309,7 +310,7 @@ export function MatrixIsSymmetric(matrix: TMatrix, threshold = 1e-14): boolean {
  * MatrixIsDiagonal([[1, 2], [0, 1]]) // false
  * ```
  */
-export function MatrixIsDiagonal(matrix: TMatrix, threshold = 1e-14): boolean {
+export function MatrixIsDiagonal(matrix: TMatrix, threshold = EPSILON_STRUCTURAL): boolean {
 	AssertMatrix(matrix);
 
 	const [rows, cols] = MatrixSize(matrix);
@@ -399,7 +400,7 @@ export function MatrixClone<T extends TMatrix>(matrix: T): TMatrixResult<T> {
  * MatrixEquals([[1, 2]], [[1, 3]]) // false
  * ```
  */
-export function MatrixEquals(a: TMatrix, b: TMatrix, tolerance = 1e-8): boolean {
+export function MatrixEquals(a: TMatrix, b: TMatrix, tolerance = EPSILON_COMPARISON): boolean {
 	AssertMatrix(a);
 	AssertMatrix(b);
 	AssertNumber(tolerance, { gte: 0 }, { message: 'Tolerance must be a non-negative number' });
@@ -469,7 +470,7 @@ export function MatrixToString(matrix: TMatrix, precision = 2): string {
  * MatrixRank([[1, 0], [0, 1]]) // 2 (full rank)
  * ```
  */
-export function MatrixRank(matrix: TMatrix, tolerance = 1e-10): number {
+export function MatrixRank(matrix: TMatrix, tolerance = EPSILON): number {
 	AssertMatrix(matrix);
 	AssertNumber(tolerance, { gte: 0 }, { message: 'Tolerance must be a non-negative number' });
 

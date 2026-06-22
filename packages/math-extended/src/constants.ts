@@ -46,3 +46,56 @@ export const EPSILON_LOOSE = 1e-6;
  * ```
  */
 export const EPSILON_TIGHT = Number.EPSILON;
+
+/**
+ * Tolerance for default value-equality comparisons (e.g., MatrixEquals, QuaternionEquals).
+ * Use this as the standard epsilon when comparing whether two computed values are "close enough".
+ *
+ * @example
+ * ```typescript
+ * import { EPSILON_COMPARISON, MatrixEquals } from '@pawells/math-extended';
+ *
+ * MatrixEquals(a, b, EPSILON_COMPARISON); // default tolerance for matrix equality
+ * ```
+ */
+export const EPSILON_COMPARISON = 1e-8;
+
+/**
+ * Tolerance for orthogonality checks (e.g., MatrixIsOrthogonal).
+ * Use when verifying that vectors or matrices maintain orthogonal properties.
+ *
+ * @example
+ * ```typescript
+ * import { EPSILON_ORTHOGONAL, MatrixIsOrthogonal } from '@pawells/math-extended';
+ *
+ * MatrixIsOrthogonal(matrix, EPSILON_ORTHOGONAL); // check orthogonality
+ * ```
+ */
+export const EPSILON_ORTHOGONAL = 1e-9;
+
+/**
+ * Tolerance for structural matrix predicates (zero, identity, symmetric, diagonal).
+ * Use for checking whether a matrix exhibits special structure within floating-point tolerance.
+ *
+ * @example
+ * ```typescript
+ * import { EPSILON_STRUCTURAL, MatrixIsIdentity } from '@pawells/math-extended';
+ *
+ * MatrixIsIdentity(matrix, EPSILON_STRUCTURAL); // strict identity check
+ * ```
+ */
+export const EPSILON_STRUCTURAL = 1e-14;
+
+/**
+ * Numerical tolerance for matrix decompositions (LU, QR, SVD, Cholesky).
+ * Use internally in decomposition algorithms to detect singular/near-singular values.
+ *
+ * @example
+ * ```typescript
+ * import { EPSILON_DECOMPOSITION } from '@pawells/math-extended';
+ *
+ * // Typically used internally by decomposition functions
+ * const tolerance = EPSILON_DECOMPOSITION;
+ * ```
+ */
+export const EPSILON_DECOMPOSITION = 1e-12;

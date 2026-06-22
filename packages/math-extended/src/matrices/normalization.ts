@@ -1,3 +1,4 @@
+import { EPSILON_ORTHOGONAL } from '../constants.js';
 import { AssertMatrix, MatrixError } from './asserts.js';
 import { MatrixCreate, MatrixSize } from './core.js';
 import { MatrixSVD, MatrixCholesky } from './decompositions.js';
@@ -300,7 +301,7 @@ export function MatrixNormalize<T extends TMatrix>(matrix: T): TMatrixResult<T> 
  * MatrixIsOrthogonal(rect) // false
  * ```
  */
-export function MatrixIsOrthogonal(matrix: TMatrix, tolerance = 1e-9): boolean {
+export function MatrixIsOrthogonal(matrix: TMatrix, tolerance = EPSILON_ORTHOGONAL): boolean {
 	AssertMatrix(matrix);
 
 	const [rows, cols] = MatrixSize(matrix);

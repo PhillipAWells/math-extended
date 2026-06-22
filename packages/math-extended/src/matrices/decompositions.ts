@@ -1,4 +1,5 @@
 import { AssertNumber, AssertInstanceOf } from '../internal/guards.js';
+import { EPSILON_DECOMPOSITION, EPSILON } from '../constants.js';
 import { ArraySortBy } from '@pawells/typescript-common';
 import { MatrixMultiply } from './arithmetic.js';
 import { AssertMatrix, AssertMatrix1, AssertMatrix2, AssertMatrixSquare, MatrixError } from './asserts.js';
@@ -6,7 +7,7 @@ import { MatrixSize, MatrixCreate, MatrixClone, MatrixIdentity, MatrixTranspose 
 import { MatrixGramSchmidt } from './linear-algebra.js';
 import type { TMatrix } from './types.js';
 
-const MATRIX_NUMERICAL_TOLERANCE = 1e-12;
+const MATRIX_NUMERICAL_TOLERANCE = EPSILON_DECOMPOSITION;
 
 /**
  * Safely retrieves a row from a matrix and throws MatrixError if out of bounds.
@@ -24,7 +25,7 @@ function getRow(matrix: TMatrix, index: number): number[] {
 	}
 	return row;
 }
-const EIGEN_CONVERGENCE_TOLERANCE = 1e-10;
+const EIGEN_CONVERGENCE_TOLERANCE = EPSILON;
 const EIGEN_MAX_ITERATIONS = 50;
 
 /**

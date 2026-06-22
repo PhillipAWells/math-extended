@@ -1,4 +1,5 @@
 import { AssertNumber } from '../internal/guards.js';
+import { EPSILON, EPSILON_TIGHT } from '../constants.js';
 import { AssertMatrix, AssertMatrix1, AssertMatrix2, AssertMatrix3, AssertMatrixSquare, MatrixError } from './asserts.js';
 import { MatrixCreate, MatrixSize, MatrixSizeSquare, MatrixTranspose, MatrixIdentity, MatrixClone } from './core.js';
 import { MatrixLU, MatrixSVD } from './decompositions.js';
@@ -7,7 +8,7 @@ import type { TMatrix } from './types.js';
 import { VectorProject, VectorSubtract } from '../vectors/core.js';
 import type { TVector } from '../vectors/types.js';
 
-const GRAM_SCHMIDT_TOLERANCE = 1e-10;
+const GRAM_SCHMIDT_TOLERANCE = EPSILON;
 
 /**
  * Safely retrieves a row from a matrix and throws MatrixError if out of bounds.
@@ -434,7 +435,7 @@ export function MatrixPseudoInverse(matrix: TMatrix, tolerance?: number): TMatri
 	const { U, S, VT } = MatrixSVD(matrix);
 
 	// Compute default tolerance using numpy convention: max(m,n) × max(S) × machine epsilon
-	const machineEpsilon = 2.2204460492503131e-16; // Number.EPSILON approximation
+	const machineEpsilon = EPSILON_TIGHT;
 	const maxSingularValue = S.length > 0 ? S[0] : 0; // S is sorted descending
 	const tol = tolerance ?? (Math.max(m, n) * maxSingularValue * machineEpsilon);
 
@@ -653,7 +654,7 @@ export function MatrixNullSpace(matrix: TMatrix, tolerance?: number): TMatrix {
 	const { S, VT } = MatrixSVD(matrix);
 
 	// Compute default tolerance using numpy convention: max(m,n) × max(S) × machine epsilon
-	const machineEpsilon = 2.2204460492503131e-16;
+	const machineEpsilon = EPSILON_TIGHT;
 	const maxSingularValue = S.length > 0 ? S[0] : 0;
 	const tol = tolerance ?? (Math.max(m, n) * maxSingularValue * machineEpsilon);
 
@@ -778,7 +779,7 @@ export function MatrixIsInvertible(matrix: TMatrix, tolerance?: number): boolean
 	const { S } = MatrixSVD(matrix);
 
 	// Compute default tolerance using numpy convention
-	const machineEpsilon = 2.2204460492503131e-16;
+	const machineEpsilon = EPSILON_TIGHT;
 	const maxSingularValue = S.length > 0 ? S[0] : 0;
 	const tol = tolerance ?? (Math.max(rows, cols) * maxSingularValue * machineEpsilon);
 

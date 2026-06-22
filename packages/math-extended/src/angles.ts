@@ -1,8 +1,10 @@
+import { EPSILON } from './constants.js';
+
 const DEGREES_PER_HALF_REVOLUTION = 180;
 const DEGREES_PER_FULL_REVOLUTION = 360;
 const ANGLE_FRACTION_TOLERANCE = 0.0001;
 const ANGLE_MAX_DENOMINATOR = 12;
-const NORMALIZE_EPSILON = 1e-10; // Epsilon for floating-point boundary cleanup
+const NORMALIZE_EPSILON = EPSILON; // Epsilon for floating-point boundary cleanup
 
 /**
  * Converts degrees to radians

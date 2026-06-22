@@ -5,12 +5,13 @@
 
 import { VectorClone, VectorDot, VectorMagnitude, VectorNormalize, VectorEquals, Vector3Cross } from '../vectors/core.js';
 import type { TVector3 } from '../vectors/types.js';
+import { EPSILON, EPSILON_LOOSE } from '../constants.js';
 import { AssertQuaternion, AssertNormalizedQuaternion, AssertEulerAngles, AssertAxisAngle, QuaternionError } from './asserts.js';
 import { VectorError } from '../vectors/asserts.js';
 import type { TQuaternion, TEulerAngles, TAxisAngle } from './types.js';
 
-const QUATERNION_MAGNITUDE_TOLERANCE = 1e-10;
-export const QUATERNION_TOLERANCE = 1e-6;
+const QUATERNION_MAGNITUDE_TOLERANCE = EPSILON;
+export const QUATERNION_TOLERANCE = EPSILON_LOOSE;
 const SLERP_DOT_THRESHOLD = 0.9995;
 
 /**
@@ -67,7 +68,7 @@ export function QuaternionClone(quaternion: TQuaternion): TQuaternion {
  * console.log(QuaternionEquals(q1, q2, 1e-6, true)); // true (same rotation)
  * ```
  */
-export function QuaternionEquals(a: TQuaternion, b: TQuaternion, tolerance = 1e-6, checkEquivalence = false): boolean {
+export function QuaternionEquals(a: TQuaternion, b: TQuaternion, tolerance = QUATERNION_TOLERANCE, checkEquivalence = false): boolean {
 	AssertQuaternion(a);
 	AssertQuaternion(b);
 
