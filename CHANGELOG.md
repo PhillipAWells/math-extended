@@ -7,7 +7,90 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.1.0]
+
 ### Added
+
+**Constants (`constants.ts`)**
+
+- `EPSILON`, `EPSILON_LOOSE`, `EPSILON_TIGHT` — standard floating-point comparison tolerances exported from the package root.
+
+**Scalar utilities (`scalar.ts`) + `ScalarError`**
+
+- `ScalarError` — domain error class for scalar operations; extends `BaseError` with a `code` property.
+- `Lerp(a, b, t)` — linearly interpolates between two scalars, clamping `t` to `[0, 1]`.
+- `LerpUnclamped(a, b, t)` — linearly interpolates between two scalars without clamping `t`.
+- `InverseLerp(a, b, value)` — returns the unclamped `t` that produces `value` between `a` and `b`.
+- `Remap(value, inMin, inMax, outMin, outMax)` — maps a value from one range to another.
+- `MoveTowards(current, target, maxDelta)` — moves a scalar toward a target by at most `maxDelta`.
+- `Mod(a, b)` — modulo that always returns a non-negative result (floored division remainder).
+- `Repeat(value, length)` — wraps a value to `[0, length)`, analogous to a sawtooth wave.
+- `PingPong(value, length)` — bounces a value back and forth between `0` and `length`.
+- `Approximately(a, b, epsilon?)` — returns `true` when two scalars are within an epsilon of each other.
+- `Clamp01(value)` — clamps a number to `[0, 1]`; shorthand for `Clamp(value, 0, 1)`.
+- `Sign(value)` — returns `−1`, `0`, or `1` depending on the sign of the value.
+- `RoundToNearest(value, step)` — rounds a value to the nearest multiple of `step`.
+- `Gcd(a, b)` — greatest common divisor of two non-negative integers.
+- `Lcm(a, b)` — least common multiple of two non-negative integers.
+- `Factorial(n)` — factorial of a non-negative integer; throws `ScalarError` for negative or non-integer inputs.
+- `Linspace(start, stop, count)` — returns an evenly-spaced array of `count` values from `start` to `stop`.
+- `Range(start, stop, step?)` — returns an array of values in `[start, stop)` incremented by `step`.
+
+**Statistics (`statistics.ts`)**
+
+- `Sum(values)` — sum of a numeric array.
+- `Product(values)` — product of a numeric array.
+- `Mean(values)` — arithmetic mean of a numeric array.
+- `Variance(values, population?)` — population or sample variance (sample by default).
+- `StandardDeviation(values, population?)` — population or sample standard deviation.
+- `Median(values)` — median of a numeric array; handles both odd and even lengths.
+
+**Angles (`angles.ts`)**
+
+- `WrapAngle(angle)` — wraps an angle in radians to `(−π, π]`.
+- `DeltaAngle(from, to)` — shortest signed difference between two angles in radians, in `(−π, π]`.
+
+**Finiteness predicates**
+
+- `VectorIsFinite(vector)` — returns `true` when every component of a vector is finite (no `NaN` or `Infinity`).
+- `MatrixIsFinite(matrix)` — returns `true` when every element of a matrix is finite.
+- `QuaternionIsFinite(quaternion)` — returns `true` when all four quaternion components are finite.
+
+**Quaternions (`quaternions/`)**
+
+- `QuaternionDot(a, b)` — dot product of two quaternions as 4-component vectors.
+- `QuaternionAngleBetween(a, b)` — angle in radians between two unit quaternions.
+- `QuaternionFromToRotation(from, to)` — shortest-arc rotation quaternion that rotates `from` to `to`.
+- `QuaternionLookRotation(forward, up?)` — constructs a look-rotation quaternion from a forward direction and an optional up vector.
+- `QuaternionRotateTowards(from, to, maxDelta)` — rotates `from` toward `to` by at most `maxDelta` radians.
+
+**Matrices (`matrices/`)**
+
+- `MatrixConditionNumber(matrix)` — ratio of largest to smallest singular value; measures numerical sensitivity.
+- `MatrixIsInvertible(matrix, tolerance?)` — returns `true` when the matrix determinant exceeds the tolerance.
+- `MatrixLeastSquares(A, b)` — solves the least-squares problem `Ax ≈ b` via the normal equations.
+- `MatrixDecomposeTRS(matrix)` — extracts translation, rotation (quaternion), and scale from a `TMatrix4` TRS matrix.
+- `MatrixIsOrthogonal(matrix, tolerance?)` — returns `true` when `A · Aᵀ ≈ I`.
+- `MatrixIsPositiveDefinite(matrix)` — returns `true` when all eigenvalues are positive (Cholesky-based check).
+- `MatrixPower(matrix, exponent)` — raises a square matrix to an integer power via repeated multiplication.
+- `MatrixKronecker(A, B)` — Kronecker (tensor) product of two matrices.
+- `MatrixShear2D(shearX, shearY)` — 3×3 2-D shear transformation matrix.
+- `MatrixShear3D(shearXY, shearXZ, shearYX, shearYZ, shearZX, shearZY)` — 4×4 3-D shear transformation matrix.
+- `MatrixReflection2D(normalX, normalY)` — 3×3 2-D reflection matrix about a line through the origin with the given normal.
+
+**Vectors (`vectors/`)**
+
+- `VectorMidpoint(a, b)` — returns the midpoint between two same-size vectors; generic `<T extends TAnyVector>`.
+- `VectorMoveTowards(current, target, maxDelta)` — moves a vector toward a target by at most `maxDelta` in magnitude.
+- `Vector2AngleSigned(from, to)` — signed angle in radians from one `TVector2` to another, in `(−π, π]`.
+- `Vector3AngleSigned(from, to, axis)` — signed angle in radians from one `TVector3` to another around a reference axis.
+- `VectorIsNormalized(vector, tolerance?)` — returns `true` when the vector magnitude is within tolerance of `1`.
+- `Vector3ProjectOnPlane(vector, planeNormal)` — projects a `TVector3` onto the plane defined by its normal.
+- `Vector3RotateAround(vector, pivot, axis, angle)` — rotates a `TVector3` around a pivot point by an angle in radians.
+- `VectorManhattanDistance(a, b)` — sum of absolute component differences between two same-size vectors.
+- `VectorChebyshevDistance(a, b)` — maximum absolute component difference between two same-size vectors.
+
+**Misc**
 
 - Public type `TSVDDecompositionResult` exported from the package root (return type of `MatrixSVD`).
 - `MatrixTranslation2D` now accepts a single `TVector2` argument in addition to two separate numbers, matching the existing overload on `MatrixTranslation3D`.
@@ -57,5 +140,6 @@ Initial published baseline of `@pawells/math-extended` including:
 - Interpolation: scalar easing families (`interpolation.ts`).
 - Angle helpers: radian/degree conversions (`angles.ts`).
 
-[Unreleased]: https://github.com/PhillipAWells/math-extended/compare/v3.0.1...HEAD
+[Unreleased]: https://github.com/PhillipAWells/math-extended/compare/v3.1.0...HEAD
+[3.1.0]: https://github.com/PhillipAWells/math-extended/compare/v3.0.1...v3.1.0
 [3.0.1]: https://github.com/PhillipAWells/math-extended/releases/tag/v3.0.1

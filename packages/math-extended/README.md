@@ -4,7 +4,7 @@
 [![Node](https://img.shields.io/badge/node-%3E%3D22-brightgreen)](https://nodejs.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 
-Extended mathematical utilities for TypeScript: vectors, matrices, quaternions, interpolation & easing, angle conversions, clamping, and seedable random helpers. ESM-only, targets ES2022.
+Extended mathematical utilities for TypeScript: vectors, matrices, quaternions, interpolation & easing, angle conversions, scalar utilities, statistics, clamping, and seedable random helpers. ESM-only, targets ES2022.
 
 ## Requirements
 
@@ -56,9 +56,19 @@ const rad = DegreesToRadians(180); // Math.PI
 
 - **Tree-shakeable** — every operation is an individually named export.
 - **Immutable** — all operations return new values; inputs are never mutated.
-- **Runtime validation** — types pair with exported Zod schemas. `Assert*` functions throw on invalid input; `Validate*` functions return a `boolean` type guard (`value is T`) and never throw. Error classes (`VectorError`, `MatrixError`, `QuaternionError`) carry a `code` property and chain `cause`.
+- **Runtime validation** — types pair with exported Zod schemas. `Assert*` functions throw on invalid input; `Validate*` functions return a `boolean` type guard (`value is T`) and never throw. Error classes (`VectorError`, `MatrixError`, `QuaternionError`, `ScalarError`) carry a `code` property and chain `cause`.
 
 ## API
+
+### Constants
+
+Tolerance constants for numeric comparisons. Import these alongside `Approximately` and other robustness helpers.
+
+| Export | Value | Description |
+|--------|-------|-------------|
+| `EPSILON` | `1e-10` | General-purpose tolerance for floating-point equality comparisons |
+| `EPSILON_LOOSE` | `1e-6` | Loose tolerance for operations accumulating rounding errors |
+| `EPSILON_TIGHT` | `Number.EPSILON` | Tight tolerance based on JavaScript's machine epsilon (~2.22e-16) |
 
 ### Core
 
@@ -75,12 +85,52 @@ const rad = DegreesToRadians(180); // Math.PI
 | `NormalizeRadians(radians)` | Normalize to `[0, 2π)` |
 | `NormalizeDegrees(degrees)` | Normalize to `[0°, 360°)` |
 | `FormatRadians(radians)` | Format radians as a human-readable string |
+| `WrapAngle(radians)` | Wrap an angle in radians to the range `(-π, π]`; throws if not finite |
+| `DeltaAngle(from, to)` | Shortest signed angular difference from `from` to `to`, in `(-π, π]`; throws if not finite |
 
 ### Clamp
 
 | Export | Description |
 |--------|-------------|
 | `Clamp(x, min, max)` | Clamp a number between min and max |
+
+### Scalar
+
+Extended scalar operations. `ScalarError` is thrown by functions that require degenerate-interval or type guards; see individual signatures for `RangeError` vs `ScalarError` distinctions.
+
+| Export | Description |
+|--------|-------------|
+| `ScalarError` | Error class for scalar validation failures; has `code` property and chains `cause` |
+| `Lerp(a, b, t)` | Linear interpolation with `t` clamped to `[0, 1]`; throws `RangeError` if any argument is not finite |
+| `LerpUnclamped(a, b, t)` | Linear interpolation without clamping, allowing extrapolation; throws `RangeError` if not finite |
+| `InverseLerp(a, b, value)` | Inverse lerp: finds `t` such that `Lerp(a, b, t) = value`; throws `ScalarError` if `a === b`, `RangeError` if not finite |
+| `Remap(value, inMin, inMax, outMin, outMax)` | Map a value from one range to another; throws `ScalarError` if `inMin === inMax`, `RangeError` if not finite |
+| `MoveTowards(current, target, maxDelta)` | Move `current` towards `target` by at most `maxDelta`; throws `RangeError` if not finite |
+| `Mod(a, n)` | True Euclidean modulo (result sign follows divisor); throws `RangeError` if `n === 0` or not finite |
+| `Repeat(t, length)` | Wrap `t` into `[0, length)`; throws `RangeError` if `length <= 0` or not finite |
+| `PingPong(t, length)` | Oscillate `t` between `0` and `length` (triangular wave); throws `RangeError` if `length <= 0` or not finite |
+| `Approximately(a, b, epsilon?)` | Return `true` if `\|a - b\| <= epsilon` (default `EPSILON`); never throws, returns `false` for non-finite inputs |
+| `Clamp01(value)` | Clamp a number to `[0, 1]`; convenience wrapper for `Clamp(value, 0, 1)` |
+| `Sign(value)` | Return `-1`, `0`, or `1`; normalises `-0` to `0` |
+| `RoundToNearest(value, step)` | Round `value` to the nearest multiple of `step`; throws `RangeError` if `step <= 0` or not finite |
+| `Gcd(a, b)` | Greatest common divisor (Euclidean); throws `RangeError` if either argument is not an integer |
+| `Lcm(a, b)` | Least common multiple; throws `RangeError` if either argument is not an integer |
+| `Factorial(n)` | `n!` for non-negative integers; throws `RangeError` if `n` is negative or not an integer |
+| `Linspace(start, stop, count)` | `count` evenly spaced values from `start` to `stop` (inclusive); throws `RangeError` if `count` is negative or not an integer |
+| `Range(start, stop, step?)` | Half-open range `[start, stop)` with given step (default `1`); throws `RangeError` if `step === 0` |
+
+### Statistics
+
+Descriptive statistics over `number[]` arrays. All functions throw `ScalarError` on empty input; `Variance` and `StandardDeviation` additionally throw when sample mode (`population=false`) receives fewer than 2 values.
+
+| Export | Description |
+|--------|-------------|
+| `Sum(values)` | Sum of all values; returns `0` for an empty array |
+| `Product(values)` | Product of all values; returns `1` for an empty array |
+| `Mean(values)` | Arithmetic mean; throws `ScalarError` if empty |
+| `Variance(values, population?)` | Sample variance by default (`population=false`, divides by `n-1`); pass `true` for population variance; uses Welford's algorithm |
+| `StandardDeviation(values, population?)` | Square root of `Variance`; same overload and error behaviour |
+| `Median(values)` | Middle value (odd length) or average of two middle values (even length); throws `ScalarError` if empty |
 
 ### Random
 
@@ -169,6 +219,7 @@ Vectors are plain number arrays (`TVector`, `TVector2`, `TVector3`, `TVector4`).
 | `VectorClone(a)` | Deep copy |
 | `VectorEquals(a, b)` | Equality check |
 | `VectorIsZero(a)` | Check if zero vector |
+| `VectorIsFinite(a)` | Return `true` if all components are finite (not NaN or Infinity); throws `VectorError` if input is not a valid vector structure |
 | `VectorToString(a)` | Human-readable string |
 | `VectorGramSchmidt(vectors)` | Gram-Schmidt orthogonalization |
 
@@ -190,6 +241,20 @@ Vectors are plain number arrays (`TVector`, `TVector2`, `TVector3`, `TVector4`).
 | `Vector3Reject(a, b)` | Vector rejection of `a` from `b` |
 | `Vector3ScalarTripleProduct(a, b, c)` | Scalar triple product |
 | `Vector3TripleProduct(a, b, c)` | Vector triple product |
+| `Vector3ProjectOnPlane(v, planeNormal)` | Project vector onto a plane defined by its normal; throws `VectorError` if `planeNormal` is zero |
+| `Vector3RotateAround(v, axis, radians)` | Rotate vector around an axis using Rodrigues' formula; throws `VectorError` if `axis` is zero |
+
+#### Geometry and distances
+
+| Export | Description |
+|--------|-------------|
+| `VectorMidpoint(a, b)` | Midpoint between two vectors (component-wise average); throws `VectorError` if sizes differ |
+| `VectorMoveTowards(current, target, maxDistance)` | Move vector towards target by at most `maxDistance` units; throws `VectorError` if sizes differ |
+| `VectorManhattanDistance(a, b)` | Sum of absolute component differences (taxicab distance); throws `VectorError` if sizes differ |
+| `VectorChebyshevDistance(a, b)` | Maximum absolute component difference (chessboard distance); throws `VectorError` if sizes differ |
+| `VectorIsNormalized(vector, tolerance?)` | Return `true` if vector magnitude is within `tolerance` of `1` (default `EPSILON_LOOSE`); throws `VectorError` if invalid |
+| `Vector2AngleSigned(a, b)` | Signed angle from `a` to `b` in 2D, in `(-π, π]`; throws `VectorError` if inputs are not `TVector2` |
+| `Vector3AngleSigned(a, b, axis)` | Signed angle from `a` to `b` around `axis` in 3D; throws `VectorError` if any input is not `TVector3` or `axis` is zero |
 
 #### Predefined vectors
 
@@ -279,6 +344,7 @@ Matrices are `number[][]` arrays (`TMatrix`, `TMatrix1`–`TMatrix4`). All opera
 | `MatrixIsIdentity(m)` | Identity predicate |
 | `MatrixIsSymmetric(m)` | Symmetry predicate |
 | `MatrixIsDiagonal(m)` | Diagonal predicate |
+| `MatrixIsFinite(m)` | Return `true` if every element is finite (not NaN or Infinity); throws `MatrixError` if input is not a valid matrix structure |
 
 #### Arithmetic
 
@@ -304,6 +370,13 @@ Matrices are `number[][]` arrays (`TMatrix`, `TMatrix1`–`TMatrix4`). All opera
 | `MatrixGramSchmidt(m)` | Gram-Schmidt orthogonalization (returns orthonormal columns) |
 | `MatrixNullSpace(m, tolerance?)` | Orthonormal basis for the null space (columns); empty matrix if full rank |
 | `MatrixPseudoInverse(m, tolerance?)` | Moore-Penrose pseudoinverse via SVD |
+| `MatrixConditionNumber(m)` | 2-norm condition number (σ_max / σ_min); returns `Infinity` for singular matrices |
+| `MatrixIsInvertible(m, tolerance?)` | Return `true` if the matrix is square and numerically full rank; returns `false` for non-square |
+| `MatrixLeastSquares(a, b)` | Least-squares solution `x` to `Ax = b` via pseudoinverse; throws `MatrixError` on dimension mismatch |
+| `MatrixPower(m, exponent)` | Integer matrix exponentiation by squaring; throws `MatrixError` if not square or exponent is not an integer |
+| `MatrixKronecker(a, b)` | Kronecker (tensor) product of two matrices; result is `(m·p)×(n·q)` |
+| `MatrixIsOrthogonal(m, tolerance?)` | Return `true` if the matrix is square and Qᵀ × Q ≈ I within tolerance; returns `false` for non-square |
+| `MatrixIsPositiveDefinite(m)` | Return `true` if the matrix is symmetric and positive definite (via Cholesky); returns `false` otherwise |
 
 #### Decompositions
 
@@ -344,6 +417,10 @@ Matrices are `number[][]` arrays (`TMatrix`, `TMatrix1`–`TMatrix4`). All opera
 | `MatrixRotation3DYaw(angle)` | 3D rotation around the Z axis (yaw) |
 | `MatrixRotation3DEulerAngles(roll, pitch, yaw)` | Euler-angles rotation matrix |
 | `MatrixTRS(translation, rotation, scale)` | Composite TRS matrix (Translation × Rotation × Scale) from three `TVector3` arguments; rotation is Euler angles in radians (roll/pitch/yaw) |
+| `MatrixDecomposeTRS(m)` | Decompose a 4×4 TRS matrix into `{ translation, rotation, scale }` (`TVector3` each); Euler angles in radians (roll/pitch/yaw) |
+| `MatrixShear2D(shearX, shearY)` | 2D shear matrix → `TMatrix3`; convention: x′ = x + shearX·y, y′ = shearY·x + y |
+| `MatrixShear3D(xy, xz, yx, yz, zx, zy)` | 3D shear matrix → `TMatrix4`; convention: x′ = x + xy·y + xz·z, y′ = yx·x + y + yz·z, z′ = zx·x + zy·y + z |
+| `MatrixReflection2D(angle)` | 2D reflection matrix → `TMatrix3`; reflects across a line through the origin at `angle` radians from the X-axis |
 | `MatrixTransform2D(v, TMatrix3)` | Apply a 2D transformation matrix to a vector |
 | `MatrixTransform3D(v, TMatrix4)` | Apply a 3D transformation matrix to a vector |
 | `MatrixDirection3D(direction, matrix)` | Transform a 3D direction vector by a 3×3 matrix (ignores translation) |
@@ -395,6 +472,12 @@ Quaternions are `[x, y, z, w]` tuples (`TQuaternion`). All operations return new
 | `QuaternionNormalize(q)` | Unit quaternion |
 | `QuaternionMagnitude(q)` | Length |
 | `QuaternionRotateVector(q, v)` | Rotate a `TVector3` by a quaternion |
+| `QuaternionIsFinite(q)` | Return `true` if all 4 components are finite; throws `QuaternionError` if input is not a valid quaternion structure |
+| `QuaternionDot(a, b)` | Dot product of two quaternions (sum of component-wise products); throws `QuaternionError` if either is invalid |
+| `QuaternionAngleBetween(a, b)` | Angle in radians of the relative rotation between two quaternions, in `[0, π]`; throws `QuaternionError` if either is invalid |
+| `QuaternionFromToRotation(from, to)` | Shortest-arc rotation quaternion from one direction vector to another; handles parallel and anti-parallel cases; throws `QuaternionError` if either vector has zero magnitude |
+| `QuaternionLookRotation(forward, up?)` | Orientation quaternion aligning the object's forward (+Z) axis with `forward`; `up` defaults to `[0, 1, 0]`; throws `QuaternionError` if vectors are parallel |
+| `QuaternionRotateTowards(from, to, maxRadians)` | Rotate `from` towards `to` by at most `maxRadians`; returns normalized source if `maxRadians <= 0`, target if angle already within range |
 
 #### Predefined
 

@@ -6,9 +6,9 @@ Primary reference for AI agents working in this repository. Read this file befor
 
 ## 1. Overview
 
-`@pawells/math-extended` is an extended mathematical utilities library for TypeScript. It provides vectors, matrices, quaternions, scalar interpolation and easing, angle conversions, clamping, and seedable random helpers.
+`@pawells/math-extended` is an extended mathematical utilities library for TypeScript. It provides vectors, matrices, quaternions, scalar interpolation and easing, angle conversions, clamping, tolerance constants, general scalar utilities, statistical aggregates, and seedable random helpers.
 
-- **Package:** `@pawells/math-extended` v3.0.1
+- **Package:** `@pawells/math-extended` v3.1.0
 - **License:** MIT
 - **ESM-only:** `"type": "module"` in package.json; no CommonJS output
 - **Node:** `>=22.0.0` (`.nvmrc` pins 24)
@@ -38,7 +38,7 @@ Source lives under `packages/math-extended/src/`. Four functional domains each f
 | `quaternions/` | `quaternions/index.ts` | `TQuaternion` (`[x,y,z,w]`), `TEulerAngles`, `TAxisAngle`, `TRotationMatrix`, `TRotation` |
 | Scalar utilities | individual files | — |
 
-Scalar utilities at `src/` root: `angles.ts`, `clamp.ts`, `core.ts`, `interpolation.ts`, `random.ts`.
+Scalar utilities at `src/` root: `angles.ts`, `clamp.ts`, `constants.ts`, `core.ts`, `interpolation.ts`, `random.ts`, `scalar.ts`, `statistics.ts`.
 
 ### Public API barrel
 
@@ -84,17 +84,18 @@ The library uses a two-tier guard pattern per domain:
 
 Each domain exports one error class:
 
-| Class | Domain | `static Code` constant |
+| Class | Domain / file | `static Code` constant |
 |---|---|---|
 | `VectorError` | vectors | `VECTOR_ERROR` |
 | `MatrixError` | matrices | `MATRIX_ERROR` |
 | `QuaternionError` | quaternions | `QUATERNION_ERROR` |
+| `ScalarError` | `scalar.ts`, `statistics.ts` | `SCALAR_ERROR` |
 
-All three extend `BaseError` from `@pawells/typescript-common`. Every error has:
+All four extend `BaseError` from `@pawells/typescript-common`. Every error has:
 - A `code: string` property (accessed via inherited `Code` getter)
 - Optional cause chaining via `{ cause: originalError }` in the constructor options
 
-Scalar utilities (`random.ts`) intentionally throw built-in `RangeError` rather than a domain error class — there is no `ScalarError`.
+`ScalarError` is thrown by scalar operations where the failure is a domain constraint (e.g., degenerate interval in `InverseLerp`, empty array in `Mean`). Some scalar utilities still throw built-in `RangeError` for range/integer violations (e.g., `Lerp`, `Gcd`, `Factorial`, `Repeat`, `Range`). See Section 6 for the distinction.
 
 ### makeValidate factory
 
@@ -129,6 +130,8 @@ import { VectorAdd, TVector3, VECTOR3_SCHEMA } from '@pawells/math-extended';
 | `FormatRadians(radians)` | Formats as π-fraction string; throws if not finite |
 | `NormalizeRadians(radians)` | Wraps to `[0, 2π)`; throws if not finite |
 | `NormalizeDegrees(degrees)` | Wraps to `[0°, 360°)`; throws if not finite |
+| `WrapAngle(radians)` | Wraps to `(-π, π]`; throws if not finite |
+| `DeltaAngle(from, to)` | Shortest signed angular difference in `(-π, π]`; throws if either is not finite |
 
 ### Clamp (`clamp.ts`)
 
@@ -136,11 +139,54 @@ import { VectorAdd, TVector3, VECTOR3_SCHEMA } from '@pawells/math-extended';
 |---|---|
 | `Clamp(value, min, max)` | Clamps a number to `[min, max]` |
 
+### Constants (`constants.ts`)
+
+| Export | Value | Description |
+|---|---|---|
+| `EPSILON` | `1e-10` | General-purpose tolerance for floating-point equality comparisons |
+| `EPSILON_LOOSE` | `1e-6` | Looser tolerance for operations that accumulate rounding errors |
+| `EPSILON_TIGHT` | `Number.EPSILON` | Tightest tolerance — JS machine epsilon (~2.2e-16) |
+
 ### Core (`core.ts`)
 
 | Export | Description |
 |---|---|
 | `CubeRoot(value)` | Sign-preserving cube root |
+
+### Scalar (`scalar.ts`)
+
+**Error class:** `ScalarError` — extends `BaseError`; `static Code.SCALAR_ERROR`.
+
+| Export | Description |
+|---|---|
+| `Lerp(a, b, t)` | Linear interpolation clamped to `[0, 1]`; throws `RangeError` if non-finite |
+| `LerpUnclamped(a, b, t)` | Linear interpolation without clamping (extrapolates); throws `RangeError` if non-finite |
+| `InverseLerp(a, b, value)` | Finds `t` such that `Lerp(a, b, t) === value`; throws `ScalarError` if `a === b`, `RangeError` if non-finite |
+| `Remap(value, inMin, inMax, outMin, outMax)` | Maps value from `[inMin, inMax]` to `[outMin, outMax]`; throws `ScalarError` if `inMin === inMax`, `RangeError` if non-finite |
+| `MoveTowards(current, target, maxDelta)` | Moves `current` towards `target` by at most `maxDelta`; throws `RangeError` if non-finite |
+| `Mod(a, n)` | Euclidean modulo (result sign follows divisor); throws `RangeError` if `n === 0` or non-finite |
+| `Repeat(t, length)` | Wraps `t` into `[0, length)`; throws `RangeError` if `length <= 0` or non-finite |
+| `PingPong(t, length)` | Oscillates `t` between `0` and `length` (triangular wave); throws `RangeError` if `length <= 0` or non-finite |
+| `Approximately(a, b, epsilon?)` | Returns `true` if `|a − b| <= epsilon` (default `EPSILON`); returns `false` for non-finite inputs, never throws |
+| `Clamp01(value)` | Clamps to `[0, 1]`; convenience for `Clamp(value, 0, 1)` |
+| `Sign(value)` | Returns `-1`, `0`, or `1`; treats `-0` as `0` |
+| `RoundToNearest(value, step)` | Rounds to nearest multiple of `step`; throws `RangeError` if `step <= 0` or non-finite |
+| `Gcd(a, b)` | Greatest common divisor (Euclidean); throws `RangeError` if either is not an integer |
+| `Lcm(a, b)` | Least common multiple; throws `RangeError` if either is not an integer |
+| `Factorial(n)` | `n!`; throws `RangeError` if `n` is negative or not an integer |
+| `Linspace(start, stop, count)` | `count` evenly spaced values from `start` to `stop` inclusive; throws `RangeError` if `count` is negative or not an integer |
+| `Range(start, stop, step?)` | Half-open `[start, stop)` with given step (default `1`); throws `RangeError` if `step === 0`; returns `[]` if step points away from stop |
+
+### Statistics (`statistics.ts`)
+
+| Export | Description |
+|---|---|
+| `Sum(values)` | Sum of array; returns `0` for empty array |
+| `Product(values)` | Product of array; returns `1` (multiplicative identity) for empty array |
+| `Mean(values)` | Arithmetic mean; throws `ScalarError` if array is empty |
+| `Variance(values, population?)` | Variance using Welford's algorithm; `population=false` (default) uses `n-1`; throws `ScalarError` if empty or sample variant has fewer than 2 values |
+| `StandardDeviation(values, population?)` | Square root of `Variance`; same error conditions |
+| `Median(values)` | Median (non-mutating); throws `ScalarError` if array is empty |
 
 ### Interpolation (`interpolation.ts`)
 
@@ -167,7 +213,7 @@ Scalar easing families: `LinearInterpolation`, `SmoothStep`, `SmootherStep`, `Co
 
 **Guards:** `AssertVector`, `AssertVector2`, `AssertVector3`, `AssertVector4`, `AssertVectorSameSize`, `AssertVectorNonZero`, `ValidateVector`, `ValidateVector2`, `ValidateVector3`, `ValidateVector4`, `ValidateVectorSameSize`, `VectorError`
 
-**Core:** `VectorAdd`, `VectorSubtract`, `VectorMultiply`, `VectorDivide`, `VectorScale`, `VectorDot`, `VectorNormalize`, `VectorMagnitude`, `VectorDistance`, `VectorDistanceSquared`, `VectorNegate`, `VectorAbs`, `VectorAngle`, `VectorClamp`, `VectorLimit`, `VectorFloor`, `VectorCeil`, `VectorRound`, `VectorMin`, `VectorMax`, `VectorEquals`, `VectorClone`, `VectorIsZero`, `VectorToString`, `VectorReflect`, `VectorProject`, `VectorGramSchmidt`, `Vector2Rotate`, `Vector2FromAngle`, `Vector2Cross`, `Vector3Cross`, `VectorCrossMagnitude`, `Vector3Reflect`, `Vector3Reject`, `Vector3ScalarTripleProduct`, `Vector3TripleProduct`
+**Core:** `VectorAdd`, `VectorSubtract`, `VectorMultiply`, `VectorDivide`, `VectorScale`, `VectorDot`, `VectorNormalize`, `VectorMagnitude`, `VectorDistance`, `VectorDistanceSquared`, `VectorNegate`, `VectorAbs`, `VectorAngle`, `VectorClamp`, `VectorLimit`, `VectorFloor`, `VectorCeil`, `VectorRound`, `VectorMin`, `VectorMax`, `VectorEquals`, `VectorClone`, `VectorIsZero`, `VectorIsFinite`, `VectorToString`, `VectorReflect`, `VectorProject`, `VectorGramSchmidt`, `Vector2Rotate`, `Vector2FromAngle`, `Vector2Cross`, `Vector3Cross`, `VectorCrossMagnitude`, `Vector3Reflect`, `Vector3Reject`, `Vector3ScalarTripleProduct`, `Vector3TripleProduct`, `VectorMidpoint`, `VectorMoveTowards`, `Vector2AngleSigned`, `Vector3AngleSigned`, `VectorIsNormalized`, `Vector3ProjectOnPlane`, `Vector3RotateAround`, `VectorManhattanDistance`, `VectorChebyshevDistance`
 
 **Interpolation wrappers:** `VectorLERP`, `VectorSmoothStep`, `VectorSmootherStep`, `VectorCosineInterpolation`, `VectorSphericalLinearInterpolation`, `VectorCatmullRomInterpolation`, `VectorHermiteInterpolation`, `VectorStepInterpolation`, plus `VectorQuadraticEaseIn/Out/InOut`, `VectorCubicEaseIn/Out/InOut`, `VectorSineEaseIn/Out/InOut`, `VectorExponentialEaseIn/Out/InOut`, `VectorCircularEaseIn/Out/InOut`, `VectorElasticEaseIn/Out/InOut`, `VectorBackEaseIn/Out/InOut`, `VectorBounceEaseIn/Out/InOut`
 
@@ -179,17 +225,19 @@ Scalar easing families: `LinearInterpolation`, `SmoothStep`, `SmootherStep`, `Co
 
 **Guards:** `AssertMatrix`, `AssertMatrix1`–`AssertMatrix4`, `AssertMatrixSquare`, `AssertMatricesCompatible`, `ValidateMatrix`, `ValidateMatrix1`–`ValidateMatrix4`, `ValidateMatrixSquare`, `MatrixError`
 
-**Core:** `MatrixCreate`, `MatrixIdentity`, `MatrixClone`, `MatrixEquals`, `MatrixTranspose`, `MatrixMap`, `MatrixSize`, `MatrixSizeSquare`, `MatrixToString`, `MatrixTrace`, `MatrixRank`, `MatrixIsZero`, `MatrixIsIdentity`, `MatrixIsSymmetric`, `MatrixIsDiagonal`
+**Core:** `MatrixCreate`, `MatrixIdentity`, `MatrixClone`, `MatrixEquals`, `MatrixTranspose`, `MatrixMap`, `MatrixSize`, `MatrixSizeSquare`, `MatrixToString`, `MatrixTrace`, `MatrixRank`, `MatrixIsZero`, `MatrixIsIdentity`, `MatrixIsSymmetric`, `MatrixIsDiagonal`, `MatrixIsFinite`
 
 **Arithmetic:** `MatrixAdd`, `MatrixSubtract`, `MatrixMultiply`, `MatrixSubmatrix`, `MatrixPad`, `MatrixCombine`, `MatrixCofactorElement`
 
-**Linear algebra:** `MatrixDeterminant`, `MatrixInverse`, `MatrixMinor`, `MatrixCofactor`, `MatrixAdjoint`, `MatrixGramSchmidt`, `MatrixNullSpace`, `MatrixPseudoInverse`
+**Linear algebra:** `MatrixDeterminant`, `MatrixInverse`, `MatrixMinor`, `MatrixCofactor`, `MatrixAdjoint`, `MatrixGramSchmidt`, `MatrixNullSpace`, `MatrixPseudoInverse`, `MatrixConditionNumber`, `MatrixIsInvertible`, `MatrixLeastSquares`, `MatrixPower`, `MatrixKronecker`
 
 **Decompositions:** `MatrixCholesky`, `MatrixEigen`, `MatrixLU`, `MatrixQR`, `MatrixSVD`, `MatrixSolve`, and result types `TEigenDecompositionResult`, `TLUDecompositionResult`, `TQRDecompositionResult`, `TSVDDecompositionResult`
 
-**Transformations:** `MatrixTranslation2D`, `MatrixTranslation3D`, `MatrixScale2D`, `MatrixScale3D`, `MatrixRotation2D`, `MatrixRotation3D`, `MatrixRotation3DRoll`, `MatrixRotation3DPitch`, `MatrixRotation3DYaw`, `MatrixRotation3DEulerAngles`, `MatrixTRS`, `MatrixTransform2D`, `MatrixTransform3D`, `MatrixDirection3D`, `MatrixView`, `MatrixLookAt`, `MatrixPerspective`, `MatrixOrthographic`
+**Transformations:** `MatrixTranslation2D`, `MatrixTranslation3D`, `MatrixScale2D`, `MatrixScale3D`, `MatrixRotation2D`, `MatrixRotation3D`, `MatrixRotation3DRoll`, `MatrixRotation3DPitch`, `MatrixRotation3DYaw`, `MatrixRotation3DEulerAngles`, `MatrixTRS`, `MatrixDecomposeTRS`, `MatrixTransform2D`, `MatrixTransform3D`, `MatrixDirection3D`, `MatrixView`, `MatrixLookAt`, `MatrixPerspective`, `MatrixOrthographic`, `MatrixShear2D`, `MatrixShear3D`, `MatrixReflection2D`
 
 **Norms:** `MatrixNormalize`, `MatrixFrobeniusNorm`, `MatrixSpectralNorm`, `Matrix1Norm`, `MatrixInfinityNorm`, `MatrixNuclearNorm`, `MatrixMaxNorm`, `MatrixPNorm`
+
+**Normalization predicates:** `MatrixIsOrthogonal`, `MatrixIsPositiveDefinite`
 
 Note: `MatrixEigenQRIteration` is a private internal helper inside `MatrixEigen`. It is not exported and not part of the public API.
 
@@ -199,9 +247,9 @@ Note: `MatrixEigenQRIteration` is a private internal helper inside `MatrixEigen`
 
 **Guards:** `AssertQuaternion`, `AssertNormalizedQuaternion`, `AssertEulerAngles`, `AssertAxisAngle`, `AssertRotationMatrix`, `AssertQuaternions`, `ValidateQuaternion`, `ValidateNormalizedQuaternion`, `ValidateEulerAngles`, `ValidateAxisAngle`, `ValidateRotationMatrix`, `ValidateQuaternions`, `QuaternionError`
 
-**Core:** `QuaternionIdentity`, `QuaternionClone`, `QuaternionEquals`, `QuaternionMagnitude`, `QuaternionNormalize`, `QuaternionConjugate`, `QuaternionInverse`, `QuaternionMultiply`, `QuaternionFromAxisAngle`, `QuaternionFromAxisAngleVector`, `QuaternionToAxisAngle`, `QuaternionFromEuler`, `QuaternionToEuler`, `QuaternionRotateVector`, `QuaternionSLERP`
+**Core:** `QuaternionIdentity`, `QuaternionClone`, `QuaternionEquals`, `QuaternionMagnitude`, `QuaternionNormalize`, `QuaternionConjugate`, `QuaternionInverse`, `QuaternionMultiply`, `QuaternionFromAxisAngle`, `QuaternionFromAxisAngleVector`, `QuaternionToAxisAngle`, `QuaternionFromEuler`, `QuaternionToEuler`, `QuaternionRotateVector`, `QuaternionSLERP`, `QuaternionIsFinite`, `QuaternionDot`, `QuaternionAngleBetween`, `QuaternionFromToRotation`, `QuaternionRotateTowards`
 
-**Conversions:** `QuaternionFromRotationMatrix`, `QuaternionToRotationMatrix`, `QuaternionFromTransformationMatrix`, `QuaternionToTransformationMatrix`, `IsValidRotationMatrix`
+**Conversions:** `QuaternionFromRotationMatrix`, `QuaternionToRotationMatrix`, `QuaternionFromTransformationMatrix`, `QuaternionToTransformationMatrix`, `IsValidRotationMatrix`, `QuaternionLookRotation`
 
 **Interpolation:** `QuaternionNLERP`, `QuaternionSQUAD`, `QuaternionCreatePath`
 
@@ -303,6 +351,14 @@ yarn typecheck && yarn test:coverage
 ### MatrixSpectralNorm and MatrixNuclearNorm cost
 
 Both functions compute a full SVD internally (O(n³) or worse). Prefer `MatrixFrobeniusNorm` when an exact spectral or nuclear norm is not required.
+
+### ScalarError vs RangeError in scalar.ts
+
+`scalar.ts` uses two different error types. `ScalarError` is thrown for domain constraint failures that have no sensible result (e.g., degenerate interval in `InverseLerp`/`Remap`, empty array in `Mean`/`Variance`/`Median`). Built-in `RangeError` is thrown for invalid input values that violate numeric contracts (e.g., non-finite inputs to `Lerp`/`MoveTowards`, non-integer arguments to `Gcd`/`Lcm`/`Factorial`, `step === 0` in `Range`, `length <= 0` in `Repeat`/`PingPong`). Both classes are thrown by public API functions in this module — callers must handle both.
+
+### Finiteness predicates do not route through Assert*
+
+`VectorIsFinite`, `MatrixIsFinite`, and `QuaternionIsFinite` perform their own structural validation and then check finiteness directly, without calling `AssertVector`/`AssertMatrix`/`AssertQuaternion`. They return `false` (not throw) when any component is `NaN` or `Infinity`. Structural errors (wrong type, wrong length, NaN components in the structure check) still throw the domain error. In particular, `QuaternionIsFinite` returns `false` for a quaternion containing `Infinity` even though `AssertQuaternion` permits `Infinity` — the two functions enforce different contracts.
 
 ---
 
