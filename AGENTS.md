@@ -167,27 +167,29 @@ Scalar easing families: `LinearInterpolation`, `SmoothStep`, `SmootherStep`, `Co
 
 **Guards:** `AssertVector`, `AssertVector2`, `AssertVector3`, `AssertVector4`, `AssertVectorSameSize`, `AssertVectorNonZero`, `ValidateVector`, `ValidateVector2`, `ValidateVector3`, `ValidateVector4`, `ValidateVectorSameSize`, `VectorError`
 
-**Core:** `VectorAdd`, `VectorSubtract`, `VectorMultiply`, `VectorDivide`, `VectorScale`, `VectorDot`, `VectorCross`, `VectorNormalize`, `VectorMagnitude`, `VectorDistance`, `VectorNegate`, `VectorClamp`, `VectorFloor`, `VectorCeil`, `VectorRound`, `VectorMin`, `VectorMax`, `VectorEquals`, `VectorClone`, `Vector3Reject`
+**Core:** `VectorAdd`, `VectorSubtract`, `VectorMultiply`, `VectorDivide`, `VectorScale`, `VectorDot`, `VectorNormalize`, `VectorMagnitude`, `VectorDistance`, `VectorDistanceSquared`, `VectorNegate`, `VectorAbs`, `VectorAngle`, `VectorClamp`, `VectorLimit`, `VectorFloor`, `VectorCeil`, `VectorRound`, `VectorMin`, `VectorMax`, `VectorEquals`, `VectorClone`, `VectorIsZero`, `VectorToString`, `VectorReflect`, `VectorProject`, `VectorGramSchmidt`, `Vector2Rotate`, `Vector2FromAngle`, `Vector2Cross`, `Vector3Cross`, `VectorCrossMagnitude`, `Vector3Reflect`, `Vector3Reject`, `Vector3ScalarTripleProduct`, `Vector3TripleProduct`
 
-**Interpolation wrappers:** `VectorLinearInterpolation`, `VectorSmoothStep`, `VectorSmootherStep`, `VectorCosineInterpolation`, `VectorSphericalLinearInterpolation`, `VectorCatmullRomInterpolation`, `VectorHermiteInterpolation`, plus `VectorEaseIn`/`VectorEaseOut`/`VectorEaseInOut` variants for all easing families
+**Interpolation wrappers:** `VectorLERP`, `VectorSmoothStep`, `VectorSmootherStep`, `VectorCosineInterpolation`, `VectorSphericalLinearInterpolation`, `VectorCatmullRomInterpolation`, `VectorHermiteInterpolation`, `VectorStepInterpolation`, plus `VectorQuadraticEaseIn/Out/InOut`, `VectorCubicEaseIn/Out/InOut`, `VectorSineEaseIn/Out/InOut`, `VectorExponentialEaseIn/Out/InOut`, `VectorCircularEaseIn/Out/InOut`, `VectorElasticEaseIn/Out/InOut`, `VectorBackEaseIn/Out/InOut`, `VectorBounceEaseIn/Out/InOut`
 
-**Predefined constants:** `VectorZero`, `VectorOne`, `Vector2Up/Down/Left/Right`, `Vector3Up/Down/Left/Right/Forward/Backward`, `Vector4Zero/One`
+**Predefined constants:** `VectorZero(size)`, `VectorOne(size)`, `Vector2Up/Down/Left/Right`, `Vector3Up/Down/Left/Right/Forward/Backward`, `Vector4Up/Down/Left/Right/Forward/Backward`
 
 ### Matrices (`matrices/`)
 
-**Types and schemas:** `TMatrix`, `TMatrix1`–`TMatrix4`, `TMatrixAll`, `TMatrixSquare`, `TMatrixResult<T>`, `MATRIX_SCHEMA`, `MATRIX1_SCHEMA`–`MATRIX4_SCHEMA`, `MATRIX_SQUARE_SCHEMA`
+**Types and schemas:** `TMatrix`, `TMatrix1`–`TMatrix4`, `TMatrixAll`, `TMatrixSquare`, `TMatrixResult<T>`, `TLUDecompositionResult`, `TQRDecompositionResult`, `TEigenDecompositionResult`, `TSVDDecompositionResult`, `MATRIX_SCHEMA`, `MATRIX1_SCHEMA`–`MATRIX4_SCHEMA`, `MATRIX_SQUARE_SCHEMA`
 
-**Guards:** `AssertMatrix`, `AssertMatrix1`–`AssertMatrix4`, `AssertMatrixSquare`, `ValidateMatrix`, `ValidateMatrix1`–`ValidateMatrix4`, `ValidateMatrixSquare`, `MatrixError`
+**Guards:** `AssertMatrix`, `AssertMatrix1`–`AssertMatrix4`, `AssertMatrixSquare`, `AssertMatricesCompatible`, `ValidateMatrix`, `ValidateMatrix1`–`ValidateMatrix4`, `ValidateMatrixSquare`, `MatrixError`
 
-**Core:** `MatrixAdd`, `MatrixSubtract`, `MatrixMultiply`, `MatrixTranspose`, `MatrixIdentity`, `MatrixSize`, `MatrixSizeSquare`, `MatrixIsSquare`, `MatrixEquals`, `MatrixClone`, `MatrixSubmatrix`, `MatrixCofactorElement`
+**Core:** `MatrixCreate`, `MatrixIdentity`, `MatrixClone`, `MatrixEquals`, `MatrixTranspose`, `MatrixMap`, `MatrixSize`, `MatrixSizeSquare`, `MatrixToString`, `MatrixTrace`, `MatrixRank`, `MatrixIsZero`, `MatrixIsIdentity`, `MatrixIsSymmetric`, `MatrixIsDiagonal`
 
-**Linear algebra:** `MatrixDeterminant`, `MatrixInverse`, `MatrixRank`, `MatrixTrace`, `MatrixNullSpace`
+**Arithmetic:** `MatrixAdd`, `MatrixSubtract`, `MatrixMultiply`, `MatrixSubmatrix`, `MatrixPad`, `MatrixCombine`, `MatrixCofactorElement`
+
+**Linear algebra:** `MatrixDeterminant`, `MatrixInverse`, `MatrixMinor`, `MatrixCofactor`, `MatrixAdjoint`, `MatrixGramSchmidt`, `MatrixNullSpace`, `MatrixPseudoInverse`
 
 **Decompositions:** `MatrixCholesky`, `MatrixEigen`, `MatrixLU`, `MatrixQR`, `MatrixSVD`, `MatrixSolve`, and result types `TEigenDecompositionResult`, `TLUDecompositionResult`, `TQRDecompositionResult`, `TSVDDecompositionResult`
 
-**Transformations:** `MatrixTranslation2D`, `MatrixTranslation3D`, `MatrixScale2D`, `MatrixScale3D`, `MatrixRotation2D`, `MatrixRotationX`, `MatrixRotationY`, `MatrixRotationZ`, `MatrixTRS`, `MatrixPerspective`, `MatrixOrthographic`, `MatrixLookAt`
+**Transformations:** `MatrixTranslation2D`, `MatrixTranslation3D`, `MatrixScale2D`, `MatrixScale3D`, `MatrixRotation2D`, `MatrixRotation3D`, `MatrixRotation3DRoll`, `MatrixRotation3DPitch`, `MatrixRotation3DYaw`, `MatrixRotation3DEulerAngles`, `MatrixTRS`, `MatrixTransform2D`, `MatrixTransform3D`, `MatrixDirection3D`, `MatrixView`, `MatrixLookAt`, `MatrixPerspective`, `MatrixOrthographic`
 
-**Normalization:** `MatrixNormalize`, `MatrixFrobeniusNorm`, `MatrixSpectralNorm`, `MatrixNuclearNorm`, `MatrixGramSchmidt`, `Matrix_PseudoInverse`
+**Norms:** `MatrixNormalize`, `MatrixFrobeniusNorm`, `MatrixSpectralNorm`, `Matrix1Norm`, `MatrixInfinityNorm`, `MatrixNuclearNorm`, `MatrixMaxNorm`, `MatrixPNorm`
 
 Note: `MatrixEigenQRIteration` is a private internal helper inside `MatrixEigen`. It is not exported and not part of the public API.
 
@@ -201,9 +203,9 @@ Note: `MatrixEigenQRIteration` is a private internal helper inside `MatrixEigen`
 
 **Conversions:** `QuaternionFromRotationMatrix`, `QuaternionToRotationMatrix`, `QuaternionFromTransformationMatrix`, `QuaternionToTransformationMatrix`, `IsValidRotationMatrix`
 
-**Interpolation:** `QuaternionNLERP`, `QuaternionSQUAD`
+**Interpolation:** `QuaternionNLERP`, `QuaternionSQUAD`, `QuaternionCreatePath`
 
-**Predefined:** `QuaternionIdentityConstant`
+**Predefined:** `QuaternionRotationX`, `QuaternionRotationY`, `QuaternionRotationZ`
 
 ### Not public
 
@@ -239,7 +241,7 @@ All class properties are `readonly` by default. Mutate only when explicitly nece
 The following are ESLint errors in this repo:
 
 - `@ts-ignore` — use a proper type guard instead
-- `as Type` casts — use type guards or assertion functions
+- `as Type` casts — use type guards or assertion functions. **One accepted exception:** narrowing a freshly-constructed generic result to its concrete result type (e.g. `result as TVectorResult<T>` or `result as TMatrixResult<T>`) when TypeScript cannot infer the conditional type. This pattern is used throughout the source. All other `as` casts remain prohibited.
 - `!` non-null assertions — guard explicitly
 - `any` — use `unknown` with type guards
 - `console.*` — no console logging in library code

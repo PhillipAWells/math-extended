@@ -56,7 +56,7 @@ const rad = DegreesToRadians(180); // Math.PI
 
 - **Tree-shakeable** — every operation is an individually named export.
 - **Immutable** — all operations return new values; inputs are never mutated.
-- **Runtime validation** — types pair with exported Zod schemas. `Assert*` functions throw on invalid input; `Validate*` functions return a result object. Error classes (`VectorError`, `MatrixError`, `QuaternionError`) carry a `code` property and chain `cause`.
+- **Runtime validation** — types pair with exported Zod schemas. `Assert*` functions throw on invalid input; `Validate*` functions return a `boolean` type guard (`value is T`) and never throw. Error classes (`VectorError`, `MatrixError`, `QuaternionError`) carry a `code` property and chain `cause`.
 
 ## API
 
@@ -148,8 +148,14 @@ Vectors are plain number arrays (`TVector`, `TVector2`, `TVector3`, `TVector4`).
 | `VectorSubtract(a, b)` | Component-wise subtraction |
 | `VectorMultiply(a, b)` | Scalar or component-wise multiplication |
 | `VectorDivide(a, b)` | Scalar or component-wise division |
+| `VectorScale(a, scalar)` | Multiply each component by a scalar |
 | `VectorNegate(a)` | Negate all components |
 | `VectorAbs(a)` | Absolute value of each component |
+| `VectorFloor(a)` | Apply `Math.floor` to each component |
+| `VectorCeil(a)` | Apply `Math.ceil` to each component |
+| `VectorRound(a)` | Apply `Math.round` to each component |
+| `VectorMin(a, b)` | Component-wise minimum of two vectors |
+| `VectorMax(a, b)` | Component-wise maximum of two vectors |
 | `VectorDot(a, b)` | Dot product |
 | `VectorMagnitude(a)` | Vector length |
 | `VectorNormalize(a)` | Unit vector |
@@ -179,6 +185,7 @@ Vectors are plain number arrays (`TVector`, `TVector2`, `TVector3`, `TVector4`).
 | Export | Description |
 |--------|-------------|
 | `Vector3Cross(a, b)` | 3D cross product |
+| `VectorCrossMagnitude(a, b)` | Magnitude of the 3D cross product (area of parallelogram) |
 | `Vector3Reflect(a, normal)` | 3D reflection about a normal |
 | `Vector3Reject(a, b)` | Vector rejection of `a` from `b` |
 | `Vector3ScalarTripleProduct(a, b, c)` | Scalar triple product |
@@ -227,11 +234,11 @@ Every scalar easing and interpolation function has a `Vector*` counterpart that 
 | `AssertVector4(v)` | Throw if not a `TVector4` |
 | `AssertVectorNonZero(v)` | Throw if the vector is the zero vector |
 | `AssertVectorSameSize(a, b)` | Throw if vectors differ in length |
-| `ValidateVector(v)` | Return a result object; does not throw |
-| `ValidateVector2(v)` | Return a result object for `TVector2` |
-| `ValidateVector3(v)` | Return a result object for `TVector3` |
-| `ValidateVector4(v)` | Return a result object for `TVector4` |
-| `ValidateVectorSameSize(a, b)` | Return a result object for size compatibility |
+| `ValidateVector(v)` | Return `true` if `v` is a valid vector (`value is TVector`); never throws |
+| `ValidateVector2(v)` | Return `true` if `v` is a `TVector2`; never throws |
+| `ValidateVector3(v)` | Return `true` if `v` is a `TVector3`; never throws |
+| `ValidateVector4(v)` | Return `true` if `v` is a `TVector4`; never throws |
+| `ValidateVectorSameSize(vs)` | Return `true` if all vectors in the array have the same length; never throws |
 | `VectorError` | Error class with `code` property and chained `cause` |
 
 ### Matrices
@@ -247,7 +254,6 @@ Matrices are `number[][]` arrays (`TMatrix`, `TMatrix1`–`TMatrix4`). All opera
 | `TMatrixAll` | Union of all sized matrix types |
 | `TMatrixSquare` | Constraint type for square matrices |
 | `TMatrixResult<T>` | Operation result wrapper type |
-| `IMatrixOperationOptions` | Options interface for matrix operations |
 | `MATRIX_SCHEMA` (and sized variants) | Zod schemas for each matrix type |
 | `TLUDecompositionResult` | `{ readonly L: TMatrix; readonly U: TMatrix; readonly P: number[] }` — result of `MatrixLU` |
 | `TQRDecompositionResult` | `{ readonly Q: TMatrix; readonly R: TMatrix }` — result of `MatrixQR` |
@@ -264,6 +270,9 @@ Matrices are `number[][]` arrays (`TMatrix`, `TMatrix1`–`TMatrix4`). All opera
 | `MatrixEquals(a, b)` | Equality check |
 | `MatrixTranspose(m)` | Transpose |
 | `MatrixMap(m, fn)` | Map a function over every element |
+| `MatrixSize(m)` | Returns `[rows, cols]` dimensions |
+| `MatrixSizeSquare(m)` | Returns `n` for an `n×n` matrix; throws if not square |
+| `MatrixToString(m, precision?)` | Formatted string representation |
 | `MatrixTrace(m)` | Sum of diagonal elements |
 | `MatrixRank(m)` | Matrix rank |
 | `MatrixIsZero(m)` | Zero-matrix predicate |
@@ -289,10 +298,12 @@ Matrices are `number[][]` arrays (`TMatrix`, `TMatrix1`–`TMatrix4`). All opera
 | `MatrixDeterminant(m)` | Determinant |
 | `MatrixInverse(m)` | Matrix inverse |
 | `MatrixMinor(m, x, y)` | Minor for the element at `(x, y)` |
-| `MatrixCofactor(m, row, col)` | Cofactor matrix |
-| `MatrixCofactorElement(m, row, col)` | Single cofactor element at `(row, col)` |
+| `MatrixCofactor(m)` | Full cofactor matrix |
+| `MatrixCofactorElement(m, x, y)` | Single cofactor element at `(x, y)` |
 | `MatrixAdjoint(m)` | Adjugate (classical adjoint) |
-| `MatrixGramSchmidt(m)` | Gram-Schmidt orthogonalization |
+| `MatrixGramSchmidt(m)` | Gram-Schmidt orthogonalization (returns orthonormal columns) |
+| `MatrixNullSpace(m, tolerance?)` | Orthonormal basis for the null space (columns); empty matrix if full rank |
+| `MatrixPseudoInverse(m, tolerance?)` | Moore-Penrose pseudoinverse via SVD |
 
 #### Decompositions
 
@@ -309,6 +320,7 @@ Matrices are `number[][]` arrays (`TMatrix`, `TMatrix1`–`TMatrix4`). All opera
 
 | Export | Description |
 |--------|-------------|
+| `MatrixNormalize(m)` | Scale to unit Frobenius norm; throws `MatrixError` on zero matrix |
 | `MatrixFrobeniusNorm(m)` | Frobenius norm |
 | `MatrixSpectralNorm(m)` | Spectral norm (largest singular value) |
 | `Matrix1Norm(m)` | Column-sum (1-norm) |
@@ -331,10 +343,12 @@ Matrices are `number[][]` arrays (`TMatrix`, `TMatrix1`–`TMatrix4`). All opera
 | `MatrixRotation3DPitch(angle)` | 3D rotation around the Y axis (pitch) |
 | `MatrixRotation3DYaw(angle)` | 3D rotation around the Z axis (yaw) |
 | `MatrixRotation3DEulerAngles(roll, pitch, yaw)` | Euler-angles rotation matrix |
+| `MatrixTRS(translation, rotation, scale)` | Composite TRS matrix (Translation × Rotation × Scale) from three `TVector3` arguments; rotation is Euler angles in radians (roll/pitch/yaw) |
 | `MatrixTransform2D(v, TMatrix3)` | Apply a 2D transformation matrix to a vector |
 | `MatrixTransform3D(v, TMatrix4)` | Apply a 3D transformation matrix to a vector |
 | `MatrixDirection3D(direction, matrix)` | Transform a 3D direction vector by a 3×3 matrix (ignores translation) |
-| `MatrixView(eye, target, up)` | View / look-at matrix |
+| `MatrixView(eye, target, up)` | View matrix (camera look-at) |
+| `MatrixLookAt(eye, target, up)` | Alias of `MatrixView`; industry-standard look-at name |
 | `MatrixPerspective(fovY, aspect, near, far)` | Perspective projection matrix |
 | `MatrixOrthographic(left, right, bottom, top, near, far)` | Orthographic projection matrix |
 
@@ -346,9 +360,9 @@ Matrices are `number[][]` arrays (`TMatrix`, `TMatrix1`–`TMatrix4`). All opera
 | `AssertMatrix1(m)` / `AssertMatrix2(m)` / `AssertMatrix3(m)` / `AssertMatrix4(m)` | Throw if not a sized matrix |
 | `AssertMatrixSquare(m)` | Throw if not a square matrix |
 | `AssertMatricesCompatible(a, b)` | Throw if dimensions are incompatible for multiplication |
-| `ValidateMatrix(m)` | Return a result object; does not throw |
-| `ValidateMatrix1(m)` / `ValidateMatrix2(m)` / `ValidateMatrix3(m)` / `ValidateMatrix4(m)` | Return a result object for sized matrices |
-| `ValidateMatrixSquare(m)` | Return a result object for square check |
+| `ValidateMatrix(m)` | Return `true` if `m` is a valid matrix (`value is TMatrix`); never throws |
+| `ValidateMatrix1(m)` / `ValidateMatrix2(m)` / `ValidateMatrix3(m)` / `ValidateMatrix4(m)` | Return `true` if `m` is the corresponding sized matrix; never throws |
+| `ValidateMatrixSquare(m)` | Return `true` if `m` is a square matrix (`value is TMatrixSquare`); never throws |
 | `MatrixError` | Error class with `code` property and chained `cause` |
 
 ### Quaternions
@@ -424,12 +438,12 @@ Quaternions are `[x, y, z, w]` tuples (`TQuaternion`). All operations return new
 | `AssertEulerAngles(e)` | Throw if `e` is not a valid `TEulerAngles` |
 | `AssertAxisAngle(a)` | Throw if `a` is not a valid `TAxisAngle` |
 | `AssertRotationMatrix(m)` | Throw if `m` is not a valid rotation matrix |
-| `ValidateQuaternion(q)` | Return a result object; does not throw |
-| `ValidateQuaternions(qs)` | Return a result object for an array of quaternions |
-| `ValidateNormalizedQuaternion(q)` | Return a result object for unit-length check |
-| `ValidateEulerAngles(e)` | Return a result object for `TEulerAngles` |
-| `ValidateAxisAngle(a)` | Return a result object for `TAxisAngle` |
-| `ValidateRotationMatrix(m)` | Return a result object for rotation matrix validity |
+| `ValidateQuaternion(q)` | Return `true` if `q` is a valid quaternion; never throws |
+| `ValidateQuaternions(qs)` | Return `true` if every element of an array is a valid quaternion; never throws |
+| `ValidateNormalizedQuaternion(q)` | Return `true` if `q` is unit-length; never throws |
+| `ValidateEulerAngles(e)` | Return `true` if `e` is a valid `TEulerAngles`; never throws |
+| `ValidateAxisAngle(a)` | Return `true` if `a` is a valid `TAxisAngle`; never throws |
+| `ValidateRotationMatrix(m)` | Return `true` if `m` is a valid rotation matrix; never throws |
 | `QuaternionError` | Error class with `code` property and chained `cause` |
 
 ## Development
