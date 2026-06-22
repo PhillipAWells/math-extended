@@ -59,10 +59,8 @@ export class QuaternionError extends BaseError<TQuaternionErrorMetadata> {
  *
  * Extends base error metadata from BaseError with quaternion-specific context.
  * Contains the error code for classification and an optional cause chain for root cause analysis.
- *
- * @typedef {object} TQuaternionErrorMetadata
- * @property {string} [code] - Error code for classification (e.g., `QUATERNION_ERROR`)
- * @property {Error} [cause] - Optional original error for cause chain propagation
+ * The `code` property identifies the error type (e.g., `QUATERNION_ERROR`),
+ * and the optional `cause` property chains the original error for root cause analysis.
  */
 export type TQuaternionErrorMetadata = TErrorMetadata;
 

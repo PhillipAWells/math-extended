@@ -97,5 +97,20 @@ export type TRotationMatrix = [[number, number, number], [number, number, number
 /**
  * Union type representing any supported rotation representation.
  * Useful for functions that can accept multiple rotation formats.
+ *
+ * @example
+ * ```typescript
+ * // Quaternion representation
+ * const q: TRotation = [0, 0, 0, 1];
+ *
+ * // Euler angles representation
+ * const euler: TRotation = [0, Math.PI / 4, 0];
+ *
+ * // Axis-angle representation
+ * const axisAngle: TRotation = [0, 1, 0, Math.PI / 2];
+ *
+ * // Rotation matrix representation
+ * const matrix: TRotation = [[1, 0, 0], [0, 1, 0], [0, 0, 1]];
+ * ```
  */
 export type TRotation = TQuaternion | TEulerAngles | TAxisAngle | TRotationMatrix;

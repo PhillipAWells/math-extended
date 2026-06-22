@@ -20,6 +20,7 @@ const SHEPPERD_QUARTER = 0.25;
  *
  * @param quaternion - The normalized quaternion to convert
  * @returns 3x3 rotation matrix as TMatrix3
+ * @throws {QuaternionError} If quaternion is invalid or not normalized
  *
  * @example
  * ```typescript
@@ -55,6 +56,7 @@ export function QuaternionToRotationMatrix(quaternion: TQuaternion): TRotationMa
  *
  * @param matrix - 3x3 rotation matrix as TMatrix3
  * @returns Normalized quaternion representing the same rotation
+ * @throws {QuaternionError} If matrix is invalid (not a 3x3 array of finite numbers)
  *
  * @example
  * ```typescript
@@ -116,6 +118,7 @@ export function QuaternionFromRotationMatrix(matrix: TRotationMatrix): TQuaterni
  *
  * @param quaternion - The normalized quaternion to convert
  * @returns 4x4 transformation matrix as a flat array of 16 elements (row-major)
+ * @throws {QuaternionError} If quaternion is invalid or not normalized
  *
  * @example
  * ```typescript
@@ -139,12 +142,13 @@ export function QuaternionToTransformationMatrix(quaternion: TQuaternion): TMatr
  * Extracts the rotation quaternion from a 4x4 transformation matrix.
  * Ignores translation and scaling components, extracting only the rotation.
  *
- * @param matrix4x4 - 4x4 transformation matrix as a flat array of 16 elements
+ * @param matrix - 4x4 transformation matrix
  * @returns Normalized quaternion representing the rotation component
+ * @throws {QuaternionError} If matrix is invalid (not a 4x4 array of finite numbers)
  *
  * @example
  * ```typescript
- * const transformMatrix = [1, 0, 0, 5, 0, 1, 0, 10, 0, 0, 1, 15, 0, 0, 0, 1];
+ * const transformMatrix = [[1, 0, 0, 5], [0, 1, 0, 10], [0, 0, 1, 15], [0, 0, 0, 1]];
  * const q = QuaternionFromTransformationMatrix(transformMatrix);
  * // Extracts rotation (identity in this case), ignores translation [5, 10, 15]
  * ```

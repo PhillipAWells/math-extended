@@ -11,6 +11,18 @@ import { VectorError } from '../vectors/asserts.js';
 import type { TQuaternion, TEulerAngles, TAxisAngle } from './types.js';
 
 const QUATERNION_MAGNITUDE_TOLERANCE = EPSILON;
+
+/**
+ * Tolerance constant for quaternion equality comparisons and operations.
+ * Uses EPSILON_LOOSE (1e-6) for comparisons that may accumulate floating-point rounding errors.
+ * @example
+ * ```typescript
+ * const tolerance = QUATERNION_TOLERANCE; // 1e-6
+ * const q1 = [0, 0, 0.707, 0.707];
+ * const q2 = [0, 0, 0.707000001, 0.707];
+ * // Can use tolerance for approximate equality checks
+ * ```
+ */
 export const QUATERNION_TOLERANCE = EPSILON_LOOSE;
 const SLERP_DOT_THRESHOLD = 0.9995;
 
@@ -36,6 +48,7 @@ export function QuaternionIdentity(): TQuaternion {
  *
  * @param quaternion - The quaternion to clone
  * @returns A new quaternion with identical components
+ * @throws {QuaternionError} If quaternion is invalid (not a 4-element array of finite numbers)
  *
  * @example
  * ```typescript
@@ -122,6 +135,7 @@ export function QuaternionIsFinite(quaternion: TQuaternion): boolean {
  *
  * @param quaternion - The quaternion to measure
  * @returns The magnitude of the quaternion
+ * @throws {QuaternionError} If quaternion is invalid (not a 4-element array of finite numbers)
  *
  * @example
  * ```typescript
@@ -140,6 +154,7 @@ export function QuaternionMagnitude(quaternion: TQuaternion): number {
  *
  * @param quaternion - The quaternion to normalize
  * @returns A normalized quaternion with magnitude 1
+ * @throws {QuaternionError} If quaternion is invalid (not a 4-element array of finite numbers)
  *
  * @example
  * ```typescript
@@ -160,6 +175,7 @@ export function QuaternionNormalize(quaternion: TQuaternion): TQuaternion {
  *
  * @param quaternion - The quaternion to conjugate
  * @returns The conjugate quaternion
+ * @throws {QuaternionError} If quaternion is invalid (not a 4-element array of finite numbers)
  *
  * @example
  * ```typescript
@@ -182,6 +198,7 @@ export function QuaternionConjugate(quaternion: TQuaternion): TQuaternion {
  *
  * @param quaternion - The quaternion to invert
  * @returns The inverse quaternion
+ * @throws {QuaternionError} If quaternion is invalid (not a 4-element array of finite numbers), or if quaternion magnitude is zero
  *
  * @example
  * ```typescript
@@ -216,6 +233,7 @@ export function QuaternionInverse(quaternion: TQuaternion): TQuaternion {
  * @param a - First quaternion (applied second in rotation order)
  * @param b - Second quaternion (applied first in rotation order)
  * @returns The product quaternion representing the combined rotation
+ * @throws {QuaternionError} If either quaternion is invalid (not a 4-element array of finite numbers)
  *
  * @example
  * ```typescript
@@ -246,6 +264,7 @@ export function QuaternionMultiply(a: TQuaternion, b: TQuaternion): TQuaternion 
  * @param axis - The rotation axis as a normalized 3D vector
  * @param angle - The rotation angle in radians
  * @returns A quaternion representing the rotation
+ * @throws {QuaternionError} If axis is invalid or cannot be normalized
  *
  * @example
  * ```typescript
@@ -283,6 +302,13 @@ export function QuaternionFromAxisAngle(axis: TVector3, angle: number): TQuatern
  *
  * @param axisAngle - The axis-angle as [x, y, z, angle] where xyz is the axis and angle is in radians
  * @returns A quaternion representing the rotation
+ * @throws {QuaternionError} If axisAngle is invalid or axis cannot be normalized
+ *
+ * @example
+ * ```typescript
+ * const axisAngle: TAxisAngle = [0, 1, 0, Math.PI / 2];
+ * const q = QuaternionFromAxisAngleVector(axisAngle);
+ * ```
  */
 export function QuaternionFromAxisAngleVector(axisAngle: TAxisAngle): TQuaternion {
 	AssertAxisAngle(axisAngle);
@@ -299,7 +325,7 @@ export function QuaternionFromAxisAngleVector(axisAngle: TAxisAngle): TQuaternio
  *
  * @param quaternion - The quaternion to convert (must be normalized)
  * @returns The axis-angle representation as [x, y, z, angle] where angle ∈ [0, π]
- * @throws {Error} If the quaternion is not normalized
+ * @throws {QuaternionError} If the quaternion is invalid or not normalized
  *
  * @example
  * ```typescript
@@ -344,6 +370,7 @@ export function QuaternionToAxisAngle(quaternion: TQuaternion): TAxisAngle {
  *
  * @param euler - Euler angles as [x, y, z] in radians
  * @returns A quaternion representing the rotation
+ * @throws {QuaternionError} If euler angles are invalid (not a 3-element array of finite numbers)
  *
  * @example
  * ```typescript
@@ -376,6 +403,7 @@ export function QuaternionFromEuler(euler: TEulerAngles): TQuaternion {
  *
  * @param quaternion - The quaternion to convert
  * @returns Euler angles as [x, y, z] in radians
+ * @throws {QuaternionError} If quaternion is invalid or not normalized
  *
  * @example
  * ```typescript
@@ -413,6 +441,7 @@ export function QuaternionToEuler(quaternion: TQuaternion): TEulerAngles {
  * @param quaternion - The rotation quaternion (must be normalized)
  * @param vector - The 3D vector to rotate
  * @returns The rotated vector
+ * @throws {QuaternionError} If quaternion is invalid or not normalized
  *
  * @example
  * ```typescript
@@ -453,6 +482,7 @@ export function QuaternionRotateVector(quaternion: TQuaternion, vector: TVector3
  * @param b - End quaternion
  * @param t - Interpolation parameter (0 = a, 1 = b)
  * @returns Interpolated quaternion
+ * @throws {QuaternionError} If either quaternion is invalid or not normalized
  *
  * @example
  * ```typescript

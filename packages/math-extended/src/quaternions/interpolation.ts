@@ -19,6 +19,7 @@ import { Clamp } from '../clamp.js';
  * @param b - End quaternion
  * @param t - Interpolation parameter (0 = a, 1 = b)
  * @returns Interpolated and normalized quaternion
+ * @throws {QuaternionError} If either quaternion is invalid or not normalized
  *
  * @example
  * ```typescript
@@ -68,6 +69,8 @@ export function QuaternionNLERP(a: TQuaternion, b: TQuaternion, t: number): TQua
  * @param q3 - Next quaternion (for tangent calculation)
  * @param t - Interpolation parameter (0 = q1, 1 = q2)
  * @returns Smoothly interpolated quaternion
+ * @throws {QuaternionError} If any quaternion is invalid or not normalized
+ * @throws {Error} If t is not in the range [0, 1]
  *
  * @example
  * ```typescript
@@ -183,6 +186,8 @@ function quaternionExp(quaternion: TQuaternion): TQuaternion {
  * @param quaternions - Array of quaternions defining the path
  * @param method - Interpolation method ('slerp' | 'nlerp' | 'squad')
  * @returns Function that takes t ∈ [0, 1] and returns interpolated quaternion
+ * @throws {Error} If quaternions array has fewer than 2 elements
+ * @throws {QuaternionError} If any quaternion in the array is invalid or not normalized
  *
  * @example
  * ```typescript
