@@ -73,6 +73,7 @@ Tolerance constants for numeric comparisons. Import these alongside `Approximate
 | `EPSILON_ORTHOGONAL` | `1e-9` | Tolerance for orthogonality checks (e.g., `MatrixIsOrthogonal`) |
 | `EPSILON_STRUCTURAL` | `1e-14` | Tolerance for structural matrix predicates (`MatrixIsZero`, `MatrixIsIdentity`, `MatrixIsSymmetric`, `MatrixIsDiagonal`) |
 | `EPSILON_DECOMPOSITION` | `1e-12` | Numerical tolerance for matrix decompositions (LU, QR, SVD, Cholesky) |
+| `QUATERNION_TOLERANCE` | `1e-6` | Default tolerance for quaternion equality comparisons (e.g., `QuaternionEquals`, `AssertNormalizedQuaternion`); equals `EPSILON_LOOSE` |
 
 ### Core
 
@@ -493,7 +494,7 @@ Quaternions are `[x, y, z, w]` tuples (`TQuaternion`). All operations return new
 
 | Export | Description |
 |--------|-------------|
-| `QuaternionFromEuler(roll, pitch, yaw)` | Euler angles → quaternion |
+| `QuaternionFromEuler(euler)` | Euler angles `[roll, pitch, yaw]` tuple → quaternion |
 | `QuaternionToEuler(q)` | Quaternion → `TEulerAngles` |
 | `QuaternionFromAxisAngle(axis, angle)` | Axis-angle → quaternion |
 | `QuaternionToAxisAngle(q)` | Quaternion → `TAxisAngle` |
@@ -534,7 +535,7 @@ Quaternions are `[x, y, z, w]` tuples (`TQuaternion`). All operations return new
 ## Development
 
 ```bash
-yarn build          # Compile TypeScript → ./build/
+yarn build          # Compile TypeScript → ./dist/
 yarn typecheck      # Type-check without building
 yarn lint           # ESLint
 yarn lint:fix       # ESLint with auto-fix

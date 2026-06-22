@@ -150,6 +150,7 @@ import { VectorAdd, TVector3, VECTOR3_SCHEMA } from '@pawells/math-extended';
 | `EPSILON_ORTHOGONAL` | `1e-9` | Tolerance for orthogonality checks (e.g., `MatrixIsOrthogonal`) |
 | `EPSILON_STRUCTURAL` | `1e-14` | Tolerance for structural matrix predicates (IsZero, IsIdentity, IsSymmetric, IsDiagonal) |
 | `EPSILON_DECOMPOSITION` | `1e-12` | Numerical tolerance for matrix decompositions (LU, QR, SVD, Cholesky) |
+| `QUATERNION_TOLERANCE` | `1e-6` | Default tolerance for quaternion equality comparisons (e.g., `QuaternionEquals`, `AssertNormalizedQuaternion`); equals `EPSILON_LOOSE` |
 
 ### Core (`core.ts`)
 

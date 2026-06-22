@@ -34,7 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `RoundToNearest(value, step)` — rounds a value to the nearest multiple of `step`.
 - `Gcd(a, b)` — greatest common divisor of two non-negative integers.
 - `Lcm(a, b)` — least common multiple of two non-negative integers.
-- `Factorial(n)` — factorial of a non-negative integer; throws `ScalarError` for negative or non-integer inputs.
+- `Factorial(n)` — factorial of a non-negative integer; throws `RangeError` for negative or non-integer inputs.
 - `Linspace(start, stop, count)` — returns an evenly-spaced array of `count` values from `start` to `stop`.
 - `Range(start, stop, step?)` — returns an array of values in `[start, stop)` incremented by `step`.
 
@@ -49,7 +49,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 **Angles (`angles.ts`)**
 
-- `WrapAngle(angle)` — wraps an angle in radians to `(−π, π]`.
+- `WrapAngle(radians)` — wraps an angle in radians to `(−π, π]`.
 - `DeltaAngle(from, to)` — shortest signed difference between two angles in radians, in `(−π, π]`.
 
 **Finiteness predicates**
@@ -71,14 +71,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `MatrixConditionNumber(matrix)` — ratio of largest to smallest singular value; measures numerical sensitivity.
 - `MatrixIsInvertible(matrix, tolerance?)` — returns `true` when the matrix determinant exceeds the tolerance.
 - `MatrixLeastSquares(A, b)` — solves the least-squares problem `Ax ≈ b` via the normal equations.
-- `MatrixDecomposeTRS(matrix)` — extracts translation, rotation (quaternion), and scale from a `TMatrix4` TRS matrix.
+- `MatrixDecomposeTRS(matrix)` — extracts translation, rotation (Euler angles as `TVector3`), and scale from a `TMatrix4` TRS matrix.
 - `MatrixIsOrthogonal(matrix, tolerance?)` — returns `true` when `A · Aᵀ ≈ I`.
 - `MatrixIsPositiveDefinite(matrix)` — returns `true` when all eigenvalues are positive (Cholesky-based check).
 - `MatrixPower(matrix, exponent)` — raises a square matrix to an integer power via repeated multiplication.
 - `MatrixKronecker(A, B)` — Kronecker (tensor) product of two matrices.
 - `MatrixShear2D(shearX, shearY)` — 3×3 2-D shear transformation matrix.
 - `MatrixShear3D(shearXY, shearXZ, shearYX, shearYZ, shearZX, shearZY)` — 4×4 3-D shear transformation matrix.
-- `MatrixReflection2D(normalX, normalY)` — 3×3 2-D reflection matrix about a line through the origin with the given normal.
+- `MatrixReflection2D(angle)` — 3×3 2-D reflection matrix across a line through the origin at `angle` radians from the X-axis.
 
 **Vectors (`vectors/`)**
 

@@ -8,7 +8,7 @@
 
 Extended mathematical utilities for TypeScript: vectors, matrices, quaternions, interpolation & easing, angle conversions, clamping, and seedable random helpers. ESM-only, fully typed, runtime-validated with Zod, and tree-shakeable — every operation is an individual named export.
 
-Published as [`@pawells/math-extended`](https://www.npmjs.com/package/@pawells/math-extended) (v3.0.1, MIT). This repository is an NX monorepo; the single published package lives in [`packages/math-extended`](./packages/math-extended/).
+Published as [`@pawells/math-extended`](https://www.npmjs.com/package/@pawells/math-extended) (v3.1.0, MIT). This repository is an NX monorepo; the single published package lives in [`packages/math-extended`](./packages/math-extended/).
 
 ## Requirements
 
@@ -54,9 +54,12 @@ The library is organized into seven domains:
 
 | Domain | Summary |
 |---|---|
-| **Angles** | Convert, normalize, and format degree/radian values (`DegreesToRadians`, `RadiansToDegrees`, `NormalizeRadians`, `NormalizeDegrees`, `FormatRadians`) |
+| **Angles** | Convert, normalize, and format degree/radian values (`DegreesToRadians`, `RadiansToDegrees`, `NormalizeRadians`, `NormalizeDegrees`, `FormatRadians`, `WrapAngle`, `DeltaAngle`) |
 | **Clamp** | Constrain a number to a range (`Clamp`) |
+| **Constants** | Tolerance constants for robust numeric comparisons (`EPSILON`, `EPSILON_LOOSE`, `EPSILON_TIGHT`, `EPSILON_COMPARISON`, `EPSILON_ORTHOGONAL`, `EPSILON_STRUCTURAL`, `EPSILON_DECOMPOSITION`) |
 | **Core** | Foundational math helpers (`CubeRoot`) |
+| **Scalar** | Extended numeric operations with `ScalarError` (`InverseLerp`, `Remap`, `MoveTowards`, `Mod`, `Repeat`, `PingPong`, `Approximately`, `Clamp01`, `Sign`, `RoundToNearest`, `Gcd`, `Lcm`, `Factorial`, `Linspace`, `Range`) |
+| **Statistics** | Descriptive statistics over number arrays with `ScalarError` (`Sum`, `Product`, `Mean`, `Variance`, `StandardDeviation`, `Median`) |
 | **Random** | Seedable PRNG (`SetPRNG`/`GetPRNG`) plus `RandomInt`, `RandomFloat`, `RandomBool`, `RandomNormal`, `RandomChoice`, `RandomSample`, `RandomShuffle` |
 | **Interpolation** | LERP, `SmoothStep`/`SmootherStep`, full easing families (Quadratic/Cubic/Sine/Exponential/Circular/Elastic/Back/Bounce × In/Out/InOut), `CatmullRomInterpolation`, `HermiteInterpolation`, `CosineInterpolation`, `StepInterpolation` |
 | **Vectors** | `TVector`/`TVector2`–`TVector4`; arithmetic, dot/cross products, normalize, distance, reflect/project, predefined constants (`VectorZero`, `Vector3Forward`, …), per-component easing wrappers, and `Assert*`/`Validate*` guards with `VectorError` |
@@ -72,7 +75,7 @@ See [the package README](./packages/math-extended/README.md) for the complete AP
 Root scripts are dispatched through NX and run against the `@pawells/math-extended` package:
 
 ```bash
-yarn build           # Compile TypeScript → packages/math-extended/build/
+yarn build           # Compile TypeScript → packages/math-extended/dist/
 yarn typecheck       # Type-check without emitting
 yarn lint            # ESLint
 yarn lint:fix        # ESLint with auto-fix
