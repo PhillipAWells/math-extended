@@ -619,3 +619,49 @@ export function QuaternionFromToRotation(from: TVector3, to: TVector3): TQuatern
 		throw err;
 	}
 }
+
+/**
+ * Rotates one quaternion towards another by at most a specified angle.
+ * Computes the shortest rotational path from the source orientation to the target,
+ * then constrains the rotation to at most maxRadians in that direction.
+ * Useful for smooth rotation limits and frame-rate-independent rotation stepping.
+ *
+ * @param from - Source quaternion (starting orientation)
+ * @param to - Target quaternion (desired orientation)
+ * @param maxRadians - Maximum rotation angle in radians (must be non-negative)
+ * @returns A normalized quaternion rotated at most maxRadians towards the target
+ * @throws {QuaternionError} If either quaternion is invalid
+ *
+ * @example
+ * ```typescript
+ * const from = QuaternionIdentity();
+ * const to = QuaternionFromAxisAngle([0, 1, 0], Math.PI / 2);
+ * const stepped = QuaternionRotateTowards(from, to, Math.PI / 4);
+ * // result is 25% of the way from from to to
+ * ```
+ */
+export function QuaternionRotateTowards(from: TQuaternion, to: TQuaternion, maxRadians: number): TQuaternion {
+	AssertQuaternion(from);
+	AssertQuaternion(to);
+
+	const totalAngle = QuaternionAngleBetween(from, to);
+
+	// If maxRadians is large enough to reach target or greater, return normalized target
+	if (maxRadians >= totalAngle) {
+		return QuaternionNormalize(to);
+	}
+
+	// If maxRadians is zero or negative, return normalized source
+	if (maxRadians <= 0) {
+		return QuaternionNormalize(from);
+	}
+
+	// Guard against division by zero when angle is very small
+	if (totalAngle < QUATERNION_TOLERANCE) {
+		return QuaternionNormalize(to);
+	}
+
+	// SLERP by the fraction of rotation we're allowed to take
+	const t = maxRadians / totalAngle;
+	return QuaternionSLERP(from, to, t);
+}

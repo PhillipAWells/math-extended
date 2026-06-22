@@ -1,4 +1,4 @@
-﻿import { QuaternionIdentity, QuaternionClone, QuaternionEquals, QuaternionIsFinite, QuaternionMagnitude, QuaternionNormalize, QuaternionConjugate, QuaternionInverse, QuaternionMultiply, QuaternionFromAxisAngle, QuaternionFromAxisAngleVector, QuaternionToAxisAngle, QuaternionFromEuler, QuaternionToEuler, QuaternionRotateVector, QuaternionSLERP, QuaternionDot, QuaternionAngleBetween, QuaternionFromToRotation } from './core.js';
+﻿import { QuaternionIdentity, QuaternionClone, QuaternionEquals, QuaternionIsFinite, QuaternionMagnitude, QuaternionNormalize, QuaternionConjugate, QuaternionInverse, QuaternionMultiply, QuaternionFromAxisAngle, QuaternionFromAxisAngleVector, QuaternionToAxisAngle, QuaternionFromEuler, QuaternionToEuler, QuaternionRotateVector, QuaternionSLERP, QuaternionDot, QuaternionAngleBetween, QuaternionFromToRotation, QuaternionRotateTowards } from './core.js';
 import { QuaternionError } from './asserts.js';
 import type { TQuaternion, TEulerAngles, TAxisAngle } from './types.js';
 import { type TVector3, type TVector4 } from '../vectors/types.js';
@@ -490,6 +490,67 @@ describe('Quaternion Core Functions', () => {
 			const rotation = QuaternionFromToRotation(from, to);
 			const magnitude = QuaternionMagnitude(rotation);
 			expect(magnitude).toBeCloseTo(1, 5);
+		});
+	});
+
+	describe('QuaternionRotateTowards', () => {
+		test('should return normalized to when maxRadians >= total angle', () => {
+			const from = QuaternionIdentity();
+			const to = QuaternionFromAxisAngle([0, 1, 0], Math.PI / 2);
+			const result = QuaternionRotateTowards(from, to, Math.PI);
+			const expected = QuaternionNormalize(to);
+			expect(QuaternionEquals(result, expected, 1e-9)).toBe(true);
+		});
+
+		test('should return normalized from when maxRadians = 0', () => {
+			const from = QuaternionFromAxisAngle([0, 1, 0], Math.PI / 4);
+			const to = QuaternionFromAxisAngle([0, 1, 0], Math.PI / 2);
+			const result = QuaternionRotateTowards(from, to, 0);
+			const expected = QuaternionNormalize(from);
+			expect(QuaternionEquals(result, expected, 1e-9)).toBe(true);
+		});
+
+		test('should perform partial step: half angle yields midpoint', () => {
+			const from = QuaternionIdentity();
+			const to = QuaternionFromAxisAngle([0, 1, 0], Math.PI / 2);
+			const totalAngle = QuaternionAngleBetween(from, to);
+			const halfAngle = totalAngle / 2;
+			const result = QuaternionRotateTowards(from, to, halfAngle);
+
+			// Verify the result is approximately halfway
+			const angleFromToResult = QuaternionAngleBetween(from, result);
+			const angleResultToTo = QuaternionAngleBetween(result, to);
+			expect(angleFromToResult).toBeCloseTo(halfAngle, 8);
+			expect(angleResultToTo).toBeCloseTo(halfAngle, 8);
+		});
+
+		test('should handle zero angle (from ≈ to) without NaN', () => {
+			const from = QuaternionFromAxisAngle([0, 1, 0], 0.1);
+			const to = QuaternionNormalize([...from] as TQuaternion);
+			const result = QuaternionRotateTowards(from, to, 0.05);
+			expect(Number.isNaN(result[0])).toBe(false);
+			expect(Number.isNaN(result[1])).toBe(false);
+			expect(Number.isNaN(result[2])).toBe(false);
+			expect(Number.isNaN(result[3])).toBe(false);
+			expect(QuaternionEquals(result, to, 1e-9)).toBe(true);
+		});
+
+		test('should throw QuaternionError for invalid from quaternion', () => {
+			const to = QuaternionIdentity();
+			expect(() => QuaternionRotateTowards([1, 2] as unknown as TQuaternion, to, 0.5)).toThrow(QuaternionError);
+		});
+
+		test('should throw QuaternionError for invalid to quaternion', () => {
+			const from = QuaternionIdentity();
+			expect(() => QuaternionRotateTowards(from, [1, 2] as unknown as TQuaternion, 0.5)).toThrow(QuaternionError);
+		});
+
+		test('should return normalized result', () => {
+			const from = QuaternionIdentity();
+			const to = QuaternionFromAxisAngle([0, 1, 0], Math.PI / 2);
+			const result = QuaternionRotateTowards(from, to, Math.PI / 4);
+			const magnitude = QuaternionMagnitude(result);
+			expect(magnitude).toBeCloseTo(1, 9);
 		});
 	});
 });
