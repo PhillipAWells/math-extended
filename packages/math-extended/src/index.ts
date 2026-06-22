@@ -6,4 +6,6 @@ export * from './interpolation.js';
 export * from './matrices/index.js';
 export * from './quaternions/index.js';
 export * from './random.js';
+export * from './scalar.js';
+export * from './statistics.js';
 export * from './vectors/index.js';
