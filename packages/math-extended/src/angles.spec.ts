@@ -1,6 +1,6 @@
 import {
 	DegreesToRadians, RadiansToDegrees, FormatRadians,
-	NormalizeRadians, NormalizeDegrees
+	NormalizeRadians, NormalizeDegrees, WrapAngle, DeltaAngle
 } from './angles.js';
 
 describe('Math Extended > Angles', () => {
@@ -176,5 +176,97 @@ describe('Math Extended > Angles', () => {
 		const input = -Math.PI / 5;
 		const formatted = FormatRadians(input);
 		expect(formatted).toBe('-π/5');
+	});
+
+	describe('WrapAngle', () => {
+		test('values inside range (-π, π]', () => {
+			expect(WrapAngle(0)).toBe(0);
+			expect(WrapAngle(Math.PI / 4)).toBeCloseTo(Math.PI / 4);
+			expect(WrapAngle(Math.PI / 2)).toBeCloseTo(Math.PI / 2);
+			expect(WrapAngle(Math.PI)).toBeCloseTo(Math.PI);
+			expect(WrapAngle(-Math.PI / 4)).toBeCloseTo(-Math.PI / 4);
+			expect(WrapAngle(-Math.PI / 2)).toBeCloseTo(-Math.PI / 2);
+		});
+
+		test('values greater than π wrap correctly', () => {
+			expect(WrapAngle(2 * Math.PI)).toBeCloseTo(0);
+			expect(WrapAngle(3 * Math.PI)).toBeCloseTo(Math.PI);
+			expect(WrapAngle((5 * Math.PI) / 4)).toBeCloseTo(-((3 * Math.PI) / 4));
+			expect(WrapAngle((3 * Math.PI) / 2)).toBeCloseTo(-(Math.PI / 2));
+		});
+
+		test('values less than -π wrap correctly', () => {
+			expect(WrapAngle(-2 * Math.PI)).toBeCloseTo(0);
+			expect(WrapAngle(-Math.PI)).toBeCloseTo(Math.PI);
+			expect(WrapAngle(-(5 * Math.PI) / 4)).toBeCloseTo((3 * Math.PI) / 4);
+			expect(WrapAngle(-(3 * Math.PI) / 2)).toBeCloseTo(Math.PI / 2);
+		});
+
+		test('boundary case: exactly ±π', () => {
+			expect(WrapAngle(Math.PI)).toBeCloseTo(Math.PI);
+			expect(WrapAngle(-Math.PI)).toBeCloseTo(Math.PI);
+		});
+
+		test('boundary case: exactly 0 and 2π', () => {
+			expect(WrapAngle(0)).toBe(0);
+			expect(WrapAngle(2 * Math.PI)).toBeCloseTo(0);
+		});
+
+		test('throws on non-finite input', () => {
+			expect(() => WrapAngle(NaN)).toThrow();
+			expect(() => WrapAngle(Infinity)).toThrow();
+			expect(() => WrapAngle(-Infinity)).toThrow();
+		});
+	});
+
+	describe('DeltaAngle', () => {
+		test('same angle returns 0', () => {
+			expect(DeltaAngle(0, 0)).toBeCloseTo(0);
+			expect(DeltaAngle(Math.PI / 4, Math.PI / 4)).toBeCloseTo(0);
+			expect(DeltaAngle(Math.PI, Math.PI)).toBeCloseTo(0);
+		});
+
+		test('small positive difference', () => {
+			expect(DeltaAngle(0, Math.PI / 4)).toBeCloseTo(Math.PI / 4);
+			expect(DeltaAngle(0, Math.PI / 2)).toBeCloseTo(Math.PI / 2);
+			expect(DeltaAngle(Math.PI / 4, Math.PI / 2)).toBeCloseTo(Math.PI / 4);
+		});
+
+		test('small negative difference', () => {
+			expect(DeltaAngle(Math.PI / 4, 0)).toBeCloseTo(-Math.PI / 4);
+			expect(DeltaAngle(Math.PI / 2, 0)).toBeCloseTo(-Math.PI / 2);
+			expect(DeltaAngle(Math.PI / 2, Math.PI / 4)).toBeCloseTo(-Math.PI / 4);
+		});
+
+		test('wrap-around case: shortest path across ±π boundary', () => {
+			// from 3.0 to -3.0: difference is -6.0, wrapped to ~0.283
+			const delta = DeltaAngle(3.0, -3.0);
+			expect(delta).toBeCloseTo(0.283, 2);
+			expect(Math.abs(delta)).toBeLessThan(Math.PI);
+		});
+
+		test('opposite angles (π apart) shortest path', () => {
+			expect(DeltaAngle(0, Math.PI)).toBeCloseTo(Math.PI);
+			expect(DeltaAngle(Math.PI, 0)).toBeCloseTo(Math.PI);
+			expect(DeltaAngle(Math.PI, -Math.PI)).toBeCloseTo(0);
+			expect(DeltaAngle(-Math.PI, Math.PI)).toBeCloseTo(0);
+		});
+
+		test('full rotation returns 0', () => {
+			expect(DeltaAngle(0, 2 * Math.PI)).toBeCloseTo(0);
+			expect(DeltaAngle(Math.PI / 4, (Math.PI / 4) + 2 * Math.PI)).toBeCloseTo(0);
+		});
+
+		test('throws on non-finite input (from)', () => {
+			expect(() => DeltaAngle(NaN, 0)).toThrow();
+			expect(() => DeltaAngle(Infinity, 0)).toThrow();
+			expect(() => DeltaAngle(-Infinity, 0)).toThrow();
+		});
+
+		test('throws on non-finite input (to)', () => {
+			expect(() => DeltaAngle(0, NaN)).toThrow();
+			expect(() => DeltaAngle(0, Infinity)).toThrow();
+			expect(() => DeltaAngle(0, -Infinity)).toThrow();
+		});
 	});
 });

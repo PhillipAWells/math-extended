@@ -124,3 +124,55 @@ export function NormalizeDegrees(degrees: number): number {
 	if (result < NORMALIZE_EPSILON || result > DEGREES_PER_FULL_REVOLUTION - NORMALIZE_EPSILON) return 0;
 	return result;
 }
+
+/**
+ * Wraps an angle in radians to the half-open range (-π, π]
+ * @param radians - Angle in radians
+ * @returns Wrapped angle in radians in the range (-π, π]
+ *
+ * @throws {Error} If radians is not finite (NaN or Infinity)
+ * @example
+ * ```typescript
+ * WrapAngle(0)                    // 0
+ * WrapAngle(Math.PI)              // Math.PI
+ * WrapAngle(-Math.PI)             // Math.PI (wraps to positive side)
+ * WrapAngle(2 * Math.PI)          // 0 (wraps around)
+ * WrapAngle(3 * Math.PI)          // Math.PI
+ * WrapAngle(3.5)                  // ~-2.783 (wrapped to range)
+ * ```
+ */
+export function WrapAngle(radians: number): number {
+	AssertNumber(radians, { finite: true });
+	const twoPi = 2 * Math.PI;
+	let result = radians;
+	// Reduce to approximately [-π, π] range using modulo
+	result = result % twoPi;
+	// Adjust to be in the range (-π, π]
+	if (result > Math.PI)
+		result -= twoPi;
+	else if (result <= -Math.PI)
+		result += twoPi;
+	return result;
+}
+
+/**
+ * Calculates the shortest signed angular difference from one angle to another in radians
+ * @param from - Starting angle in radians
+ * @param to - Target angle in radians
+ * @returns The shortest signed angular difference in the range (-π, π]
+ *
+ * @throws {Error} If either angle is not finite (NaN or Infinity)
+ * @example
+ * ```typescript
+ * DeltaAngle(0, 0)                       // 0
+ * DeltaAngle(0, Math.PI / 2)             // Math.PI / 2
+ * DeltaAngle(Math.PI, -Math.PI)          // 0 (shortest path, same angle)
+ * DeltaAngle(3.0, -3.0)                  // ~0.283 (shortest path wraps around)
+ * DeltaAngle(0, 2 * Math.PI)             // 0 (wraps around to same angle)
+ * ```
+ */
+export function DeltaAngle(from: number, to: number): number {
+	AssertNumber(from, { finite: true });
+	AssertNumber(to, { finite: true });
+	return WrapAngle(to - from);
+}
