@@ -146,6 +146,10 @@ import { VectorAdd, TVector3, VECTOR3_SCHEMA } from '@pawells/math-extended';
 | `EPSILON` | `1e-10` | General-purpose tolerance for floating-point equality comparisons |
 | `EPSILON_LOOSE` | `1e-6` | Looser tolerance for operations that accumulate rounding errors |
 | `EPSILON_TIGHT` | `Number.EPSILON` | Tightest tolerance — JS machine epsilon (~2.2e-16) |
+| `EPSILON_COMPARISON` | `1e-8` | Default tolerance for value-equality comparisons (e.g., `MatrixEquals`) |
+| `EPSILON_ORTHOGONAL` | `1e-9` | Tolerance for orthogonality checks (e.g., `MatrixIsOrthogonal`) |
+| `EPSILON_STRUCTURAL` | `1e-14` | Tolerance for structural matrix predicates (IsZero, IsIdentity, IsSymmetric, IsDiagonal) |
+| `EPSILON_DECOMPOSITION` | `1e-12` | Numerical tolerance for matrix decompositions (LU, QR, SVD, Cholesky) |
 
 ### Core (`core.ts`)
 

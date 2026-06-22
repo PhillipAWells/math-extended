@@ -69,6 +69,10 @@ Tolerance constants for numeric comparisons. Import these alongside `Approximate
 | `EPSILON` | `1e-10` | General-purpose tolerance for floating-point equality comparisons |
 | `EPSILON_LOOSE` | `1e-6` | Loose tolerance for operations accumulating rounding errors |
 | `EPSILON_TIGHT` | `Number.EPSILON` | Tight tolerance based on JavaScript's machine epsilon (~2.22e-16) |
+| `EPSILON_COMPARISON` | `1e-8` | Default tolerance for value-equality comparisons (e.g., `MatrixEquals`) |
+| `EPSILON_ORTHOGONAL` | `1e-9` | Tolerance for orthogonality checks (e.g., `MatrixIsOrthogonal`) |
+| `EPSILON_STRUCTURAL` | `1e-14` | Tolerance for structural matrix predicates (`MatrixIsZero`, `MatrixIsIdentity`, `MatrixIsSymmetric`, `MatrixIsDiagonal`) |
+| `EPSILON_DECOMPOSITION` | `1e-12` | Numerical tolerance for matrix decompositions (LU, QR, SVD, Cholesky) |
 
 ### Core
 

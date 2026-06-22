@@ -14,6 +14,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 **Constants (`constants.ts`)**
 
 - `EPSILON`, `EPSILON_LOOSE`, `EPSILON_TIGHT` — standard floating-point comparison tolerances exported from the package root.
+- `EPSILON_COMPARISON` (`1e-8`) — default tolerance for value-equality comparisons (e.g., `MatrixEquals`, `QuaternionEquals`).
+- `EPSILON_ORTHOGONAL` (`1e-9`) — tolerance for orthogonality checks (e.g., `MatrixIsOrthogonal`).
+- `EPSILON_STRUCTURAL` (`1e-14`) — tolerance for structural matrix predicates (`MatrixIsZero`, `MatrixIsIdentity`, `MatrixIsSymmetric`, `MatrixIsDiagonal`).
+- `EPSILON_DECOMPOSITION` (`1e-12`) — numerical tolerance for matrix decomposition algorithms (LU, QR, SVD, Cholesky).
 
 **Scalar utilities (`scalar.ts`) + `ScalarError`**
 
