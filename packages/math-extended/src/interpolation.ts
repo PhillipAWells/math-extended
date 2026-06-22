@@ -34,24 +34,31 @@ const BACK_EASE_OVERSHOOT_AMPLITUDE = 1.70158;
 /**
  * Linear interpolation (LERP) between two scalar values.
  * Maps parameter `t` proportionally between `a` (at t=0) and `b` (at t=1).
- * Values of `t` outside [0,1] produce extrapolation beyond the endpoints.
+ * By default, `t` is clamped to [0,1]; pass `{ clamped: false }` to allow extrapolation.
  *
  * @param a - Start value (result when t = 0)
  * @param b - End value (result when t = 1)
- * @param t - Interpolation parameter — unclamped, allowing extrapolation
- * @returns `a + (b - a) * t`
+ * @param t - Interpolation parameter (clamped to [0,1] by default)
+ * @param options - Optional configuration object
+ * @param options.clamped - If true (default), clamps t to [0,1]; if false, allows extrapolation
+ * @returns Interpolated value: `a + (b - a) * Clamp(t, 0, 1)` (default) or `a + (b - a) * t` (unclamped)
+ * @throws {RangeError} If a, b, or t are not finite numbers
  *
  * @example
  * ```typescript
- * LinearInterpolation(0, 100, 0.5)  // 50
- * LinearInterpolation(0, 100, 0)    // 0
- * LinearInterpolation(0, 100, 1)    // 100
- * LinearInterpolation(0, 100, 1.5)  // 150 (extrapolation)
+ * LinearInterpolation(0, 100, 0.5)           // 50 (clamped by default)
+ * LinearInterpolation(0, 100, 1.5)           // 100 (clamped to 1)
+ * LinearInterpolation(0, 100, -0.5)          // 0 (clamped to 0)
+ * LinearInterpolation(0, 100, 1.5, { clamped: false })  // 150 (extrapolation)
  * ```
  */
-export function LinearInterpolation(a: number, b: number, t: number): number {
-	// Do not clamp t, allow extrapolation for LERP
-	return a + ((b - a) * t);
+export function LinearInterpolation(a: number, b: number, t: number, options: { clamped?: boolean } = {}): number {
+	if (!Number.isFinite(a) || !Number.isFinite(b) || !Number.isFinite(t)) {
+		throw new RangeError('LinearInterpolation: a, b, and t must be finite numbers');
+	}
+	const clamped = options.clamped ?? true;
+	const factor = clamped ? Clamp(t, 0, 1) : t;
+	return a + ((b - a) * factor);
 }
 
 /**

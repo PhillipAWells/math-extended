@@ -42,9 +42,14 @@ describe('Vector Interpolation', () => {
 			expectVectorToBeCloseTo(VectorLERP(vec4a, vec4b, 0.5), [5, 10, 15, 20], 10);
 		});
 
-		it('should handle extrapolation beyond [0,1]', () => {
-			expectVectorToBeCloseTo(VectorLERP(vec2a, vec2b, -0.5), [-5, -10], 10);
-			expectVectorToBeCloseTo(VectorLERP(vec2a, vec2b, 1.5), [15, 30], 10);
+		it('should clamp t to [0,1] by default', () => {
+			expectVectorToBeCloseTo(VectorLERP(vec2a, vec2b, -0.5), [0, 0], 10);
+			expectVectorToBeCloseTo(VectorLERP(vec2a, vec2b, 1.5), [10, 20], 10);
+		});
+
+		it('should allow extrapolation with clamped: false option', () => {
+			expectVectorToBeCloseTo(VectorLERP(vec2a, vec2b, -0.5, { clamped: false }), [-5, -10], 10);
+			expectVectorToBeCloseTo(VectorLERP(vec2a, vec2b, 1.5, { clamped: false }), [15, 30], 10);
 		});
 
 		it('should throw for mismatched vector dimensions', () => {

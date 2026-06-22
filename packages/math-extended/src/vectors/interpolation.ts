@@ -55,23 +55,27 @@ function vectorInterpolate<T extends TVector>(a: T, b: T, t: number, interpolati
  * Performs linear interpolation (LERP) between two vectors.
  * The most basic and commonly used interpolation method, providing
  * constant velocity transition between vectors.
+ * By default, `t` is clamped to [0,1]; pass `{ clamped: false }` to allow extrapolation.
  *
  * @template T - The vector type extending TVector
  * @param a - Start vector (when t = 0)
  * @param b - End vector (when t = 1)
- * @param t - Interpolation parameter (0 = a, 1 = b, values outside [0,1] extrapolate)
+ * @param t - Interpolation parameter (clamped to [0,1] by default)
+ * @param options - Optional configuration object
+ * @param options.clamped - If true (default), clamps t to [0,1]; if false, allows extrapolation
  * @returns Linearly interpolated vector
  *
  * @example
  * ```typescript
  * const start = [0, 0, 0];
  * const end = [10, 20, 30];
- * const halfway = VectorLERP(start, end, 0.5); // [5, 10, 15]
- * const quarter = VectorLERP(start, end, 0.25); // [2.5, 5, 7.5]
+ * const halfway = VectorLERP(start, end, 0.5); // [5, 10, 15] (clamped by default)
+ * const extrapolated = VectorLERP(start, end, 1.5, { clamped: false }); // [15, 30, 45]
  * ```
  */
-export function VectorLERP<T extends TVector>(a: T, b: T, t: number): TVectorResult<T> {
-	return vectorInterpolate(a, b, t, LinearInterpolation);
+export function VectorLERP<T extends TVector>(a: T, b: T, t: number, options: { clamped?: boolean } = {}): TVectorResult<T> {
+	const clamped = options.clamped ?? true;
+	return vectorInterpolate(a, b, t, (start, end, factor) => LinearInterpolation(start, end, factor, { clamped }));
 }
 
 /**
@@ -836,9 +840,9 @@ export function VectorSphericalLinearInterpolation<T extends TVector>(a: T, b: T
 
 	const dot = Clamp(VectorDot(normalizedA, normalizedB), -1, 1);
 	const theta = Math.acos(dot);
-	// If vectors are nearly parallel, use linear interpolation
+	// If vectors are nearly parallel, use linear interpolation (unclamped to preserve extrapolation)
 	if (Math.abs(theta) < SLERP_LINEARITY_THRESHOLD) {
-		return VectorLERP(a, b, t);
+		return VectorLERP(a, b, t, { clamped: false });
 	}
 
 	const sinTheta = Math.sin(theta);

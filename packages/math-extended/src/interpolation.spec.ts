@@ -52,9 +52,20 @@ describe('Interpolation', () => {
 			expect(LinearInterpolation(-10, 10, 0.5)).toBe(0);
 		});
 
-		it('should clamp t values outside [0, 1]', () => {
-			expect(LinearInterpolation(10, 20, -0.5)).toBe(5);
-			expect(LinearInterpolation(10, 20, 1.5)).toBe(25);
+		it('should clamp t to [0, 1] by default', () => {
+			expect(LinearInterpolation(10, 20, -0.5)).toBe(10);
+			expect(LinearInterpolation(10, 20, 1.5)).toBe(20);
+		});
+
+		it('should allow extrapolation with clamped: false option', () => {
+			expect(LinearInterpolation(10, 20, -0.5, { clamped: false })).toBe(5);
+			expect(LinearInterpolation(10, 20, 1.5, { clamped: false })).toBe(25);
+		});
+
+		it('should throw on non-finite inputs', () => {
+			expect(() => LinearInterpolation(Number.NaN, 20, 0.5)).toThrow(RangeError);
+			expect(() => LinearInterpolation(10, Number.POSITIVE_INFINITY, 0.5)).toThrow(RangeError);
+			expect(() => LinearInterpolation(10, 20, Number.NaN)).toThrow(RangeError);
 		});
 
 		it('should work with equal start and end values', () => {
@@ -472,7 +483,6 @@ describe('Interpolation', () => {
 		describe('Parameter validation', () => {
 			it('should not clamp t parameter for extrapolating functions', () => {
 				const functions = [
-					LinearInterpolation,
 					SmoothStep,
 					SmootherStep,
 					QuadraticEaseIn,
@@ -495,6 +505,16 @@ describe('Interpolation', () => {
 					expect(func(0, 10, -0.5)).not.toBe(0);
 					expect(func(0, 10, 1.5)).not.toBe(10);
 				});
+			});
+
+			it('should clamp t by default for LinearInterpolation', () => {
+				expect(LinearInterpolation(0, 10, -0.5)).toBe(0);
+				expect(LinearInterpolation(0, 10, 1.5)).toBe(10);
+			});
+
+			it('should allow extrapolation for LinearInterpolation with clamped: false', () => {
+				expect(LinearInterpolation(0, 10, -0.5, { clamped: false })).toBe(-5);
+				expect(LinearInterpolation(0, 10, 1.5, { clamped: false })).toBe(15);
 			});
 			it('should not clamp t for CatmullRomInterpolation', () => {
 				expect(CatmullRomInterpolation(0, 1, 2, 3, -0.5)).not.toBe(1);

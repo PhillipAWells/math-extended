@@ -62,55 +62,6 @@ export class ScalarError extends BaseError<TScalarErrorMetadata> {
 }
 
 /**
- * Linear interpolation between two values with clamped interpolant.
- * The interpolant t is clamped to [0, 1] before interpolation.
- *
- * @param a - Start value
- * @param b - End value
- * @param t - Interpolation parameter (will be clamped to [0, 1])
- * @returns Interpolated value: a + (b - a) * Clamp(t, 0, 1)
- * @throws {RangeError} If a, b, or t are not finite numbers
- *
- * @example
- * ```typescript
- * Lerp(0, 10, 0.5)  // 5 (t clamped to [0,1])
- * Lerp(0, 10, 1.5)  // 10 (t clamped to 1)
- * Lerp(0, 10, -0.5) // 0 (t clamped to 0)
- * ```
- */
-export function Lerp(a: number, b: number, t: number): number {
-	if (!Number.isFinite(a) || !Number.isFinite(b) || !Number.isFinite(t)) {
-		throw new RangeError('Lerp: a, b, and t must be finite numbers');
-	}
-	const clampedT = Clamp(t, 0, 1);
-	return a + (b - a) * clampedT;
-}
-
-/**
- * Linear interpolation between two values without clamping the interpolant.
- * The interpolant t is used directly, allowing extrapolation beyond [0, 1].
- *
- * @param a - Start value
- * @param b - End value
- * @param t - Interpolation parameter (not clamped)
- * @returns Interpolated value: a + (b - a) * t
- * @throws {RangeError} If a, b, or t are not finite numbers
- *
- * @example
- * ```typescript
- * LerpUnclamped(0, 10, 0.5)  // 5
- * LerpUnclamped(0, 10, 1.5)  // 15 (extrapolates beyond b)
- * LerpUnclamped(0, 10, -0.5) // -5 (extrapolates beyond a)
- * ```
- */
-export function LerpUnclamped(a: number, b: number, t: number): number {
-	if (!Number.isFinite(a) || !Number.isFinite(b) || !Number.isFinite(t)) {
-		throw new RangeError('LerpUnclamped: a, b, and t must be finite numbers');
-	}
-	return a + (b - a) * t;
-}
-
-/**
  * Inverse linear interpolation: finds t such that Lerp(a, b, t) = value.
  * Solves for t in the equation: value = a + (b - a) * t.
  *

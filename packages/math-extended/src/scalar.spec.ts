@@ -1,6 +1,6 @@
 import { expect, test, describe } from 'vitest';
 import {
-	Lerp, LerpUnclamped, InverseLerp, Remap, MoveTowards, Mod, Repeat, PingPong,
+	InverseLerp, Remap, MoveTowards, Mod, Repeat, PingPong,
 	Approximately, Clamp01, Sign, RoundToNearest, ScalarError,
 	Gcd, Lcm, Factorial, Linspace, Range
 } from './scalar.js';
@@ -24,43 +24,6 @@ describe('Math Extended > Scalar', () => {
 			expect(() => {
 				(ScalarError.Code as unknown as { SCALAR_ERROR: string }).SCALAR_ERROR = 'DIFFERENT';
 			}).toThrow();
-		});
-	});
-
-	describe('Lerp', () => {
-		test('Lerp with t in [0,1] returns interpolated value', () => {
-			expect(Lerp(0, 10, 0.5)).toBe(5);
-			expect(Lerp(0, 10, 0)).toBe(0);
-			expect(Lerp(0, 10, 1)).toBe(10);
-		});
-
-		test('Lerp clamps t outside [0,1]', () => {
-			expect(Lerp(0, 10, 1.5)).toBe(10);
-			expect(Lerp(0, 10, -0.5)).toBe(0);
-		});
-
-		test('Lerp with negative values', () => {
-			expect(Lerp(-10, 10, 0.5)).toBe(0);
-			expect(Lerp(-5, 5, 0.25)).toBe(-2.5);
-		});
-
-		test('Lerp throws on non-finite inputs', () => {
-			expect(() => Lerp(Number.NaN, 10, 0.5)).toThrow(RangeError);
-			expect(() => Lerp(0, Number.POSITIVE_INFINITY, 0.5)).toThrow(RangeError);
-			expect(() => Lerp(0, 10, Number.NaN)).toThrow(RangeError);
-		});
-	});
-
-	describe('LerpUnclamped', () => {
-		test('LerpUnclamped allows extrapolation', () => {
-			expect(LerpUnclamped(0, 10, 0.5)).toBe(5);
-			expect(LerpUnclamped(0, 10, 1.5)).toBe(15);
-			expect(LerpUnclamped(0, 10, -0.5)).toBe(-5);
-		});
-
-		test('LerpUnclamped throws on non-finite inputs', () => {
-			expect(() => LerpUnclamped(Number.NaN, 10, 0.5)).toThrow(RangeError);
-			expect(() => LerpUnclamped(0, 10, Number.POSITIVE_INFINITY)).toThrow(RangeError);
 		});
 	});
 
