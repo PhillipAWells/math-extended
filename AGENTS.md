@@ -95,7 +95,7 @@ All four extend `BaseError` from `@pawells/typescript-common`. Every error has:
 - A `code: string` property (accessed via inherited `Code` getter)
 - Optional cause chaining via `{ cause: originalError }` in the constructor options
 
-`ScalarError` is thrown by scalar operations where the failure is a domain constraint (e.g., degenerate interval in `InverseLerp`, empty array in `Mean`). Some scalar utilities still throw built-in `RangeError` for range/integer violations (e.g., `Lerp`, `Gcd`, `Factorial`, `Repeat`, `Range`). See Section 6 for the distinction.
+`ScalarError` is thrown by scalar operations where the failure is a domain constraint (e.g., degenerate interval in `InverseLerp`, empty array in `Mean`). Some scalar utilities still throw built-in `RangeError` for range/integer violations (e.g., `LinearInterpolation`, `Gcd`, `Factorial`, `Repeat`, `Range`). See Section 6 for the distinction.
 
 ### makeValidate factory
 
@@ -163,9 +163,7 @@ import { VectorAdd, TVector3, VECTOR3_SCHEMA } from '@pawells/math-extended';
 
 | Export | Description |
 |---|---|
-| `Lerp(a, b, t)` | Linear interpolation clamped to `[0, 1]`; throws `RangeError` if non-finite |
-| `LerpUnclamped(a, b, t)` | Linear interpolation without clamping (extrapolates); throws `RangeError` if non-finite |
-| `InverseLerp(a, b, value)` | Finds `t` such that `Lerp(a, b, t) === value`; throws `ScalarError` if `a === b`, `RangeError` if non-finite |
+| `InverseLerp(a, b, value)` | Finds `t` such that `LinearInterpolation(a, b, t) === value`; throws `ScalarError` if `a === b`, `RangeError` if non-finite |
 | `Remap(value, inMin, inMax, outMin, outMax)` | Maps value from `[inMin, inMax]` to `[outMin, outMax]`; throws `ScalarError` if `inMin === inMax`, `RangeError` if non-finite |
 | `MoveTowards(current, target, maxDelta)` | Moves `current` towards `target` by at most `maxDelta`; throws `RangeError` if non-finite |
 | `Mod(a, n)` | Euclidean modulo (result sign follows divisor); throws `RangeError` if `n === 0` or non-finite |
@@ -194,7 +192,9 @@ import { VectorAdd, TVector3, VECTOR3_SCHEMA } from '@pawells/math-extended';
 
 ### Interpolation (`interpolation.ts`)
 
-Scalar easing families: `LinearInterpolation`, `SmoothStep`, `SmootherStep`, `CosineInterpolation`, `StepInterpolation`, `CatmullRomInterpolation`, `HermiteInterpolation`, plus `EaseIn`/`EaseOut`/`EaseInOut` variants for Quadratic, Cubic, Sine, Exponential, Elastic, Circular, Back, and Bounce.
+Scalar easing families: `LinearInterpolation(a, b, t, options?)`, `SmoothStep`, `SmootherStep`, `CosineInterpolation`, `StepInterpolation`, `CatmullRomInterpolation`, `HermiteInterpolation`, plus `EaseIn`/`EaseOut`/`EaseInOut` variants for Quadratic, Cubic, Sine, Exponential, Elastic, Circular, Back, and Bounce.
+
+`LinearInterpolation` clamps `t` to `[0, 1]` by default and throws `RangeError` on non-finite inputs. Pass `{ clamped: false }` to allow extrapolation. `VectorLERP` accepts the same `options` parameter with the same defaults.
 
 ### Random (`random.ts`)
 
@@ -358,7 +358,7 @@ Both functions compute a full SVD internally (O(n³) or worse). Prefer `MatrixFr
 
 ### ScalarError vs RangeError in scalar.ts
 
-`scalar.ts` uses two different error types. `ScalarError` is thrown for domain constraint failures that have no sensible result (e.g., degenerate interval in `InverseLerp`/`Remap`, empty array in `Mean`/`Variance`/`Median`). Built-in `RangeError` is thrown for invalid input values that violate numeric contracts (e.g., non-finite inputs to `Lerp`/`MoveTowards`, non-integer arguments to `Gcd`/`Lcm`/`Factorial`, `step === 0` in `Range`, `length <= 0` in `Repeat`/`PingPong`). Both classes are thrown by public API functions in this module — callers must handle both.
+`scalar.ts` uses two different error types. `ScalarError` is thrown for domain constraint failures that have no sensible result (e.g., degenerate interval in `InverseLerp`/`Remap`, empty array in `Mean`/`Variance`/`Median`). Built-in `RangeError` is thrown for invalid input values that violate numeric contracts (e.g., non-finite inputs to `LinearInterpolation`/`MoveTowards`, non-integer arguments to `Gcd`/`Lcm`/`Factorial`, `step === 0` in `Range`, `length <= 0` in `Repeat`/`PingPong`). Both classes are thrown by public API functions in this module — callers must handle both.
 
 ### Finiteness predicates do not route through Assert*
 

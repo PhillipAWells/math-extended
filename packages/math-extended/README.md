@@ -105,9 +105,7 @@ Extended scalar operations. `ScalarError` is thrown by functions that require de
 | Export | Description |
 |--------|-------------|
 | `ScalarError` | Error class for scalar validation failures; has `code` property and chains `cause` |
-| `Lerp(a, b, t)` | Linear interpolation with `t` clamped to `[0, 1]`; throws `RangeError` if any argument is not finite |
-| `LerpUnclamped(a, b, t)` | Linear interpolation without clamping, allowing extrapolation; throws `RangeError` if not finite |
-| `InverseLerp(a, b, value)` | Inverse lerp: finds `t` such that `Lerp(a, b, t) = value`; throws `ScalarError` if `a === b`, `RangeError` if not finite |
+| `InverseLerp(a, b, value)` | Inverse lerp: finds `t` such that `LinearInterpolation(a, b, t) = value`; throws `ScalarError` if `a === b`, `RangeError` if not finite |
 | `Remap(value, inMin, inMax, outMin, outMax)` | Map a value from one range to another; throws `ScalarError` if `inMin === inMax`, `RangeError` if not finite |
 | `MoveTowards(current, target, maxDelta)` | Move `current` towards `target` by at most `maxDelta`; throws `RangeError` if not finite |
 | `Mod(a, n)` | True Euclidean modulo (result sign follows divisor); throws `RangeError` if `n === 0` or not finite |
@@ -159,7 +157,7 @@ All scalar interpolation functions share the signature `(a, b, t)` unless otherw
 
 | Export | Description |
 |--------|-------------|
-| `LinearInterpolation(a, b, t)` | Linear interpolation (LERP) |
+| `LinearInterpolation(a, b, t, options?)` | Linear interpolation; clamps `t` to `[0, 1]` by default; pass `{ clamped: false }` to allow extrapolation; throws `RangeError` on non-finite input |
 | `SmoothStep(a, b, t)` | Cubic smooth-step |
 | `SmootherStep(a, b, t)` | Quintic smoother-step |
 | `CosineInterpolation(a, b, t)` | Cosine interpolation |
@@ -276,7 +274,7 @@ Every scalar easing and interpolation function has a `Vector*` counterpart that 
 
 | Export | Description |
 |--------|-------------|
-| `VectorLERP(a, b, t)` | Component-wise linear interpolation |
+| `VectorLERP(a, b, t, options?)` | Component-wise linear interpolation; clamps `t` to `[0, 1]` by default; pass `{ clamped: false }` to allow extrapolation |
 | `VectorSmoothStep(a, b, t)` | Component-wise smooth-step |
 | `VectorSmootherStep(a, b, t)` | Component-wise smoother-step |
 | `VectorCosineInterpolation(a, b, t)` | Component-wise cosine interpolation |

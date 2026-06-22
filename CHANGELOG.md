@@ -22,8 +22,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 **Scalar utilities (`scalar.ts`) + `ScalarError`**
 
 - `ScalarError` — domain error class for scalar operations; extends `BaseError` with a `code` property.
-- `Lerp(a, b, t)` — linearly interpolates between two scalars, clamping `t` to `[0, 1]`.
-- `LerpUnclamped(a, b, t)` — linearly interpolates between two scalars without clamping `t`.
 - `InverseLerp(a, b, value)` — returns the unclamped `t` that produces `value` between `a` and `b`.
 - `Remap(value, inMin, inMax, outMin, outMax)` — maps a value from one range to another.
 - `MoveTowards(current, target, maxDelta)` — moves a scalar toward a target by at most `maxDelta`.
@@ -113,6 +111,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- `LinearInterpolation` now clamps `t` to `[0, 1]` by default and validates all three inputs, throwing `RangeError` on non-finite values. Pass `{ clamped: false }` to allow extrapolation beyond the `[a, b]` range. `VectorLERP` gains the same `options.clamped` parameter (default clamped). The standalone `Lerp` and `LerpUnclamped` helpers added earlier in this cycle were consolidated into `LinearInterpolation` before this version shipped.
 - `SphericalLinearInterpolation`, `CatmullRomInterpolation`, and `HermiteInterpolation` (vectors) and the angle helper functions now reject non-finite inputs by throwing instead of silently producing `NaN` or `Infinity` results.
 - `QUATERNION_SCHEMA` reworked so its inferred TypeScript type aligns exactly with `TQuaternion`; `NaN` components are now rejected at runtime, while `Infinity` is intentionally permitted and documented.
 - Validation guards across all domains reimplemented to avoid calling Zod `.parse()` on the hot path; observable behavior and error messages are unchanged, and schemas remain exported for type inference. This is a net performance improvement for code that validates frequently.
