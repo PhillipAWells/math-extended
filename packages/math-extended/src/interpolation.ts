@@ -310,7 +310,7 @@ export function ExponentialEaseOut(a: number, b: number, t: number): number {
  *
  * @param a - Start value (result when t = 0)
  * @param b - End value (result when t = 1)
- * @param t - Interpolation parameter — clamped to [0, 1] at t=0 and t=1 boundaries
+ * @param t - Interpolation parameter — unclamped, with exact boundary values at t=0 and t=1
  * @returns Interpolated value with elastic overshoot effect toward end
  *
  * @example
@@ -464,7 +464,7 @@ export function HermiteInterpolation(p0: number,	p1: number,	t0: number,	t1: num
  *
  * @param a - Start value (result when t = 0)
  * @param b - End value (result when t = 1)
- * @param t - Interpolation parameter — clamped to [0, 1] for a valid circular arc
+ * @param t - Interpolation parameter — unclamped, allowing extrapolation
  * @returns Interpolated value with circular acceleration from start
  *
  * @example
@@ -485,7 +485,7 @@ export function CircularEaseIn(a: number, b: number, t: number): number {
  *
  * @param a - Start value (result when t = 0)
  * @param b - End value (result when t = 1)
- * @param t - Interpolation parameter — clamped to [0, 1] for a valid circular arc
+ * @param t - Interpolation parameter — unclamped, allowing extrapolation
  * @returns Interpolated value with circular deceleration toward end
  *
  * @example

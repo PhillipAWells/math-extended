@@ -56,6 +56,7 @@ export interface IExceptionDetails {
  * Asserts that a value is a number, optionally with constraints.
  * Throws an Error on validation failure with a descriptive message.
  *
+ * @internal
  * @param value - The value to validate
  * @param constraints - Optional numeric constraints (finite, integer, range)
  * @param exception - Optional custom error message and code
@@ -122,6 +123,7 @@ export function AssertNumber(
  * Asserts that a value is an array, optionally with size constraints.
  * Throws an Error on validation failure with a descriptive message.
  *
+ * @internal
  * @param value - The value to validate
  * @param constraints - Optional size constraints (size, minSize, maxSize)
  * @param exception - Optional custom error message and code
@@ -169,6 +171,7 @@ export function AssertArray(
  * Asserts that a value is an instance of a given constructor.
  * Throws an Error on validation failure with a descriptive message.
  *
+ * @internal
  * @template T - The type being asserted
  * @param value - The value to validate
  * @param ctor - The constructor to check against
@@ -197,6 +200,7 @@ export function AssertInstanceOf<T>(
  * Asserts that two values are not equal.
  * Throws an Error on validation failure with a descriptive message.
  *
+ * @internal
  * @param a - First value to compare
  * @param b - Second value to compare
  * @param exception - Optional custom error message and code

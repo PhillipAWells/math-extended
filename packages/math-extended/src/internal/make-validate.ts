@@ -5,6 +5,7 @@
  * type guard predicate that returns true for valid input and false otherwise.
  * This pattern allows for type-safe conditional logic without exception handling.
  *
+ * @internal
  * @typeParam T - The type being validated
  * @param assert - The assertion function to wrap (throws if validation fails)
  * @returns A type guard function that returns true if valid, false otherwise

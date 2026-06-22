@@ -1,7 +1,15 @@
 const BOX_MULLER_COEFFICIENT = -2;
 const BOX_MULLER_MIN_U1 = Number.EPSILON; // Avoid log(0) = -Infinity in Box-Muller transform
 
-/** Type for a PRNG function that returns a random number in [0, 1) */
+/**
+ * Type for a PRNG function that returns a random number in [0, 1).
+ *
+ * @example
+ * ```typescript
+ * const myPRNG: IPRNG = () => Math.random();
+ * const randomNum = myPRNG(); // Returns value in [0, 1)
+ * ```
+ */
 export type IPRNG = () => number;
 
 /**
@@ -139,6 +147,7 @@ export function RandomChoice<T>(array: T[]): T | undefined {
  * @param array - Array to choose from
  * @param count - Number of elements to select
  * @returns Array of `count` unique randomly selected elements, or empty array if inputs are invalid
+ * @throws {RangeError} If an out-of-bounds access occurs during the shuffle (defensive guard)
  * @example
  * ```typescript
  * RandomSample([1, 2, 3, 4, 5], 3) // Returns 3 unique numbers
@@ -174,6 +183,7 @@ export function RandomSample<T>(array: T[], count: number): T[] {
  * @param array - Array to shuffle
  * @param clone - If true, returns a shuffled copy; if false/undefined, modifies original array
  * @returns Shuffled array (original reference if clone=false, new array if clone=true)
+ * @throws {RangeError} If an out-of-bounds access occurs during the shuffle (defensive guard)
  * @example
  * ```typescript
  * RandomShuffle([1, 2, 3, 4, 5]) // Modifies and returns original array

@@ -62,7 +62,7 @@ export class ScalarError extends BaseError<TScalarErrorMetadata> {
 }
 
 /**
- * Inverse linear interpolation: finds t such that Lerp(a, b, t) = value.
+ * Inverse linear interpolation: finds t such that LinearInterpolation(a, b, t) = value.
  * Solves for t in the equation: value = a + (b - a) * t.
  *
  * @param a - Start value

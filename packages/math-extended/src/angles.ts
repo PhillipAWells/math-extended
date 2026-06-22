@@ -1,4 +1,5 @@
 import { EPSILON } from './constants.js';
+import { AssertNumber } from './internal/guards.js';
 
 const DEGREES_PER_HALF_REVOLUTION = 180;
 const DEGREES_PER_FULL_REVOLUTION = 360;
@@ -18,7 +19,6 @@ const NORMALIZE_EPSILON = EPSILON; // Epsilon for floating-point boundary cleanu
  * DegreesToRadians(0)    // 0
  * ```
  */
-import { AssertNumber } from './internal/guards.js';
 
 export function DegreesToRadians(degrees: number): number {
 	return (degrees * Math.PI) / DEGREES_PER_HALF_REVOLUTION;
