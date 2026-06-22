@@ -1,4 +1,4 @@
-import { MatrixFrobeniusNorm, MatrixSpectralNorm, Matrix1Norm, MatrixInfinityNorm, MatrixNuclearNorm, MatrixMaxNorm, MatrixPNorm, MatrixNormalize } from './normalization.js';
+import { MatrixFrobeniusNorm, MatrixSpectralNorm, Matrix1Norm, MatrixInfinityNorm, MatrixNuclearNorm, MatrixMaxNorm, MatrixPNorm, MatrixNormalize, MatrixIsOrthogonal, MatrixIsPositiveDefinite } from './normalization.js';
 import { MatrixIdentity } from './core.js';
 import { MatrixError } from './asserts.js';
 import { type TMatrix } from './types.js';
@@ -470,6 +470,78 @@ describe('Matrix Normalizations', () => {
 			const originalNorm = MatrixFrobeniusNorm(matrix);
 			expect(normalized[0][0]).toBeCloseTo(-3 / originalNorm, 10);
 			expect(normalized[0][1]).toBeCloseTo(4 / originalNorm, 10);
+		});
+	});
+
+	describe('MatrixIsOrthogonal', () => {
+		test('should return true for identity matrix', () => {
+			const I: TMatrix = MatrixIdentity(3);
+			expect(MatrixIsOrthogonal(I)).toBe(true);
+		});
+
+		test('should return true for rotation matrix', () => {
+			// 90-degree rotation around Z-axis
+			const rotation: TMatrix = [[0, -1, 0], [1, 0, 0], [0, 0, 1]];
+			expect(MatrixIsOrthogonal(rotation)).toBe(true);
+		});
+
+		test('should return false for scaled rotation matrix', () => {
+			// Scaled rotation (scale by 2)
+			const scaled: TMatrix = [[0, -2, 0], [2, 0, 0], [0, 0, 2]];
+			expect(MatrixIsOrthogonal(scaled)).toBe(false);
+		});
+
+		test('should return false for non-square matrix', () => {
+			const rect: TMatrix = [[1, 0], [0, 1], [0, 0]];
+			expect(MatrixIsOrthogonal(rect)).toBe(false);
+		});
+
+		test('should return true for reflection matrix', () => {
+			// Reflection across X-axis
+			const reflection: TMatrix = [[1, 0], [0, -1]];
+			expect(MatrixIsOrthogonal(reflection)).toBe(true);
+		});
+
+		test('should return false for non-orthogonal matrix', () => {
+			const nonOrth: TMatrix = [[1, 1], [0, 1]];
+			expect(MatrixIsOrthogonal(nonOrth)).toBe(false);
+		});
+	});
+
+	describe('MatrixIsPositiveDefinite', () => {
+		test('should return true for positive definite 2x2 matrix', () => {
+			const pd: TMatrix = [[4, 2], [2, 3]];
+			expect(MatrixIsPositiveDefinite(pd)).toBe(true);
+		});
+
+		test('should return true for identity matrix', () => {
+			const I: TMatrix = MatrixIdentity(2);
+			expect(MatrixIsPositiveDefinite(I)).toBe(true);
+		});
+
+		test('should return true for diagonal positive definite matrix', () => {
+			const diag: TMatrix = [[2, 0, 0], [0, 3, 0], [0, 0, 4]];
+			expect(MatrixIsPositiveDefinite(diag)).toBe(true);
+		});
+
+		test('should return false for singular matrix', () => {
+			const singular: TMatrix = [[1, 1], [1, 1]];
+			expect(MatrixIsPositiveDefinite(singular)).toBe(false);
+		});
+
+		test('should return false for indefinite matrix', () => {
+			const indef: TMatrix = [[1, 2], [2, 1]];
+			expect(MatrixIsPositiveDefinite(indef)).toBe(false);
+		});
+
+		test('should return false for negative definite matrix', () => {
+			const nd: TMatrix = [[-4, -2], [-2, -3]];
+			expect(MatrixIsPositiveDefinite(nd)).toBe(false);
+		});
+
+		test('should return false for non-square matrix', () => {
+			const rect: TMatrix = [[1, 0], [0, 1], [0, 0]];
+			expect(MatrixIsPositiveDefinite(rect)).toBe(false);
 		});
 	});
 });

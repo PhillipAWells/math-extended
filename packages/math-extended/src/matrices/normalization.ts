@@ -1,6 +1,6 @@
 import { AssertMatrix, MatrixError } from './asserts.js';
 import { MatrixCreate, MatrixSize } from './core.js';
-import { MatrixSVD } from './decompositions.js';
+import { MatrixSVD, MatrixCholesky } from './decompositions.js';
 import type { TMatrix, TMatrixResult } from './types.js';
 
 /**
@@ -269,4 +269,131 @@ export function MatrixNormalize<T extends TMatrix>(matrix: T): TMatrixResult<T> 
 	}
 
 	return result as TMatrixResult<T>;
+}
+
+/**
+ * Determines whether a matrix is orthogonal (orthonormal columns/rows).
+ *
+ * A square matrix Q is orthogonal if Qᵀ × Q = I (or equivalently Q × Qᵀ = I),
+ * meaning its rows and columns form orthonormal sets. Orthogonal matrices preserve
+ * vector magnitudes and angles under transformation, making them numerically stable.
+ *
+ * Returns false (does not throw) for non-square matrices.
+ *
+ * @param matrix - Input matrix (any m×n dimensions)
+ * @param tolerance - Maximum allowed deviation from identity in Qᵀ × Q (default: 1e-9)
+ * @returns True if the matrix is square and orthogonal within tolerance; false otherwise
+ * @throws {MatrixError} If matrix contains invalid values (NaN, Infinity)
+ *
+ * @example
+ * ```typescript
+ * // Orthogonal (rotation matrix)
+ * const rotated = [[0, -1, 0], [1, 0, 0], [0, 0, 1]];
+ * MatrixIsOrthogonal(rotated) // true
+ *
+ * // Not orthogonal (scaled rotation)
+ * const scaled = [[0, -2, 0], [2, 0, 0], [0, 0, 2]];
+ * MatrixIsOrthogonal(scaled) // false (magnitudes changed)
+ *
+ * // Non-square (cannot be orthogonal)
+ * const rect = [[1, 0], [0, 1], [0, 0]];
+ * MatrixIsOrthogonal(rect) // false
+ * ```
+ */
+export function MatrixIsOrthogonal(matrix: TMatrix, tolerance = 1e-9): boolean {
+	AssertMatrix(matrix);
+
+	const [rows, cols] = MatrixSize(matrix);
+
+	// Must be square
+	if (rows !== cols || rows === 0) return false;
+
+	// We need MatrixTranspose, MatrixMultiply, MatrixIdentity, MatrixEquals
+	// To avoid circular imports, we inline the orthogonality check
+	// Q is orthogonal iff Q^T × Q = I, which means:
+	// sum of row[i] · row[j] = 1 if i==j, else 0 (dot products)
+
+	// Check orthonormality: each row has magnitude 1 and rows are perpendicular
+	for (let i = 0; i < rows; i++) {
+		const rowI = matrix[i];
+		if (!rowI) return false;
+
+		for (let j = 0; j < rows; j++) {
+			const rowJ = matrix[j];
+			if (!rowJ) return false;
+
+			// Compute dot product row[i] · row[j]
+			let dot = 0;
+			for (let k = 0; k < cols; k++) {
+				const valI = rowI[k];
+				const valJ = rowJ[k];
+				if (typeof valI !== 'number' || typeof valJ !== 'number') return false;
+				dot += valI * valJ;
+			}
+
+			// Expected: 1 if i==j (magnitude squared = 1), 0 otherwise (perpendicular)
+			const expected = i === j ? 1 : 0;
+			if (Math.abs(dot - expected) > tolerance) {
+				return false;
+			}
+		}
+	}
+
+	return true;
+}
+
+/**
+ * Determines whether a matrix is positive definite (all eigenvalues > 0).
+ *
+ * A symmetric matrix A is positive definite if x^T × A × x > 0 for all non-zero vectors x.
+ * This is fundamental in optimization (Hessians), statistics (covariance matrices),
+ * and numerical methods (Cholesky decomposition).
+ *
+ * This function attempts Cholesky decomposition: success ⇒ positive definite,
+ * failure ⇒ not positive definite. This approach is efficient and numerically stable.
+ *
+ * Returns false (does not throw) for:
+ * - Non-square matrices
+ * - Non-symmetric matrices
+ * - Singular or indefinite matrices
+ *
+ * @param matrix - Input matrix (any m×n dimensions)
+ * @returns True if the matrix is symmetric and positive definite; false otherwise
+ * @throws {MatrixError} If matrix contains invalid values (NaN, Infinity)
+ *
+ * @example
+ * ```typescript
+ * // Positive definite (covariance-like)
+ * const pd = [[4, 2], [2, 3]];
+ * MatrixIsPositiveDefinite(pd) // true
+ *
+ * // Not positive definite (negative eigenvalue)
+ * const nd = [[1, 2], [2, 1]];
+ * MatrixIsPositiveDefinite(nd) // false
+ *
+ * // Singular (zero eigenvalue)
+ * const singular = [[1, 1], [1, 1]];
+ * MatrixIsPositiveDefinite(singular) // false
+ *
+ * // Non-square
+ * const rect = [[1, 0], [0, 1], [0, 0]];
+ * MatrixIsPositiveDefinite(rect) // false
+ * ```
+ */
+export function MatrixIsPositiveDefinite(matrix: TMatrix): boolean {
+	AssertMatrix(matrix);
+
+	const [rows, cols] = MatrixSize(matrix);
+
+	// Must be square
+	if (rows !== cols || rows === 0) return false;
+
+	// Attempt Cholesky decomposition: success ⇒ positive definite; failure ⇒ not PD
+	try {
+		MatrixCholesky(matrix);
+		return true;
+	}
+	catch {
+		return false;
+	}
 }
