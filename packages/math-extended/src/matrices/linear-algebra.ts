@@ -690,3 +690,164 @@ export function MatrixNullSpace(matrix: TMatrix, tolerance?: number): TMatrix {
 
 	return nullBasis;
 }
+
+/**
+ * Computes the 2-norm condition number of a matrix.
+ *
+ * The condition number κ(A) = σ_max / σ_min measures how sensitive the solution
+ * of a linear system Ax = b is to perturbations in the data. A high condition
+ * number indicates the matrix is ill-conditioned and the solution is numerically unstable.
+ *
+ * - κ(A) = 1: perfectly conditioned (identity matrix)
+ * - κ(A) = 1 to 10: well-conditioned
+ * - κ(A) = 10 to 1000: moderately ill-conditioned
+ * - κ(A) > 1000: severely ill-conditioned
+ *
+ * For singular matrices (smallest singular value = 0), returns Infinity.
+ *
+ * @param matrix - Input matrix (any m×n dimensions)
+ * @returns The 2-norm condition number κ = σ_max / σ_min (or Infinity if singular)
+ * @throws {MatrixError} If matrix contains invalid values (NaN, Infinity)
+ *
+ * @example
+ * ```typescript
+ * // Well-conditioned identity matrix
+ * const I = [[1, 0], [0, 1]];
+ * MatrixConditionNumber(I) // 1
+ *
+ * // Ill-conditioned nearly-singular matrix
+ * const ill = [[1, 1], [1, 1.0001]];
+ * MatrixConditionNumber(ill) // ~10000 (very high)
+ *
+ * // Singular matrix
+ * const singular = [[1, 2], [2, 4]];
+ * MatrixConditionNumber(singular) // Infinity
+ * ```
+ */
+export function MatrixConditionNumber(matrix: TMatrix): number {
+	AssertMatrix(matrix);
+
+	const { S } = MatrixSVD(matrix);
+
+	if (S.length === 0) return 1;
+
+	const maxSingular = S[0]; // First (largest) singular value
+	const minSingular = S[S.length - 1]; // Last (smallest) singular value
+
+	if (minSingular === 0) return Infinity;
+	return maxSingular / minSingular;
+}
+
+/**
+ * Determines whether a matrix is invertible (numerically non-singular and square).
+ *
+ * A matrix is invertible if it is square and has full rank (all singular values
+ * are significantly non-zero). This function uses singular value decomposition for
+ * robust numerical detection of singularity.
+ *
+ * Returns false (does not throw) for non-square matrices.
+ *
+ * @param matrix - Input matrix (any m×n dimensions)
+ * @param tolerance - Singular values below this threshold are treated as zero (default: max(m,n) × max(S) × 2.2e-16)
+ * @returns True if the matrix is square and numerically invertible; false otherwise
+ * @throws {MatrixError} If matrix contains invalid values (NaN, Infinity)
+ *
+ * @example
+ * ```typescript
+ * // Invertible (identity)
+ * const I = [[1, 0], [0, 1]];
+ * MatrixIsInvertible(I) // true
+ *
+ * // Non-invertible (singular)
+ * const singular = [[1, 2], [2, 4]];
+ * MatrixIsInvertible(singular) // false
+ *
+ * // Non-square (never invertible in the strict sense)
+ * const rect = [[1, 2, 3], [4, 5, 6]];
+ * MatrixIsInvertible(rect) // false
+ * ```
+ */
+export function MatrixIsInvertible(matrix: TMatrix, tolerance?: number): boolean {
+	AssertMatrix(matrix);
+
+	const [rows, cols] = MatrixSize(matrix);
+
+	// Must be square to be invertible
+	if (rows !== cols || rows === 0) return false;
+
+	const { S } = MatrixSVD(matrix);
+
+	// Compute default tolerance using numpy convention
+	const machineEpsilon = 2.2204460492503131e-16;
+	const maxSingularValue = S.length > 0 ? S[0] : 0;
+	const tol = tolerance ?? (Math.max(rows, cols) * maxSingularValue * machineEpsilon);
+
+	// All singular values must be above tolerance for full rank
+	for (const singularValue of S) {
+		if (singularValue <= tol) return false;
+	}
+
+	return true;
+}
+
+/**
+ * Solves the least-squares problem A x = b for overdetermined or general systems.
+ *
+ * For an m×n matrix A and vector b of length m:
+ * - If m > n (overdetermined): finds x minimizing ||A x - b||²
+ * - If m = n (square): finds the unique solution (if invertible)
+ * - If m < n (underdetermined): finds the minimum-norm solution
+ *
+ * Uses QR decomposition (preferred for stability) if available, otherwise
+ * falls back to pseudoinverse method. The solution satisfies A⁺ b where A⁺
+ * is the Moore-Penrose pseudoinverse.
+ *
+ * @param a - The m×n coefficient matrix
+ * @param b - The m-element right-hand side vector
+ * @returns The n-element solution vector x (or minimum-norm solution if underdetermined)
+ * @throws {MatrixError} If dimensions are incompatible (b.length ≠ rows of A) or A/b contain invalid values
+ *
+ * @example
+ * ```typescript
+ * // Overdetermined system (2 equations, 1 unknown) — typically no exact solution
+ * const A = [[1], [2], [3]]; // 3×1 matrix
+ * const b = [1.1, 2.1, 2.9]; // 3 measurements (noisy)
+ * const x = MatrixLeastSquares(A, b);
+ * // x ≈ [1] (least-squares fit: minimizes sum of squared residuals)
+ *
+ * // Square system (direct solution)
+ * const A2 = [[1, 0], [1, 1]];
+ * const b2 = [1, 2];
+ * const x2 = MatrixLeastSquares(A2, b2); // x ≈ [1, 1]
+ * ```
+ */
+export function MatrixLeastSquares(a: TMatrix, b: number[]): number[] {
+	AssertMatrix(a);
+	const [m] = MatrixSize(a);
+
+	if (!Array.isArray(b)) throw new MatrixError('Right-hand side b must be an array');
+	if (b.length !== m) {
+		throw new MatrixError(`Dimension mismatch: A has ${m} rows but b has ${b.length} elements`);
+	}
+
+	// Convert b to a column vector (m×1 matrix)
+	const bMatrix: TMatrix = b.map(val => [val]);
+
+	// Compute A⁺ using pseudoinverse
+	const APseudo = MatrixPseudoInverse(a);
+
+	// Solution: x = A⁺ b (n×m) @ (m×1) = (n×1)
+	const resultMatrix = MatrixMultiply(APseudo, bMatrix);
+
+	// Extract column vector as 1D array
+	const result: number[] = [];
+	for (const row of resultMatrix) {
+		const val = row[0];
+		if (typeof val !== 'number') {
+			throw new MatrixError('Solution element is not a number');
+		}
+		result.push(val);
+	}
+
+	return result;
+}

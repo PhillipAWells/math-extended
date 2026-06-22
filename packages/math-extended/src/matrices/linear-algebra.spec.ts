@@ -7,7 +7,10 @@ import {
 	MatrixGramSchmidt,
 	MatrixMinor,
 	MatrixPseudoInverse,
-	MatrixNullSpace
+	MatrixNullSpace,
+	MatrixConditionNumber,
+	MatrixIsInvertible,
+	MatrixLeastSquares
 } from './linear-algebra.js';
 import { MatrixMultiply } from './arithmetic.js';
 import { type TMatrix } from './types.js';
@@ -685,6 +688,93 @@ describe('Matrix Operations for Linear Algebra', () => {
 					const norm = Math.sqrt(v.reduce((sum, x) => sum + x * x, 0));
 					expect(norm).toBeCloseTo(1, 10);
 				}
+			});
+		});
+
+		describe('MatrixConditionNumber', () => {
+			test('should return 1 for identity matrix', () => {
+				const I: TMatrix = [[1, 0], [0, 1]];
+				expect(MatrixConditionNumber(I)).toBeCloseTo(1, 9);
+			});
+
+			test('should return Infinity for singular matrix', () => {
+				const singular: TMatrix = [[1, 2], [2, 4]];
+				expect(MatrixConditionNumber(singular)).toBe(Infinity);
+			});
+
+			test('should return high value for ill-conditioned matrix', () => {
+				const ill: TMatrix = [[1, 1], [1, 1.0001]];
+				const cond = MatrixConditionNumber(ill);
+				expect(cond).toBeGreaterThan(1000);
+			});
+
+			test('should compute condition number for 3x3 matrix', () => {
+				const matrix: TMatrix = [[2, 0, 0], [0, 1, 0], [0, 0, 0.1]];
+				const cond = MatrixConditionNumber(matrix);
+				// σ_max / σ_min = 2 / 0.1 = 20
+				expect(cond).toBeCloseTo(20, 9);
+			});
+		});
+
+		describe('MatrixIsInvertible', () => {
+			test('should return true for invertible identity matrix', () => {
+				const I: TMatrix = [[1, 0], [0, 1]];
+				expect(MatrixIsInvertible(I)).toBe(true);
+			});
+
+			test('should return false for singular matrix', () => {
+				const singular: TMatrix = [[1, 2], [2, 4]];
+				expect(MatrixIsInvertible(singular)).toBe(false);
+			});
+
+			test('should return false for non-square matrix', () => {
+				const rect: TMatrix = [[1, 2, 3], [4, 5, 6]];
+				expect(MatrixIsInvertible(rect)).toBe(false);
+			});
+
+			test('should return true for invertible 3x3 matrix', () => {
+				const matrix: TMatrix = [[1, 0, 0], [0, 2, 0], [0, 0, 3]];
+				expect(MatrixIsInvertible(matrix)).toBe(true);
+			});
+
+			test('should return false for rank-deficient matrix', () => {
+				const rankDeficient: TMatrix = [[1, 2, 3], [2, 4, 6], [3, 6, 9]];
+				expect(MatrixIsInvertible(rankDeficient)).toBe(false);
+			});
+		});
+
+		describe('MatrixLeastSquares', () => {
+			test('should solve exact system', () => {
+				const A: TMatrix = [[1, 0], [1, 1]];
+				const b = [1, 2];
+				const x = MatrixLeastSquares(A, b);
+				expect(x).toHaveLength(2);
+				expect(x[0]).toBeCloseTo(1, 8);
+				expect(x[1]).toBeCloseTo(1, 8);
+			});
+
+			test('should solve overdetermined system (least-squares)', () => {
+				const A: TMatrix = [[1], [2], [3]];
+				const b = [1.1, 2.1, 2.9];
+				const x = MatrixLeastSquares(A, b);
+				expect(x).toHaveLength(1);
+				expect(x[0]).toBeCloseTo(1, 1);
+			});
+
+			test('should throw on dimension mismatch', () => {
+				const A: TMatrix = [[1, 2], [3, 4]];
+				const b = [1, 2, 3];
+				expect(() => MatrixLeastSquares(A, b)).toThrow();
+			});
+
+			test('should solve 2x3 overdetermined system', () => {
+				const A: TMatrix = [[1, 0], [0, 1], [1, 1]];
+				const b = [1, 2, 3.1];
+				const x = MatrixLeastSquares(A, b);
+				expect(x).toHaveLength(2);
+				// Should approximately satisfy A*x ≈ b in least-squares sense
+				expect(x[0]).toBeCloseTo(1, 0);
+				expect(x[1]).toBeCloseTo(2, 0);
 			});
 		});
 	});
