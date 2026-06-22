@@ -5,8 +5,11 @@
 
 import type { TMatrix4 } from '../matrices/types.js';
 import { AssertMatrix4 } from '../matrices/asserts.js';
-import { AssertNormalizedQuaternion, AssertRotationMatrix } from './asserts.js';
+import { AssertNormalizedQuaternion, AssertRotationMatrix, QuaternionError } from './asserts.js';
 import type { TQuaternion, TRotationMatrix } from './types.js';
+import type { TVector3 } from '../vectors/types.js';
+import { VectorNormalize, Vector3Cross, VectorDot } from '../vectors/core.js';
+import { VectorError } from '../vectors/asserts.js';
 
 const SHEPPERD_QUARTER = 0.25;
 
@@ -206,4 +209,65 @@ export function IsValidRotationMatrix(matrix: TRotationMatrix, tolerance = 1e-6)
 	if (Math.abs(det - 1) > tolerance) return false;
 
 	return true;
+}
+
+/**
+ * Creates a quaternion representing an orientation with a given forward direction and optional up vector.
+ * The quaternion positions an object so its forward axis points along the `forward` direction,
+ * with roll determined by the `up` vector.
+ * Convention: forward maps to +Z, right to +X, up to +Y in the rotated frame.
+ *
+ * @param forward - The forward direction (will be normalized)
+ * @param up - The up reference direction (default: [0, 1, 0]); will be orthogonalized
+ * @returns A normalized quaternion representing the look rotation
+ * @throws {QuaternionError} If forward has zero magnitude, or if forward and up are parallel/anti-parallel
+ *
+ * @example
+ * ```typescript
+ * const forward = [0, 0, 1]; // Looking along +Z
+ * const up = [0, 1, 0]; // Standard up
+ * const rotation = QuaternionLookRotation(forward, up);
+ * // Rotating [0, 0, 1] by this quaternion gives the rotated forward vector
+ * ```
+ */
+export function QuaternionLookRotation(forward: TVector3, up?: TVector3): TQuaternion {
+	try {
+		const forwardNormalized = VectorNormalize(forward);
+		const upVector: TVector3 = up ?? [0, 1, 0];
+		const upNormalized = VectorNormalize(upVector);
+
+		// Check if forward and up are too parallel
+		const dot = Math.abs(VectorDot(forwardNormalized, upNormalized));
+		if (dot > 0.9999) {
+			throw new QuaternionError('Forward and up vectors are parallel or anti-parallel, cannot determine roll');
+		}
+
+		// Build orthonormal basis (right-hand coordinate system)
+		// Right = cross(up, forward)
+		const right = VectorNormalize(Vector3Cross(upNormalized, forwardNormalized));
+
+		// Recomputed up = cross(forward, right)
+		const recomputedUp = Vector3Cross(forwardNormalized, right);
+
+		// Assemble 3x3 rotation matrix as column vectors
+		// Column 0 (right): where X-axis goes
+		// Column 1 (up): where Y-axis goes
+		// Column 2 (forward): where Z-axis goes
+		const rotationMatrix: TRotationMatrix = [
+			[right[0], recomputedUp[0], forwardNormalized[0]],
+			[right[1], recomputedUp[1], forwardNormalized[1]],
+			[right[2], recomputedUp[2], forwardNormalized[2]]
+		];
+
+		return QuaternionFromRotationMatrix(rotationMatrix);
+	}
+	catch (err) {
+		if (err instanceof VectorError) {
+			throw new QuaternionError(`Cannot create look rotation: ${err.message}`, { cause: err });
+		}
+		if (err instanceof QuaternionError) {
+			throw err;
+		}
+		throw new QuaternionError('Cannot create look rotation: unknown error', { cause: err instanceof Error ? err : undefined });
+	}
 }

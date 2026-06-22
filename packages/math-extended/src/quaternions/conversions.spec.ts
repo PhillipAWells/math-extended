@@ -1,11 +1,12 @@
-import { QuaternionIdentity, QuaternionEquals, QuaternionNormalize } from './core.js';
+import { QuaternionIdentity, QuaternionEquals, QuaternionNormalize, QuaternionRotateVector } from './core.js';
 import { QuaternionRotationX, QuaternionRotationY, QuaternionRotationZ } from './predefined.js';
 import { QuaternionError } from './asserts.js';
 import { type TQuaternion, type TRotationMatrix } from './types.js';
 import { type TMatrix4 } from '../matrices/types.js';
+import { type TVector3 } from '../vectors/types.js';
 import { AssertVector } from '../vectors/asserts.js';
 
-import { IsValidRotationMatrix, QuaternionFromRotationMatrix, QuaternionFromTransformationMatrix, QuaternionToRotationMatrix, QuaternionToTransformationMatrix } from './conversions.js';
+import { IsValidRotationMatrix, QuaternionFromRotationMatrix, QuaternionFromTransformationMatrix, QuaternionToRotationMatrix, QuaternionToTransformationMatrix, QuaternionLookRotation } from './conversions.js';
 
 describe('Quaternion Conversions', () => {
 	const TOLERANCE = 1e-6;
@@ -805,6 +806,93 @@ describe('Quaternion Conversions', () => {
 				const mag = Math.sqrt((result[0] ** 2) + (result[1] ** 2) + (result[2] ** 2) + (result[3] ** 2));
 				expect(mag).toBeCloseTo(1.0, 5);
 			}
+		});
+	});
+
+	describe('QuaternionLookRotation', () => {
+		test('should create rotation looking along Z with default up', () => {
+			const forward: TVector3 = [0, 0, 1];
+			const up: TVector3 = [0, 1, 0];
+			const rotation = QuaternionLookRotation(forward, up);
+
+			// The result should be identity (already looking down +Z)
+			expect(QuaternionEquals(rotation, QuaternionIdentity(), 1e-5)).toBe(true);
+		});
+
+		test('should create rotation looking along X axis', () => {
+			const forward: TVector3 = [1, 0, 0];
+			const up: TVector3 = [0, 1, 0];
+			const rotation = QuaternionLookRotation(forward, up);
+
+			// Rotate the forward vector [0, 0, 1] by this quaternion
+			const result = QuaternionRotateVector(rotation, [0, 0, 1]);
+			expect(result[0]).toBeCloseTo(1, 5);
+			expect(result[1]).toBeCloseTo(0, 5);
+			expect(result[2]).toBeCloseTo(0, 5);
+		});
+
+		test('should create rotation looking along -Z axis', () => {
+			const forward: TVector3 = [0, 0, -1];
+			const up: TVector3 = [0, 1, 0];
+			const rotation = QuaternionLookRotation(forward, up);
+
+			// Rotate the forward vector [0, 0, 1] by this quaternion
+			const result = QuaternionRotateVector(rotation, [0, 0, 1]);
+			expect(result[0]).toBeCloseTo(0, 5);
+			expect(result[1]).toBeCloseTo(0, 5);
+			expect(result[2]).toBeCloseTo(-1, 5);
+		});
+
+		test('should use default up vector when not provided', () => {
+			const forward: TVector3 = [1, 0, 0];
+			const rotation = QuaternionLookRotation(forward);
+
+			// Should work and produce valid rotation
+			expect(QuaternionNormalize(rotation)).toEqual(rotation);
+		});
+
+		test('should throw for parallel forward and up vectors', () => {
+			const forward: TVector3 = [0, 1, 0];
+			const up: TVector3 = [0, 1, 0]; // Same as forward
+			expect(() => QuaternionLookRotation(forward, up)).toThrow(QuaternionError);
+		});
+
+		test('should throw for anti-parallel forward and up vectors', () => {
+			const forward: TVector3 = [0, 1, 0];
+			const up: TVector3 = [0, -1, 0]; // Opposite to forward
+			expect(() => QuaternionLookRotation(forward, up)).toThrow(QuaternionError);
+		});
+
+		test('should throw for zero-length forward vector', () => {
+			const forward: TVector3 = [0, 0, 0];
+			const up: TVector3 = [0, 1, 0];
+			expect(() => QuaternionLookRotation(forward, up)).toThrow(QuaternionError);
+		});
+
+		test('should handle unnormalized input vectors', () => {
+			const forward: TVector3 = [10, 0, 0];
+			const up: TVector3 = [0, 5, 0];
+			const rotation = QuaternionLookRotation(forward, up);
+
+			// Should still produce valid rotation
+			expect(QuaternionNormalize(rotation)).toEqual(rotation);
+
+			// Verify it rotates correctly
+			const result = QuaternionRotateVector(rotation, [0, 0, 1]);
+			expect(result[0]).toBeCloseTo(1, 5);
+			expect(result[1]).toBeCloseTo(0, 5);
+			expect(result[2]).toBeCloseTo(0, 5);
+		});
+
+		test('should produce consistent results with non-canonical up vector', () => {
+			const forward: TVector3 = [1, 1, 0];
+			const up1: TVector3 = [0, 1, 0];
+			const up2: TVector3 = [0, 2, 0]; // Different magnitude, same direction
+			const rotation1 = QuaternionLookRotation(forward, up1);
+			const rotation2 = QuaternionLookRotation(forward, up2);
+
+			// Both should produce equivalent rotations
+			expect(QuaternionEquals(rotation1, rotation2, 1e-5, true)).toBe(true);
 		});
 	});
 });

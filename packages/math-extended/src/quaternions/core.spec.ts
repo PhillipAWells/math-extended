@@ -1,4 +1,4 @@
-﻿import { QuaternionIdentity, QuaternionClone, QuaternionEquals, QuaternionIsFinite, QuaternionMagnitude, QuaternionNormalize, QuaternionConjugate, QuaternionInverse, QuaternionMultiply, QuaternionFromAxisAngle, QuaternionFromAxisAngleVector, QuaternionToAxisAngle, QuaternionFromEuler, QuaternionToEuler, QuaternionRotateVector, QuaternionSLERP } from './core.js';
+﻿import { QuaternionIdentity, QuaternionClone, QuaternionEquals, QuaternionIsFinite, QuaternionMagnitude, QuaternionNormalize, QuaternionConjugate, QuaternionInverse, QuaternionMultiply, QuaternionFromAxisAngle, QuaternionFromAxisAngleVector, QuaternionToAxisAngle, QuaternionFromEuler, QuaternionToEuler, QuaternionRotateVector, QuaternionSLERP, QuaternionDot, QuaternionAngleBetween, QuaternionFromToRotation } from './core.js';
 import { QuaternionError } from './asserts.js';
 import type { TQuaternion, TEulerAngles, TAxisAngle } from './types.js';
 import { type TVector3, type TVector4 } from '../vectors/types.js';
@@ -378,6 +378,118 @@ describe('Quaternion Core Functions', () => {
 			const resultAbove = QuaternionSLERP(q1, q2, 1.5);
 			const resultAt1 = QuaternionSLERP(q1, q2, 1);
 			expect(QuaternionEquals(resultAbove, resultAt1)).toBe(true);
+		});
+	});
+
+	describe('QuaternionDot', () => {
+		test('should compute dot product correctly', () => {
+			const q1: TQuaternion = [0, 0, 0, 1];
+			const q2: TQuaternion = [0, 0, 0.707, 0.707];
+			const dot = QuaternionDot(q1, q2);
+			expect(dot).toBeCloseTo(0.707, 3);
+		});
+
+		test('should compute dot product for perpendicular quaternions', () => {
+			const q1: TQuaternion = [1, 0, 0, 0];
+			const q2: TQuaternion = [0, 1, 0, 0];
+			const dot = QuaternionDot(q1, q2);
+			expect(dot).toBeCloseTo(0, 6);
+		});
+
+		test('should compute dot product for opposite quaternions', () => {
+			const q1: TQuaternion = [0, 0, 0, 1];
+			const q2: TQuaternion = [0, 0, 0, -1];
+			const dot = QuaternionDot(q1, q2);
+			expect(dot).toBeCloseTo(-1, 6);
+		});
+
+		test('should throw for invalid quaternion', () => {
+			expect(() => QuaternionDot([1, 2] as unknown as TQuaternion, [0, 0, 0, 1])).toThrow(QuaternionError);
+		});
+	});
+
+	describe('QuaternionAngleBetween', () => {
+		test('should return 0 for identical quaternions', () => {
+			const q1 = QuaternionIdentity();
+			const q2 = QuaternionIdentity();
+			const angle = QuaternionAngleBetween(q1, q2);
+			expect(angle).toBeCloseTo(0, 6);
+		});
+
+		test('should return π/2 for 90 degree rotation difference', () => {
+			const q1 = QuaternionIdentity();
+			const q2 = QuaternionFromAxisAngle([0, 1, 0], Math.PI / 2);
+			const angle = QuaternionAngleBetween(q1, q2);
+			expect(angle).toBeCloseTo(Math.PI / 2, 5);
+		});
+
+		test('should return π for opposite rotations', () => {
+			const q1 = QuaternionFromAxisAngle([0, 0, 1], 0);
+			const q2 = QuaternionFromAxisAngle([0, 0, 1], Math.PI);
+			const angle = QuaternionAngleBetween(q1, q2);
+			expect(angle).toBeCloseTo(Math.PI, 5);
+		});
+
+		test('should handle equivalent quaternions (q and -q)', () => {
+			const q1: TQuaternion = [0, 0, 0, 1];
+			const q2: TQuaternion = [0, 0, 0, -1];
+			const angle = QuaternionAngleBetween(q1, q2);
+			expect(angle).toBeCloseTo(0, 6);
+		});
+
+		test('should throw for invalid quaternion', () => {
+			expect(() => QuaternionAngleBetween([1, 2] as unknown as TQuaternion, [0, 0, 0, 1])).toThrow(QuaternionError);
+		});
+	});
+
+	describe('QuaternionFromToRotation', () => {
+		test('should create identity when from equals to', () => {
+			const from: TVector3 = [1, 0, 0];
+			const to: TVector3 = [1, 0, 0];
+			const rotation = QuaternionFromToRotation(from, to);
+			expect(QuaternionEquals(rotation, QuaternionIdentity(), 1e-5)).toBe(true);
+		});
+
+		test('should rotate X axis to Y axis', () => {
+			const from: TVector3 = [1, 0, 0];
+			const to: TVector3 = [0, 1, 0];
+			const rotation = QuaternionFromToRotation(from, to);
+			const normalized = QuaternionNormalize(rotation);
+			const rotated = QuaternionRotateVector(normalized, from);
+			expect(rotated[0]).toBeCloseTo(0, 5);
+			expect(rotated[1]).toBeCloseTo(1, 5);
+			expect(rotated[2]).toBeCloseTo(0, 5);
+		});
+
+		test('should handle 180 degree rotation', () => {
+			const from: TVector3 = [1, 0, 0];
+			const to: TVector3 = [-1, 0, 0];
+			const rotation = QuaternionFromToRotation(from, to);
+			const normalized = QuaternionNormalize(rotation);
+			const rotated = QuaternionRotateVector(normalized, from);
+			expect(rotated[0]).toBeCloseTo(-1, 5);
+			expect(rotated[1]).toBeCloseTo(0, 5);
+			expect(rotated[2]).toBeCloseTo(0, 5);
+		});
+
+		test('should throw for zero-length from vector', () => {
+			const from: TVector3 = [0, 0, 0];
+			const to: TVector3 = [1, 0, 0];
+			expect(() => QuaternionFromToRotation(from, to)).toThrow(QuaternionError);
+		});
+
+		test('should throw for zero-length to vector', () => {
+			const from: TVector3 = [1, 0, 0];
+			const to: TVector3 = [0, 0, 0];
+			expect(() => QuaternionFromToRotation(from, to)).toThrow(QuaternionError);
+		});
+
+		test('should produce normalized quaternion', () => {
+			const from: TVector3 = [2, 3, 4];
+			const to: TVector3 = [5, 1, 2];
+			const rotation = QuaternionFromToRotation(from, to);
+			const magnitude = QuaternionMagnitude(rotation);
+			expect(magnitude).toBeCloseTo(1, 5);
 		});
 	});
 });

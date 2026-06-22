@@ -501,3 +501,121 @@ export function QuaternionSLERP(a: TQuaternion, b: TQuaternion, t: number): TQua
 		(factor1 * a[3]) + (factor2 * bToUse[3])
 	];
 }
+
+/**
+ * Computes the dot product of two quaternions.
+ * The dot product is the sum of component-wise products: a.x*b.x + a.y*b.y + a.z*b.z + a.w*b.w.
+ *
+ * @param a - First quaternion
+ * @param b - Second quaternion
+ * @returns The dot product as a number
+ * @throws {QuaternionError} If either input is not a valid quaternion
+ *
+ * @example
+ * ```typescript
+ * const q1 = [0, 0, 0, 1];
+ * const q2 = [0, 0, 0.707, 0.707];
+ * const dot = QuaternionDot(q1, q2);
+ * console.log(dot); // 0.707 (cos of angle between them)
+ * ```
+ */
+export function QuaternionDot(a: TQuaternion, b: TQuaternion): number {
+	AssertQuaternion(a);
+	AssertQuaternion(b);
+
+	return VectorDot(a, b);
+}
+
+/**
+ * Calculates the angle (in radians) of the relative rotation between two quaternions.
+ * Returns a value in [0, π] representing the shortest rotational distance.
+ * The angle is computed as 2 * acos(min(1, |dot(normalize(a), normalize(b))|)).
+ *
+ * @param a - First quaternion
+ * @param b - Second quaternion
+ * @returns The angle in radians, in the range [0, π]
+ * @throws {QuaternionError} If either input is not a valid quaternion
+ *
+ * @example
+ * ```typescript
+ * const q1 = QuaternionIdentity();
+ * const q2 = QuaternionFromAxisAngle([0, 1, 0], Math.PI / 2);
+ * const angle = QuaternionAngleBetween(q1, q2);
+ * console.log(angle); // π/2 (90 degrees)
+ * ```
+ */
+export function QuaternionAngleBetween(a: TQuaternion, b: TQuaternion): number {
+	AssertQuaternion(a);
+	AssertQuaternion(b);
+
+	const aNormalized = QuaternionNormalize(a);
+	const bNormalized = QuaternionNormalize(b);
+	const dot = Math.abs(QuaternionDot(aNormalized, bNormalized));
+
+	return 2 * Math.acos(Math.min(1, dot));
+}
+
+/**
+ * Creates a quaternion representing the shortest-arc rotation from one direction to another.
+ * Returns a normalized quaternion that rotates the `from` vector onto the `to` vector.
+ * Handles parallel and anti-parallel cases correctly.
+ *
+ * @param from - Source direction vector (will be normalized)
+ * @param to - Target direction vector (will be normalized)
+ * @returns A normalized unit quaternion representing the rotation
+ * @throws {QuaternionError} If either vector has zero magnitude
+ *
+ * @example
+ * ```typescript
+ * const from = [1, 0, 0]; // +X direction
+ * const to = [0, 1, 0]; // +Y direction
+ * const rotation = QuaternionFromToRotation(from, to);
+ * const result = QuaternionRotateVector(rotation, from);
+ * // result is approximately [0, 1, 0]
+ * ```
+ */
+export function QuaternionFromToRotation(from: TVector3, to: TVector3): TQuaternion {
+	try {
+		const fromNormalized = VectorNormalize(from);
+		const toNormalized = VectorNormalize(to);
+
+		const dot = VectorDot(fromNormalized, toNormalized);
+
+		// Handle parallel case (already aligned)
+		if (dot > 0.9999999) {
+			return QuaternionIdentity();
+		}
+
+		// Handle anti-parallel case (180° rotation)
+		if (dot < -0.9999999) {
+			// Find an arbitrary perpendicular axis
+			let perpendicular: TVector3;
+			if (Math.abs(fromNormalized[0]) < 0.9) {
+				perpendicular = [1, 0, 0];
+			}
+			else {
+				perpendicular = [0, 1, 0];
+			}
+
+			const axis = VectorNormalize(Vector3Cross(fromNormalized, perpendicular));
+			// 180° rotation: [sin(π/2) * axis, cos(π/2)] = [axis, 0]
+			return [axis[0], axis[1], axis[2], 0];
+		}
+
+		// General case: shortest rotation axis is cross product
+		const axis = Vector3Cross(fromNormalized, toNormalized);
+		const axisNormalized = VectorNormalize(axis);
+
+		// Angle between vectors
+		const angle = Math.acos(Math.max(-1, Math.min(1, dot)));
+
+		// Create quaternion from axis and angle
+		return QuaternionFromAxisAngle(axisNormalized, angle);
+	}
+	catch (err) {
+		if (err instanceof VectorError) {
+			throw new QuaternionError(`Cannot create rotation: ${err.message}`, { cause: err });
+		}
+		throw err;
+	}
+}
