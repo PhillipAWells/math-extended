@@ -956,3 +956,179 @@ export function VectorGramSchmidt(vectors: number[][], normalize = false): numbe
 
 	return result;
 }
+
+/**
+ * Scales a vector by multiplying each component by a scalar.
+ * Equivalent to scalar multiplication; provided for API clarity alongside component-wise operations.
+ *
+ * @template T - The vector type extending TVector
+ * @param vector - The vector to scale
+ * @param scalar - The scalar multiplier
+ * @returns New vector with each component multiplied by the scalar
+ *
+ * @example
+ * ```typescript
+ * const velocity = [10, 20, 30];
+ * const scaled = VectorScale(velocity, 2); // [20, 40, 60]
+ * const halved = VectorScale(velocity, 0.5); // [5, 10, 15]
+ * ```
+ */
+export function VectorScale<T extends TAnyVector>(vector: T, scalar: number): TVectorResult<T> {
+	AssertVector(vector);
+
+	const result: number[] = [];
+
+	for (const vv of vector) {
+		const prod = vv * scalar;
+		result.push(Object.is(prod, -0) ? 0 : prod);
+	}
+
+	return result as TVectorResult<T>;
+}
+
+/**
+ * Applies Math.floor to each component of a vector.
+ * Returns a new vector with all components rounded down to the nearest integer.
+ *
+ * @template T - The vector type extending TVector
+ * @param vector - The vector to floor
+ * @returns New vector with floored components
+ *
+ * @example
+ * ```typescript
+ * const vec = [1.9, -2.3, 0.1];
+ * const floored = VectorFloor(vec); // [1, -3, 0]
+ * ```
+ */
+export function VectorFloor<T extends TAnyVector>(vector: T): TVectorResult<T> {
+	AssertVector(vector);
+
+	const result: number[] = [];
+
+	for (const vv of vector) {
+		const floored = Math.floor(vv);
+		result.push(Object.is(floored, -0) ? 0 : floored);
+	}
+
+	return result as TVectorResult<T>;
+}
+
+/**
+ * Applies Math.ceil to each component of a vector.
+ * Returns a new vector with all components rounded up to the nearest integer.
+ *
+ * @template T - The vector type extending TVector
+ * @param vector - The vector to ceil
+ * @returns New vector with ceiled components
+ *
+ * @example
+ * ```typescript
+ * const vec = [1.1, -2.9, 0.5];
+ * const ceiled = VectorCeil(vec); // [2, -2, 1]
+ * ```
+ */
+export function VectorCeil<T extends TAnyVector>(vector: T): TVectorResult<T> {
+	AssertVector(vector);
+
+	const result: number[] = [];
+
+	for (const vv of vector) {
+		const ceiled = Math.ceil(vv);
+		result.push(Object.is(ceiled, -0) ? 0 : ceiled);
+	}
+
+	return result as TVectorResult<T>;
+}
+
+/**
+ * Applies Math.round to each component of a vector.
+ * Returns a new vector with all components rounded to the nearest integer.
+ *
+ * @template T - The vector type extending TVector
+ * @param vector - The vector to round
+ * @returns New vector with rounded components
+ *
+ * @example
+ * ```typescript
+ * const vec = [1.4, 2.6, -3.5];
+ * const rounded = VectorRound(vec); // [1, 3, -4]
+ * ```
+ */
+export function VectorRound<T extends TAnyVector>(vector: T): TVectorResult<T> {
+	AssertVector(vector);
+
+	const result: number[] = [];
+
+	for (const vv of vector) {
+		const rounded = Math.round(vv);
+		result.push(Object.is(rounded, -0) ? 0 : rounded);
+	}
+
+	return result as TVectorResult<T>;
+}
+
+/**
+ * Returns the component-wise minimum of two vectors.
+ * Each component of the result is the smaller of the corresponding components in the input vectors.
+ *
+ * @template T - The vector type extending TVector
+ * @param a - First vector
+ * @param b - Second vector
+ * @returns New vector where each component is the minimum of the corresponding components
+ * @throws {VectorError} If vectors have different sizes
+ *
+ * @example
+ * ```typescript
+ * const a = [5, 2, 8];
+ * const b = [3, 7, 1];
+ * const result = VectorMin(a, b); // [3, 2, 1]
+ * ```
+ */
+export function VectorMin<T extends TAnyVector>(a: T, b: T): TVectorResult<T> {
+	AssertVector(a);
+	AssertVector(b);
+	AssertVectorSameSize([a, b]);
+
+	const result: number[] = [];
+
+	for (let i = 0; i < a.length; i++) {
+		const av = a[i];
+		const bv = b[i];
+		result.push(Math.min(av, bv));
+	}
+
+	return result as TVectorResult<T>;
+}
+
+/**
+ * Returns the component-wise maximum of two vectors.
+ * Each component of the result is the larger of the corresponding components in the input vectors.
+ *
+ * @template T - The vector type extending TVector
+ * @param a - First vector
+ * @param b - Second vector
+ * @returns New vector where each component is the maximum of the corresponding components
+ * @throws {VectorError} If vectors have different sizes
+ *
+ * @example
+ * ```typescript
+ * const a = [5, 2, 8];
+ * const b = [3, 7, 1];
+ * const result = VectorMax(a, b); // [5, 7, 8]
+ * ```
+ */
+export function VectorMax<T extends TAnyVector>(a: T, b: T): TVectorResult<T> {
+	AssertVector(a);
+	AssertVector(b);
+	AssertVectorSameSize([a, b]);
+
+	const result: number[] = [];
+
+	for (let i = 0; i < a.length; i++) {
+		const av = a[i];
+		const bv = b[i];
+		result.push(Math.max(av, bv));
+	}
+
+	return result as TVectorResult<T>;
+}

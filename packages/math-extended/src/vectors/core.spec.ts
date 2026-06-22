@@ -27,7 +27,13 @@ import {
 	VectorReflect,
 	VectorNegate,
 	VectorGramSchmidt,
-	VectorLimit
+	VectorLimit,
+	VectorScale,
+	VectorFloor,
+	VectorCeil,
+	VectorRound,
+	VectorMin,
+	VectorMax
 } from './core.js';
 import { VectorError } from './asserts.js';
 import { type TVector2 } from './types.js';
@@ -495,6 +501,139 @@ describe('Vector Core', () => {
 
 		it('should clamp a 2D vector', () => {
 			expect(VectorClamp([-1, 5] as [number, number], 0, 4)).toEqual([0, 4]);
+		});
+	});
+
+	describe('VectorScale', () => {
+		it('should scale a vector by a scalar', () => {
+			expect(VectorScale([1, 2, 3], 2)).toEqual([2, 4, 6]);
+			expect(VectorScale([5, -3], 0.5)).toEqual([2.5, -1.5]);
+		});
+
+		it('should handle negative scalars', () => {
+			expect(VectorScale([1, 2, 3], -1)).toEqual([-1, -2, -3]);
+		});
+
+		it('should preserve zero correctly', () => {
+			const result = VectorScale([5, -3, 0], 0);
+			expect(result[0]).toBe(0);
+			expect(result[1]).toBe(0);
+			expect(result[2]).toBe(0);
+		});
+
+		it('should not mutate the input vector', () => {
+			const original = [1, 2, 3];
+			VectorScale(original, 2);
+			expect(original).toEqual([1, 2, 3]);
+		});
+	});
+
+	describe('VectorFloor', () => {
+		it('should floor each component', () => {
+			expect(VectorFloor([1.9, 2.1, 3.5])).toEqual([1, 2, 3]);
+			expect(VectorFloor([-1.1, -2.9])).toEqual([-2, -3]);
+		});
+
+		it('should handle already-integer values', () => {
+			expect(VectorFloor([1, 2, 3])).toEqual([1, 2, 3]);
+		});
+
+		it('should handle zero and negative zero', () => {
+			expect(VectorFloor([0, -0])).toEqual([0, 0]);
+		});
+
+		it('should not mutate the input vector', () => {
+			const original = [1.5, 2.5, 3.5];
+			VectorFloor(original);
+			expect(original).toEqual([1.5, 2.5, 3.5]);
+		});
+	});
+
+	describe('VectorCeil', () => {
+		it('should ceil each component', () => {
+			expect(VectorCeil([1.1, 2.9, 3.5])).toEqual([2, 3, 4]);
+			expect(VectorCeil([-1.1, -2.9])).toEqual([-1, -2]);
+		});
+
+		it('should handle already-integer values', () => {
+			expect(VectorCeil([1, 2, 3])).toEqual([1, 2, 3]);
+		});
+
+		it('should handle zero and negative zero', () => {
+			expect(VectorCeil([0, -0])).toEqual([0, 0]);
+		});
+
+		it('should not mutate the input vector', () => {
+			const original = [1.5, 2.5, 3.5];
+			VectorCeil(original);
+			expect(original).toEqual([1.5, 2.5, 3.5]);
+		});
+	});
+
+	describe('VectorRound', () => {
+		it('should round each component', () => {
+			expect(VectorRound([1.4, 2.6, 3.5])).toEqual([1, 3, 4]);
+			expect(VectorRound([-1.4, -2.6])).toEqual([-1, -3]);
+		});
+
+		it('should handle already-integer values', () => {
+			expect(VectorRound([1, 2, 3])).toEqual([1, 2, 3]);
+		});
+
+		it('should handle zero and negative zero', () => {
+			expect(VectorRound([0, -0])).toEqual([0, 0]);
+		});
+
+		it('should not mutate the input vector', () => {
+			const original = [1.5, 2.5, 3.5];
+			VectorRound(original);
+			expect(original).toEqual([1.5, 2.5, 3.5]);
+		});
+	});
+
+	describe('VectorMin', () => {
+		it('should return component-wise minimum', () => {
+			expect(VectorMin([5, 2, 8], [3, 7, 1])).toEqual([3, 2, 1]);
+			expect(VectorMin([1, 1], [1, 1])).toEqual([1, 1]);
+		});
+
+		it('should handle negative numbers', () => {
+			expect(VectorMin([-5, -2], [-3, -7])).toEqual([-5, -7]);
+		});
+
+		it('should throw error for mismatched vector sizes', () => {
+			expect(() => VectorMin([1, 2], [1, 2, 3])).toThrow(VectorError);
+		});
+
+		it('should not mutate the input vectors', () => {
+			const a = [5, 2, 8];
+			const b = [3, 7, 1];
+			VectorMin(a, b);
+			expect(a).toEqual([5, 2, 8]);
+			expect(b).toEqual([3, 7, 1]);
+		});
+	});
+
+	describe('VectorMax', () => {
+		it('should return component-wise maximum', () => {
+			expect(VectorMax([5, 2, 8], [3, 7, 1])).toEqual([5, 7, 8]);
+			expect(VectorMax([1, 1], [1, 1])).toEqual([1, 1]);
+		});
+
+		it('should handle negative numbers', () => {
+			expect(VectorMax([-5, -2], [-3, -7])).toEqual([-3, -2]);
+		});
+
+		it('should throw error for mismatched vector sizes', () => {
+			expect(() => VectorMax([1, 2], [1, 2, 3])).toThrow(VectorError);
+		});
+
+		it('should not mutate the input vectors', () => {
+			const a = [5, 2, 8];
+			const b = [3, 7, 1];
+			VectorMax(a, b);
+			expect(a).toEqual([5, 2, 8]);
+			expect(b).toEqual([3, 7, 1]);
 		});
 	});
 });
