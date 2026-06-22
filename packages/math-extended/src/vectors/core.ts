@@ -95,6 +95,7 @@ export function VectorToString(vector: TVector, style: 'parens' | 'brackets' = '
  * @param a - First vector (augend)
  * @param b - Second vector (addend)
  * @returns New vector where each component is the sum of corresponding components
+ * @throws {VectorError} If vectors have different sizes or invalid structure
  *
  * @example
  * ```typescript
@@ -127,6 +128,7 @@ export function VectorAdd<T extends TAnyVector>(a: T, b: T): TVectorResult<T> {
  * @param a - First vector (minuend)
  * @param b - Second vector (subtrahend)
  * @returns New vector where each component is the difference of corresponding components
+ * @throws {VectorError} If vectors have different sizes or invalid structure
  *
  * @example
  * ```typescript
@@ -159,6 +161,7 @@ export function VectorSubtract<T extends TAnyVector>(a: T, b: T): TVectorResult<
  * @param a - Vector to multiply
  * @param b - Scalar number or vector for component-wise multiplication
  * @returns New vector with multiplied components
+ * @throws {VectorError} If vectors have different sizes or invalid structure
  *
  * @example
  * ```typescript
@@ -201,6 +204,7 @@ export function VectorMultiply<T extends TAnyVector>(a: T, b: T | number): TVect
  * @param a - First vector
  * @param b - Second vector
  * @returns The straight-line distance between the two points represented by the vectors
+ * @throws {VectorError} If vectors have different sizes or invalid structure
  *
  * @example
  * ```typescript
@@ -221,6 +225,7 @@ export function VectorDistance(a: TVector, b: TVector): number {
  * @param a - First vector
  * @param b - Second vector
  * @returns The squared distance between vectors
+ * @throws {VectorError} If vectors have different sizes or invalid structure
  *
  * @example
  * ```typescript
@@ -254,6 +259,7 @@ export function VectorDistanceSquared(a: TVector, b: TVector): number {
  * @param a - First vector
  * @param b - Second vector
  * @returns The dot product (scalar value)
+ * @throws {VectorError} If vectors have different sizes or invalid structure
  *
  * @example
  * ```typescript
@@ -321,6 +327,7 @@ export function VectorNormalize<T extends TAnyVector>(a: T): TVectorResult<T> {
  *
  * @param a - Vector to measure
  * @returns The magnitude (length) of the vector
+ * @throws {VectorError} If vector has invalid structure
  *
  * @example
  * ```typescript
@@ -347,6 +354,7 @@ export function VectorMagnitude(a: TVector): number {
  * @template T - The vector type extending TVector
  * @param a - Vector to process
  * @returns New vector with absolute values of all components
+ * @throws {VectorError} If vector has invalid structure
  *
  * @example
  * ```typescript
@@ -455,8 +463,8 @@ export function VectorAngle(a: TVector, b: TVector): number {
  *
  * @example
  * ```typescript
- *   const v = [3, 4]; // magnitude 5
- *   VectorLimit(v, 3); // [1.8, 2.4] — magnitude now 3
+ * const v = [3, 4]; // magnitude 5
+ * VectorLimit(v, 3); // [1.8, 2.4] — magnitude now 3
  * ```
  */
 export function VectorLimit<T extends TAnyVector>(vector: T, maxMagnitude: number): TVectorResult<T> {
@@ -478,6 +486,7 @@ export function VectorLimit<T extends TAnyVector>(vector: T, maxMagnitude: numbe
  * @param vector - 2D vector to rotate
  * @param radians - Rotation angle in radians (positive = counterclockwise)
  * @returns New rotated 2D vector
+ * @throws {VectorError} If vector is not a valid 2D vector
  *
  * @example
  * ```typescript
@@ -524,6 +533,7 @@ export function Vector2FromAngle(radians: number): TVector2 {
  * @param a - First 2D vector
  * @param b - Second 2D vector
  * @returns Scalar cross product (positive = counterclockwise, negative = clockwise)
+ * @throws {VectorError} If either vector is not a valid 2D vector
  *
  * @example
  * ```typescript
@@ -631,6 +641,7 @@ export function Vector3Reflect(incident: TVector3, normal: TVector3): TVector3 {
  * @param a - First 3D vector
  * @param b - Second 3D vector
  * @returns Vector perpendicular to both a and b (following right-hand rule)
+ * @throws {VectorError} If either vector is not a valid 3D vector
  *
  * @example
  * ```typescript
@@ -658,6 +669,7 @@ export function Vector3Cross(a: TVector3, b: TVector3): TVector3 {
  * @param a - First 3D vector
  * @param b - Second 3D vector
  * @returns Magnitude of the cross product
+ * @throws {VectorError} If either vector is not a valid 3D vector
  *
  * @example
  * ```typescript
@@ -683,6 +695,7 @@ export function VectorCrossMagnitude(a: TVector3, b: TVector3): number {
  * @param b - Second 3D vector
  * @param c - Third 3D vector
  * @returns Signed volume (positive = right-handed orientation)
+ * @throws {VectorError} If any vector is not a valid 3D vector
  *
  * @example
  * ```typescript
@@ -710,6 +723,7 @@ export function Vector3ScalarTripleProduct(a: TVector3, b: TVector3, c: TVector3
  * @param b - Second 3D vector
  * @param c - Third 3D vector
  * @returns Vector result of a × (b × c)
+ * @throws {VectorError} If any vector is not a valid 3D vector
  *
  * @example
  * ```typescript
@@ -737,6 +751,7 @@ export function Vector3TripleProduct(a: TVector3, b: TVector3, c: TVector3): TVe
  * @param incident - The incoming vector to reflect
  * @param normal - The surface normal vector
  * @returns The reflected vector
+ * @throws {VectorError} If vectors have different sizes or invalid structure
  *
  * @example
  * ```typescript
@@ -772,6 +787,7 @@ export function VectorReflect<T extends TAnyVector>(incident: T, normal: T): TVe
  * @template T - The vector type extending TVector
  * @param a - Vector to negate
  * @returns Vector with all components negated
+ * @throws {VectorError} If vector has invalid structure
  *
  * @example
  * ```typescript
@@ -848,6 +864,7 @@ export function VectorDivide<T extends TAnyVector>(a: T, b: T | number): TVector
  * @param min - Minimum value (scalar applied to all components, or vector for per-component bounds)
  * @param max - Maximum value (scalar applied to all components, or vector for per-component bounds)
  * @returns New vector with each component clamped between min and max
+ * @throws {VectorError} If vector has invalid structure or bounds vectors are mismatched
  *
  * @example
  * ```typescript
@@ -992,6 +1009,7 @@ export function VectorGramSchmidt(vectors: number[][], normalize = false): numbe
  * @param vector - The vector to scale
  * @param scalar - The scalar multiplier
  * @returns New vector with each component multiplied by the scalar
+ * @throws {VectorError} If vector has invalid structure
  *
  * @example
  * ```typescript
@@ -1020,6 +1038,7 @@ export function VectorScale<T extends TAnyVector>(vector: T, scalar: number): TV
  * @template T - The vector type extending TVector
  * @param vector - The vector to floor
  * @returns New vector with floored components
+ * @throws {VectorError} If vector has invalid structure
  *
  * @example
  * ```typescript
@@ -1047,6 +1066,7 @@ export function VectorFloor<T extends TAnyVector>(vector: T): TVectorResult<T> {
  * @template T - The vector type extending TVector
  * @param vector - The vector to ceil
  * @returns New vector with ceiled components
+ * @throws {VectorError} If vector has invalid structure
  *
  * @example
  * ```typescript
@@ -1074,6 +1094,7 @@ export function VectorCeil<T extends TAnyVector>(vector: T): TVectorResult<T> {
  * @template T - The vector type extending TVector
  * @param vector - The vector to round
  * @returns New vector with rounded components
+ * @throws {VectorError} If vector has invalid structure
  *
  * @example
  * ```typescript

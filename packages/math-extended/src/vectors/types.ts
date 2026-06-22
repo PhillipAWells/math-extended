@@ -20,6 +20,13 @@ export type TVector = z.infer<typeof VECTOR_SCHEMA>;
 /**
  * Non-empty vector schema ensuring at least one element.
  * Used for operations that require non-empty vectors.
+ *
+ * @example
+ * ```typescript
+ * const valid = VECTOR_NONEMPTY_SCHEMA.parse([1]); // [1] — single element
+ * const alsoValid = VECTOR_NONEMPTY_SCHEMA.parse([1, 2, 3]); // [1, 2, 3] — multiple elements
+ * VECTOR_NONEMPTY_SCHEMA.parse([]); // throws — empty array rejected
+ * ```
  */
 export const VECTOR_NONEMPTY_SCHEMA = VECTOR_SCHEMA.min(1);
 

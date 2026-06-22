@@ -64,6 +64,7 @@ function vectorInterpolate<T extends TVector>(a: T, b: T, t: number, interpolati
  * @param options - Optional configuration object
  * @param options.clamped - If true (default), clamps t to [0,1]; if false, allows extrapolation
  * @returns Linearly interpolated vector
+ * @throws {VectorError} If vectors are invalid, have different lengths, or if `t` is non-finite
  *
  * @example
  * ```typescript
@@ -87,6 +88,7 @@ export function VectorLERP<T extends TVector>(a: T, b: T, t: number, options: { 
  * @param b - End vector
  * @param t - Interpolation parameter (clamped to [0,1])
  * @returns Smoothly interpolated vector with smooth start and end
+ * @throws {VectorError} If vectors are invalid, have different lengths, or if `t` is non-finite
  *
  * @example
  * ```typescript

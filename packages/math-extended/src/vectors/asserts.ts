@@ -81,8 +81,6 @@ export type TVectorErrorMetadata = TErrorMetadata;
  * and element-level number validation for every component.
  *
  * @param vector - The value to validate as a vector
- * @param args - Validation constraints (size, minSize, maxSize, finite, integer, gt, gte, lt, lte, eq)
- * @param exception - Custom exception details if validation fails
  * @throws {VectorError} If the value is not a valid vector meeting all constraints
  *
  * @example
@@ -128,7 +126,6 @@ export const ValidateVector: (vector: unknown) => vector is TVector = makeValida
  * Validates that an unknown value is a valid 2D vector (exactly 2 numeric components).
  *
  * @param vector - The value to validate as a 2D vector
- * @param exception - Custom exception details if validation fails
  * @throws {VectorError} If the value is not a 2-component vector
  *
  * @example
@@ -174,7 +171,6 @@ export const ValidateVector2: (vector: unknown) => vector is TVector2 = makeVali
  * Validates that an unknown value is a valid 3D vector (exactly 3 numeric components).
  *
  * @param vector - The value to validate as a 3D vector
- * @param exception - Custom exception details if validation fails
  * @throws {VectorError} If the value is not a 3-component vector
  *
  * @example
@@ -220,7 +216,6 @@ export const ValidateVector3: (vector: unknown) => vector is TVector3 = makeVali
  * Validates that an unknown value is a valid 4D vector (exactly 4 numeric components).
  *
  * @param vector - The value to validate as a 4D vector
- * @param exception - Custom exception details if validation fails
  * @throws {VectorError} If the value is not a 4-component vector
  *
  * @example
