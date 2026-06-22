@@ -1,7 +1,7 @@
 {
 	"name": "@pawells/math-extended",
 	"displayName": "Math Extended",
-	"version": "3.0.1",
+	"version": "3.1.0",
 	"description": "Extended mathematical utilities for TypeScript: vectors, matrices, quaternions, interpolation & easing, angle conversions, clamping, and seedable random helpers.",
 	"keywords": [
 		"math",
