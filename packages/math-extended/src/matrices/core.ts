@@ -191,6 +191,64 @@ export function MatrixIsIdentity(matrix: TMatrix, threshold = 1e-14): boolean {
 }
 
 /**
+ * Checks if all elements of a matrix are finite numbers.
+ * @param matrix - The matrix to check.
+ * @returns true if all elements are finite (neither NaN nor Infinity), false otherwise.
+ * @throws {MatrixError} if the input is not a valid matrix structure (but allows non-finite numbers for inspection).
+ * @example
+ * ```typescript
+ * MatrixIsFinite([[1, 2], [3, 4]]) // true
+ * MatrixIsFinite([[1, NaN], [3, 4]]) // false
+ * MatrixIsFinite([[1, Infinity], [3, 4]]) // false
+ * ```
+ */
+export function MatrixIsFinite(matrix: unknown): boolean {
+	// Validate structure (without finiteness check)
+	if (!Array.isArray(matrix)) {
+		throw new MatrixError('Invalid matrix: Expected array, got ' + typeof matrix);
+	}
+
+	if (matrix.length === 0) {
+		throw new MatrixError('Invalid matrix: Matrix must have at least one row and one column');
+	}
+
+	const firstRow = matrix[0];
+	if (!Array.isArray(firstRow)) {
+		throw new MatrixError('Invalid matrix: Expected array, got ' + typeof firstRow);
+	}
+
+	if (firstRow.length === 0) {
+		throw new MatrixError('Invalid matrix: Matrix must have at least one row and one column');
+	}
+
+	const firstRowLength = firstRow.length;
+
+	for (let i = 0; i < matrix.length; i++) {
+		const row = (matrix as unknown[])[i];
+		if (!Array.isArray(row)) {
+			throw new MatrixError('Invalid matrix: Expected array, got ' + typeof row);
+		}
+
+		if (row.length !== firstRowLength) {
+			throw new MatrixError('Invalid matrix: All matrix rows must have the same length');
+		}
+
+		for (let j = 0; j < row.length; j++) {
+			const element = row[j];
+			if (typeof element !== 'number') {
+				throw new MatrixError('Invalid matrix: Expected number, got ' + typeof element);
+			}
+			// Check finiteness without throwing
+			if (!Number.isFinite(element)) {
+				return false;
+			}
+		}
+	}
+
+	return true;
+}
+
+/**
  * Checks if a matrix is symmetric (A = Aᵀ, i.e. A[i][j] === A[j][i] for all i, j).
  * @param matrix - The matrix to check (must be square)
  * @param threshold - Tolerance for floating-point comparisons (default: 1e-14)

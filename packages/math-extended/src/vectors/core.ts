@@ -385,6 +385,32 @@ export function VectorIsZero(vector: TVector): boolean {
 }
 
 /**
+ * Checks if all components of a vector are finite numbers.
+ * @param vector - The vector to check.
+ * @returns true if all components are finite (neither NaN nor Infinity), false otherwise.
+ * @throws {VectorError} if the input is not a valid vector structure (not array or contains non-numbers).
+ * @example
+ * ```typescript
+ * VectorIsFinite([1, 2, 3]) // true
+ * VectorIsFinite([1, NaN, 3]) // false
+ * VectorIsFinite([1, Infinity, 3]) // false
+ * ```
+ */
+export function VectorIsFinite(vector: TVector): boolean {
+	// Check basic structure (array of numbers), but allow NaN/Infinity
+	if (!Array.isArray(vector)) {
+		throw new VectorError('Invalid vector: Expected array, received ' + typeof vector);
+	}
+	for (const element of vector) {
+		if (typeof element !== 'number') {
+			throw new VectorError('Invalid vector: Expected number, received ' + typeof element);
+		}
+	}
+	// Now check if all components are finite (returns false if any NaN/Infinity)
+	return vector.every(v => Number.isFinite(v));
+}
+
+/**
  * Calculates the angle between two vectors in radians.
  * Essential for determining angular relationships, rotations, and orientations.
  * Always returns a positive angle between 0 and π radians.

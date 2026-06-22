@@ -84,6 +84,38 @@ export function QuaternionEquals(a: TQuaternion, b: TQuaternion, tolerance = 1e-
 }
 
 /**
+ * Checks if all components of a quaternion are finite numbers.
+ * Validates quaternion structure but returns false (rather than throwing) if any component is NaN or Infinity.
+ * Unlike AssertQuaternion which rejects NaN, this function allows NaN/Infinity in the structure check
+ * and returns a boolean indicating finiteness instead.
+ * @param quaternion - The quaternion to check.
+ * @returns true if all 4 components are finite (neither NaN nor Infinity), false otherwise.
+ * @throws {QuaternionError} if the input is not a valid quaternion structure (not array or wrong length).
+ * @example
+ * ```typescript
+ * QuaternionIsFinite([0, 0, 0, 1]) // true
+ * QuaternionIsFinite([0, NaN, 0, 1]) // false
+ * QuaternionIsFinite([0, Infinity, 0, 1]) // false
+ * ```
+ */
+export function QuaternionIsFinite(quaternion: TQuaternion): boolean {
+	// Check basic structure (array of 4 numbers), but allow NaN/Infinity
+	if (!Array.isArray(quaternion)) {
+		throw new QuaternionError('Quaternion must be an array');
+	}
+	if (quaternion.length !== 4) {
+		throw new QuaternionError(`Quaternion must have exactly 4 components, got ${quaternion.length}`);
+	}
+	for (let i = 0; i < 4; i++) {
+		if (typeof quaternion[i] !== 'number') {
+			throw new QuaternionError(`Quaternion component ${i} must be a number (not ${typeof quaternion[i]})`);
+		}
+	}
+	// Now check if all components are finite (returns false if any NaN/Infinity)
+	return quaternion.every(v => Number.isFinite(v));
+}
+
+/**
  * Calculates the magnitude (length) of a quaternion.
  * For unit quaternions (valid rotations), this should be 1.
  *

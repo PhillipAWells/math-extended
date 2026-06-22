@@ -1,4 +1,4 @@
-import { MatrixCreate, MatrixSize, MatrixSizeSquare, MatrixIsIdentity, MatrixIsSymmetric, MatrixIsDiagonal, MatrixIdentity, MatrixClone, MatrixEquals, MatrixToString, MatrixRank, MatrixTrace, MatrixTranspose, MatrixMap, MatrixIsZero } from './core.js';
+import { MatrixCreate, MatrixSize, MatrixSizeSquare, MatrixIsIdentity, MatrixIsSymmetric, MatrixIsDiagonal, MatrixIdentity, MatrixClone, MatrixEquals, MatrixToString, MatrixRank, MatrixTrace, MatrixTranspose, MatrixMap, MatrixIsZero, MatrixIsFinite } from './core.js';
 import { MatrixError } from './asserts.js';
 import { type TMatrix } from './types.js';
 
@@ -726,6 +726,32 @@ describe('Matrices Core', () => {
 			// 1 + 1e-15 is representable without precision loss and falls within the default 1e-14 threshold
 			expect(MatrixIsIdentity([[1 + 1e-15, 0], [0, 1]])).toBe(true);
 			expect(MatrixIsIdentity([[1.01, 0], [0, 1]], 0.001)).toBe(false);
+		});
+	});
+
+	describe('MatrixIsFinite', () => {
+		it('should return true for all-finite matrix', () => {
+			expect(MatrixIsFinite([[1, 2], [3, 4]])).toBe(true);
+			expect(MatrixIsFinite([[0, 0], [0, 0]])).toBe(true);
+			expect(MatrixIsFinite([[-1, -2, -3]])).toBe(true);
+		});
+
+		it('should return false if any element is NaN', () => {
+			expect(MatrixIsFinite([[1, NaN], [3, 4]])).toBe(false);
+			expect(MatrixIsFinite([[NaN, 2], [3, 4]])).toBe(false);
+			expect(MatrixIsFinite([[1, 2], [3, NaN]])).toBe(false);
+		});
+
+		it('should return false if any element is Infinity', () => {
+			expect(MatrixIsFinite([[1, Infinity], [3, 4]])).toBe(false);
+			expect(MatrixIsFinite([[-Infinity, 2], [3, 4]])).toBe(false);
+			expect(MatrixIsFinite([[1, 2], [3, Infinity]])).toBe(false);
+		});
+
+		it('should throw MatrixError if input is not a valid matrix', () => {
+			expect(() => MatrixIsFinite(null as unknown as TMatrix)).toThrow(MatrixError);
+			expect(() => MatrixIsFinite('not a matrix' as unknown as TMatrix)).toThrow(MatrixError);
+			expect(() => MatrixIsFinite([[1, 2], [3]] as unknown as TMatrix)).toThrow(MatrixError);
 		});
 	});
 

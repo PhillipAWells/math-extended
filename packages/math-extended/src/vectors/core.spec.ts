@@ -14,6 +14,7 @@ import {
 	VectorMagnitude,
 	VectorAbs,
 	VectorIsZero,
+	VectorIsFinite,
 	VectorAngle,
 	Vector2Rotate,
 	Vector2FromAngle,
@@ -36,7 +37,7 @@ import {
 	VectorMax
 } from './core.js';
 import { VectorError } from './asserts.js';
-import { type TVector2 } from './types.js';
+import { type TVector, type TVector2 } from './types.js';
 
 describe('Vector Core', () => {
 	describe('VectorClone', () => {
@@ -243,6 +244,32 @@ describe('Vector Core', () => {
 		it('should return false for non-zero vectors', () => {
 			expect(VectorIsZero([1, 0])).toBe(false);
 			expect(VectorIsZero([0, 0.001])).toBe(false);
+		});
+	});
+
+	describe('VectorIsFinite', () => {
+		it('should return true for all-finite vector', () => {
+			expect(VectorIsFinite([1, 2, 3])).toBe(true);
+			expect(VectorIsFinite([0, 0, 0])).toBe(true);
+			expect(VectorIsFinite([-1, -2, -3])).toBe(true);
+		});
+
+		it('should return false if any component is NaN', () => {
+			expect(VectorIsFinite([1, NaN, 3])).toBe(false);
+			expect(VectorIsFinite([NaN, 2, 3])).toBe(false);
+			expect(VectorIsFinite([1, 2, NaN])).toBe(false);
+		});
+
+		it('should return false if any component is Infinity', () => {
+			expect(VectorIsFinite([1, Infinity, 3])).toBe(false);
+			expect(VectorIsFinite([-Infinity, 2, 3])).toBe(false);
+			expect(VectorIsFinite([1, 2, Infinity])).toBe(false);
+		});
+
+		it('should throw VectorError if input is not a valid vector', () => {
+			expect(() => VectorIsFinite(null as unknown as TVector)).toThrow(VectorError);
+			expect(() => VectorIsFinite('not an array' as unknown as TVector)).toThrow(VectorError);
+			expect(() => VectorIsFinite([1, 'not a number', 3] as unknown as TVector)).toThrow(VectorError);
 		});
 	});
 

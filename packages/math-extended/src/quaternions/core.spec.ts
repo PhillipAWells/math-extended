@@ -1,4 +1,4 @@
-import { QuaternionIdentity, QuaternionClone, QuaternionEquals, QuaternionMagnitude, QuaternionNormalize, QuaternionConjugate, QuaternionInverse, QuaternionMultiply, QuaternionFromAxisAngle, QuaternionFromAxisAngleVector, QuaternionToAxisAngle, QuaternionFromEuler, QuaternionToEuler, QuaternionRotateVector, QuaternionSLERP } from './core.js';
+﻿import { QuaternionIdentity, QuaternionClone, QuaternionEquals, QuaternionIsFinite, QuaternionMagnitude, QuaternionNormalize, QuaternionConjugate, QuaternionInverse, QuaternionMultiply, QuaternionFromAxisAngle, QuaternionFromAxisAngleVector, QuaternionToAxisAngle, QuaternionFromEuler, QuaternionToEuler, QuaternionRotateVector, QuaternionSLERP } from './core.js';
 import { QuaternionError } from './asserts.js';
 import type { TQuaternion, TEulerAngles, TAxisAngle } from './types.js';
 import { type TVector3, type TVector4 } from '../vectors/types.js';
@@ -55,6 +55,33 @@ describe('Quaternion Core Functions', () => {
 			expect(QuaternionEquals(q1, q2, 1e-6, true)).toBe(true);
 		});
 	});
+	describe('QuaternionIsFinite', () => {
+		it('should return true for all-finite quaternion', () => {
+			expect(QuaternionIsFinite([0, 0, 0, 1])).toBe(true);
+			expect(QuaternionIsFinite([1, 2, 3, 4])).toBe(true);
+			expect(QuaternionIsFinite([-1, -2, -3, -4])).toBe(true);
+		});
+
+		it('should return false if any component is NaN', () => {
+			expect(QuaternionIsFinite([NaN, 0, 0, 1])).toBe(false);
+			expect(QuaternionIsFinite([0, NaN, 0, 1])).toBe(false);
+			expect(QuaternionIsFinite([0, 0, NaN, 1])).toBe(false);
+			expect(QuaternionIsFinite([0, 0, 0, NaN])).toBe(false);
+		});
+
+		it('should return false if any component is Infinity (even though AssertQuaternion permits it)', () => {
+			expect(QuaternionIsFinite([Infinity, 0, 0, 1])).toBe(false);
+			expect(QuaternionIsFinite([0, -Infinity, 0, 1])).toBe(false);
+			expect(QuaternionIsFinite([0, 0, Infinity, 1])).toBe(false);
+			expect(QuaternionIsFinite([0, 0, 0, Infinity])).toBe(false);
+		});
+
+		it('should throw QuaternionError if input is not a valid quaternion', () => {
+			expect(() => QuaternionIsFinite(null as unknown as TQuaternion)).toThrow(QuaternionError);
+			expect(() => QuaternionIsFinite('not an array' as unknown as TQuaternion)).toThrow(QuaternionError);
+			expect(() => QuaternionIsFinite([0, 0, 0] as unknown as TQuaternion)).toThrow(QuaternionError);
+		});
+	});
 
 	describe('QuaternionMagnitude', () => {
 		test('should calculate magnitude correctly', () => {
@@ -103,7 +130,7 @@ describe('Quaternion Core Functions', () => {
 
 	describe('QuaternionInverse', () => {
 		test('should calculate inverse correctly for unit quaternion', () => {
-			const q: TQuaternion = [0, 0, 0.7071067811865476, 0.7071067811865476]; // 90° around Z (properly normalized)
+			const q: TQuaternion = [0, 0, 0.7071067811865476, 0.7071067811865476]; // 90Â° around Z (properly normalized)
 			const inverse = QuaternionInverse(q);
 			const conjugate = QuaternionConjugate(q);
 			// For unit quaternions, inverse equals conjugate
@@ -133,14 +160,14 @@ describe('Quaternion Core Functions', () => {
 	describe('QuaternionMultiply', () => {
 		test('should multiply quaternions correctly', () => {
 			const q1: TQuaternion = [0, 0, 0, 1]; // Identity
-			const q2: TQuaternion = [1, 0, 0, 0]; // 180° around X
+			const q2: TQuaternion = [1, 0, 0, 0]; // 180Â° around X
 			const product = QuaternionMultiply(q1, q2);
 			expect(product).toEqual([1, 0, 0, 0]);
 		});
 
 		test('should be non-commutative', () => {
-			const q1: TQuaternion = [0.7071067811865476, 0, 0, 0.7071067811865476]; // 90° around X
-			const q2: TQuaternion = [0, 0.7071067811865476, 0, 0.7071067811865476]; // 90° around Y
+			const q1: TQuaternion = [0.7071067811865476, 0, 0, 0.7071067811865476]; // 90Â° around X
+			const q2: TQuaternion = [0, 0.7071067811865476, 0, 0.7071067811865476]; // 90Â° around Y
 
 			const product1 = QuaternionMultiply(q1, q2);
 			const product2 = QuaternionMultiply(q2, q1);
@@ -186,7 +213,7 @@ describe('Quaternion Core Functions', () => {
 
 	describe('QuaternionFromAxisAngleVector', () => {
 		test('should create quaternion from 4-component axis-angle', () => {
-			const axisAngle: TVector4 = [0, 0, 1, Math.PI / 2]; // 90° around Z
+			const axisAngle: TVector4 = [0, 0, 1, Math.PI / 2]; // 90Â° around Z
 			const q = QuaternionFromAxisAngleVector(axisAngle as TAxisAngle);
 			expect(q[0]).toBeCloseTo(0, 6);
 			expect(q[1]).toBeCloseTo(0, 6);
@@ -197,7 +224,7 @@ describe('Quaternion Core Functions', () => {
 
 	describe('QuaternionToAxisAngle', () => {
 		test('should convert quaternion to axis-angle', () => {
-			const q: TQuaternion = [0, 0, 0.7071067811865476, 0.7071067811865476]; // 90° around Z (properly normalized)
+			const q: TQuaternion = [0, 0, 0.7071067811865476, 0.7071067811865476]; // 90Â° around Z (properly normalized)
 			const axisAngle = QuaternionToAxisAngle(q);
 			expect(axisAngle[0]).toBeCloseTo(0, 6);
 			expect(axisAngle[1]).toBeCloseTo(0, 6);
@@ -212,7 +239,7 @@ describe('Quaternion Core Functions', () => {
 		});
 
 		test('should give the same rotation for q and -q (canonical form)', () => {
-			// 90° around Z axis: w = cos(45°) ≈ 0.707
+			// 90Â° around Z axis: w = cos(45Â°) â‰ˆ 0.707
 			const q: TQuaternion = [0, 0, 0.7071067811865476, 0.7071067811865476];
 			// Negated quaternion represents the identical rotation
 			const qNeg: TQuaternion = [0, 0, -0.7071067811865476, -0.7071067811865476];
@@ -230,9 +257,9 @@ describe('Quaternion Core Functions', () => {
 
 	describe('QuaternionFromEuler', () => {
 		test('should create quaternion from Euler angles', () => {
-			const euler: TVector3 = [0, Math.PI / 2, 0]; // 90° pitch
+			const euler: TVector3 = [0, Math.PI / 2, 0]; // 90Â° pitch
 			const q = QuaternionFromEuler(euler as TEulerAngles);
-			// Should be roughly [0, sin(45°), 0, cos(45°)]
+			// Should be roughly [0, sin(45Â°), 0, cos(45Â°)]
 			expect(q[0]).toBeCloseTo(0, 6);
 			expect(q[1]).toBeCloseTo(0.7071067811865476, 6);
 			expect(q[2]).toBeCloseTo(0, 6);
@@ -248,7 +275,7 @@ describe('Quaternion Core Functions', () => {
 
 	describe('QuaternionToEuler', () => {
 		test('should convert quaternion to Euler angles', () => {
-			const q: TQuaternion = [0, 0.7071067811865476, 0, 0.7071067811865476]; // 90° around Y (properly normalized)
+			const q: TQuaternion = [0, 0.7071067811865476, 0, 0.7071067811865476]; // 90Â° around Y (properly normalized)
 			const euler = QuaternionToEuler(q);
 			// Note: Due to Euler angle ambiguity, multiple representations are valid
 			// The key is that converting back should give the same rotation
@@ -272,17 +299,17 @@ describe('Quaternion Core Functions', () => {
 
 	describe('QuaternionRotateVector', () => {
 		test('should rotate vector correctly', () => {
-			const q = QuaternionFromAxisAngle([0, 0, 1] as TVector3, Math.PI / 2); // 90° around Z
+			const q = QuaternionFromAxisAngle([0, 0, 1] as TVector3, Math.PI / 2); // 90Â° around Z
 			const vector: TVector3 = [1, 0, 0]; // Point along X-axis
 			const rotated = QuaternionRotateVector(q, vector);
-			// Should point along Y-axis after 90° Z rotation
+			// Should point along Y-axis after 90Â° Z rotation
 			expect(rotated[0]).toBeCloseTo(0, 6);
 			expect(rotated[1]).toBeCloseTo(1, 6);
 			expect(rotated[2]).toBeCloseTo(0, 6);
 		});
 
 		test('should preserve vector length', () => {
-			const q = QuaternionFromAxisAngle([1, 1, 1] as TVector3, Math.PI / 3); // 60° around diagonal
+			const q = QuaternionFromAxisAngle([1, 1, 1] as TVector3, Math.PI / 3); // 60Â° around diagonal
 			const vector: TVector3 = [3, 4, 5];
 			const rotated = QuaternionRotateVector(q, vector);
 
@@ -302,13 +329,13 @@ describe('Quaternion Core Functions', () => {
 	describe('QuaternionSLERP', () => {
 		test('should interpolate between quaternions', () => {
 			const q1 = QuaternionIdentity();
-			const q2 = QuaternionFromAxisAngle([0, 0, 1], Math.PI / 2); // 90° around Z
+			const q2 = QuaternionFromAxisAngle([0, 0, 1], Math.PI / 2); // 90Â° around Z
 
 			const halfway = QuaternionSLERP(q1, q2, 0.5);
-			// Should be roughly 45° rotation
+			// Should be roughly 45Â° rotation
 			expect(QuaternionMagnitude(halfway)).toBeCloseTo(1, 6);
-			expect(halfway[2]).toBeCloseTo(Math.sin(Math.PI / 8), 6); // sin(45°/2)
-			expect(halfway[3]).toBeCloseTo(Math.cos(Math.PI / 8), 6); // cos(45°/2)
+			expect(halfway[2]).toBeCloseTo(Math.sin(Math.PI / 8), 6); // sin(45Â°/2)
+			expect(halfway[3]).toBeCloseTo(Math.cos(Math.PI / 8), 6); // cos(45Â°/2)
 		});
 
 		test('should return start quaternion at t=0', () => {
