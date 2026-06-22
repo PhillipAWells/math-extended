@@ -4,6 +4,7 @@
  */
 
 import { Clamp } from '../clamp.js';
+import { EPSILON_LOOSE } from '../constants.js';
 import { AssertVector, AssertVector2, AssertVector3, AssertVectorNonZero, AssertVectorSameSize, ValidateVectorSameSize, VectorError } from './asserts.js';
 import type { TAnyVector, TVectorResult, TVector, TVector2, TVector3, TVector4 } from './types.js';
 
@@ -1157,4 +1158,305 @@ export function VectorMax<T extends TAnyVector>(a: T, b: T): TVectorResult<T> {
 	}
 
 	return result as TVectorResult<T>;
+}
+
+/**
+ * Calculates the midpoint between two vectors.
+ * Returns the average of corresponding components.
+ *
+ * @template T - The vector type extending TVector
+ * @param a - First vector
+ * @param b - Second vector
+ * @returns New vector representing the midpoint
+ * @throws {VectorError} If vectors have different sizes
+ *
+ * @example
+ * ```typescript
+ * const start = [0, 0, 0];
+ * const end = [4, 8, 12];
+ * const mid = VectorMidpoint(start, end); // [2, 4, 6]
+ * ```
+ */
+export function VectorMidpoint<T extends TAnyVector>(a: T, b: T): TVectorResult<T> {
+	AssertVector(a);
+	AssertVector(b);
+	AssertVectorSameSize([a, b]);
+
+	const result: number[] = [];
+
+	for (let i = 0; i < a.length; i++) {
+		const av = a[i];
+		const bv = b[i];
+		result.push((av + bv) / 2);
+	}
+
+	return result as TVectorResult<T>;
+}
+
+/**
+ * Moves a vector towards a target by at most a specified distance.
+ * If the distance between current and target is less than or equal to maxDistance,
+ * returns a clone of the target. Otherwise, moves in the direction of the target
+ * by exactly maxDistance units.
+ *
+ * @template T - The vector type extending TVector
+ * @param current - The starting vector
+ * @param target - The destination vector
+ * @param maxDistance - Maximum distance to move (must be >= 0)
+ * @returns New vector moved towards target by at most maxDistance units
+ * @throws {VectorError} If vectors have different sizes
+ *
+ * @example
+ * ```typescript
+ * const current = [0, 0, 0];
+ * const target = [10, 0, 0];
+ * const result = VectorMoveTowards(current, target, 3); // [3, 0, 0]
+ * const closeResult = VectorMoveTowards(current, target, 15); // [10, 0, 0]
+ * ```
+ */
+export function VectorMoveTowards<T extends TAnyVector>(current: T, target: T, maxDistance: number): TVectorResult<T> {
+	AssertVector(current);
+	AssertVector(target);
+	AssertVectorSameSize([current, target]);
+
+	if (maxDistance <= 0) {
+		return VectorClone(current) as TVectorResult<T>;
+	}
+
+	const distance = VectorDistance(current, target);
+
+	if (distance <= maxDistance) {
+		return VectorClone(target) as TVectorResult<T>;
+	}
+
+	const diff = VectorSubtract(target, current);
+	const direction = VectorNormalize(diff);
+	const scaled = VectorScale(direction, maxDistance);
+	const result: number[] = [];
+
+	for (let i = 0; i < current.length; i++) {
+		const cv = current[i];
+		const sv = scaled[i];
+		if (sv !== undefined) {
+			result.push(cv + sv);
+		}
+	}
+
+	return result as TVectorResult<T>;
+}
+
+/**
+ * Calculates the signed angle from vector a to vector b in 2D (in radians).
+ * Returns a value in the range (-π, π] where positive values indicate counterclockwise rotation.
+ *
+ * @param a - First 2D vector
+ * @param b - Second 2D vector
+ * @returns Signed angle in radians from a to b
+ * @throws {VectorError} If either input is not a valid 2D vector
+ *
+ * @example
+ * ```typescript
+ * const right = [1, 0];
+ * const up = [0, 1];
+ * const angle = Vector2AngleSigned(right, up); // π/2 (counterclockwise)
+ * const angle2 = Vector2AngleSigned(up, right); // -π/2 (clockwise)
+ * ```
+ */
+export function Vector2AngleSigned(a: TVector2, b: TVector2): number {
+	AssertVector2(a);
+	AssertVector2(b);
+
+	const cross = Vector2Cross(a, b);
+	const dot = VectorDot(a, b);
+
+	return Math.atan2(cross, dot);
+}
+
+/**
+ * Calculates the signed angle from vector a to vector b around a specified axis in 3D (in radians).
+ * The magnitude of the result is the unsigned angle between a and b.
+ * The sign indicates rotation direction relative to the axis using the right-hand rule.
+ *
+ * @param a - First 3D vector
+ * @param b - Second 3D vector
+ * @param axis - The rotation axis (will be normalized internally)
+ * @returns Signed angle in radians around the axis
+ * @throws {VectorError} If any input is not a valid 3D vector, or if axis is a zero vector
+ *
+ * @example
+ * ```typescript
+ * const a = [1, 0, 0];
+ * const b = [0, 1, 0];
+ * const axis = [0, 0, 1];
+ * const angle = Vector3AngleSigned(a, b, axis); // π/2 (counterclockwise around z-axis)
+ * ```
+ */
+export function Vector3AngleSigned(a: TVector3, b: TVector3, axis: TVector3): number {
+	AssertVector3(a);
+	AssertVector3(b);
+	AssertVector3(axis);
+
+	const normalizedAxis = VectorNormalize(axis);
+	const cross = Vector3Cross(a, b);
+	const dot = VectorDot(a, b);
+	const sign = Math.sign(VectorDot(normalizedAxis, cross));
+
+	const unsignedAngle = Math.atan2(VectorMagnitude(cross), dot);
+	return unsignedAngle * sign;
+}
+
+/**
+ * Checks if a vector has a magnitude approximately equal to 1 (is normalized).
+ * Uses a default tolerance of EPSILON_LOOSE for floating-point robustness.
+ *
+ * @template T - The vector type extending TVector
+ * @param vector - The vector to check
+ * @param tolerance - Maximum allowed deviation from magnitude 1 (default: EPSILON_LOOSE)
+ * @returns True if the vector's magnitude is within tolerance of 1, false otherwise
+ * @throws {VectorError} If the input is not a valid vector
+ *
+ * @example
+ * ```typescript
+ * const unit = [1, 0, 0];
+ * VectorIsNormalized(unit); // true
+ *
+ * const normalized = [0.6, 0.8];
+ * VectorIsNormalized(normalized); // true (magnitude = 1)
+ *
+ * const notUnit = [2, 0, 0];
+ * VectorIsNormalized(notUnit); // false
+ * ```
+ */
+export function VectorIsNormalized<T extends TAnyVector>(vector: T, tolerance = EPSILON_LOOSE): boolean {
+	AssertVector(vector);
+
+	const magnitude = VectorMagnitude(vector);
+	return Math.abs(magnitude - 1) <= tolerance;
+}
+
+/**
+ * Projects a vector onto a plane defined by its surface normal.
+ * Returns the component of the vector that lies in the plane (perpendicular to the normal).
+ *
+ * @param v - Vector to project onto the plane
+ * @param planeNormal - The plane's surface normal (will be normalized internally)
+ * @returns New vector representing the projection onto the plane
+ * @throws {VectorError} If planeNormal is a zero vector
+ *
+ * @example
+ * ```typescript
+ * const velocity = [1, 5, 0];
+ * const groundNormal = [0, 1, 0]; // vertical surface
+ * const result = Vector3ProjectOnPlane(velocity, groundNormal); // [1, 0, 0]
+ * ```
+ */
+export function Vector3ProjectOnPlane(v: TVector3, planeNormal: TVector3): TVector3 {
+	AssertVector3(v);
+	AssertVector3(planeNormal);
+
+	const normalizedNormal = VectorNormalize(planeNormal);
+	const projection = VectorScale(normalizedNormal, VectorDot(v, normalizedNormal));
+	return VectorSubtract(v, projection);
+}
+
+/**
+ * Rotates a 3D vector around an axis by a specified angle using Rodrigues' rotation formula.
+ * Implements: result = v*cosθ + (k×v)*sinθ + k*(k·v)*(1-cosθ)
+ * where k is the normalized axis and θ is the rotation angle.
+ *
+ * @param v - Vector to rotate
+ * @param axis - Rotation axis (will be normalized internally)
+ * @param radians - Rotation angle in radians
+ * @returns New rotated vector
+ * @throws {VectorError} If axis is a zero vector
+ *
+ * @example
+ * ```typescript
+ * const vector = [1, 0, 0];
+ * const axis = [0, 0, 1];
+ * const result = Vector3RotateAround(vector, axis, Math.PI / 2); // [0, 1, 0]
+ * ```
+ */
+export function Vector3RotateAround(v: TVector3, axis: TVector3, radians: number): TVector3 {
+	AssertVector3(v);
+	AssertVector3(axis);
+
+	const k = VectorNormalize(axis);
+	const cos = Math.cos(radians);
+	const sin = Math.sin(radians);
+	const oneMinusCos = 1 - cos;
+
+	const term1 = VectorScale(v, cos);
+	const term2 = VectorScale(Vector3Cross(k, v), sin);
+	const term3 = VectorScale(k, VectorDot(k, v) * oneMinusCos);
+
+	const result1 = VectorAdd(term1, term2);
+	const result2 = VectorAdd(result1, term3);
+
+	return result2;
+}
+
+/**
+ * Calculates the Manhattan distance (taxicab distance) between two vectors.
+ * Returns the sum of absolute differences of corresponding components.
+ *
+ * @param a - First vector
+ * @param b - Second vector
+ * @returns Sum of absolute differences between corresponding components
+ * @throws {VectorError} If vectors have different sizes
+ *
+ * @example
+ * ```typescript
+ * const a = [0, 0, 0];
+ * const b = [3, 4, 5];
+ * const distance = VectorManhattanDistance(a, b); // 12
+ * ```
+ */
+export function VectorManhattanDistance(a: TVector, b: TVector): number {
+	AssertVector(a);
+	AssertVector(b);
+	AssertVectorSameSize([a, b]);
+
+	let sum = 0;
+
+	for (let i = 0; i < a.length; i++) {
+		const av = a[i];
+		const bv = b[i];
+		sum += Math.abs(bv - av);
+	}
+
+	return sum;
+}
+
+/**
+ * Calculates the Chebyshev distance (chessboard distance) between two vectors.
+ * Returns the maximum absolute difference of corresponding components.
+ *
+ * @param a - First vector
+ * @param b - Second vector
+ * @returns Maximum absolute difference between corresponding components
+ * @throws {VectorError} If vectors have different sizes
+ *
+ * @example
+ * ```typescript
+ * const a = [0, 0];
+ * const b = [3, 5];
+ * const distance = VectorChebyshevDistance(a, b); // 5
+ * ```
+ */
+export function VectorChebyshevDistance(a: TVector, b: TVector): number {
+	AssertVector(a);
+	AssertVector(b);
+	AssertVectorSameSize([a, b]);
+
+	let max = 0;
+
+	for (let i = 0; i < a.length; i++) {
+		const av = a[i];
+		const bv = b[i];
+		const diff = Math.abs(bv - av);
+		if (diff > max) max = diff;
+	}
+
+	return max;
 }

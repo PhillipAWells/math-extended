@@ -34,10 +34,19 @@ import {
 	VectorCeil,
 	VectorRound,
 	VectorMin,
-	VectorMax
+	VectorMax,
+	VectorMidpoint,
+	VectorMoveTowards,
+	Vector2AngleSigned,
+	Vector3AngleSigned,
+	VectorIsNormalized,
+	Vector3ProjectOnPlane,
+	Vector3RotateAround,
+	VectorManhattanDistance,
+	VectorChebyshevDistance
 } from './core.js';
 import { VectorError } from './asserts.js';
-import { type TVector, type TVector2 } from './types.js';
+import { type TVector, type TVector2, type TVector3 } from './types.js';
 
 describe('Vector Core', () => {
 	describe('VectorClone', () => {
@@ -661,6 +670,260 @@ describe('Vector Core', () => {
 			VectorMax(a, b);
 			expect(a).toEqual([5, 2, 8]);
 			expect(b).toEqual([3, 7, 1]);
+		});
+	});
+
+	describe('VectorMidpoint', () => {
+		it('should calculate midpoint correctly', () => {
+			const result = VectorMidpoint([0, 0, 0], [4, 8, 12]);
+			expect(result).toEqual([2, 4, 6]);
+		});
+
+		it('should handle negative coordinates', () => {
+			const result = VectorMidpoint([-2, -4], [2, 4]);
+			expect(result).toEqual([0, 0]);
+		});
+
+		it('should throw error for mismatched sizes', () => {
+			expect(() => VectorMidpoint([1, 2], [1, 2, 3])).toThrow(VectorError);
+		});
+
+		it('should not mutate input vectors', () => {
+			const a = [1, 2, 3];
+			const b = [5, 6, 7];
+			VectorMidpoint(a, b);
+			expect(a).toEqual([1, 2, 3]);
+			expect(b).toEqual([5, 6, 7]);
+		});
+	});
+
+	describe('VectorMoveTowards', () => {
+		it('should move toward target by maxDistance', () => {
+			const result = VectorMoveTowards([0, 0, 0], [10, 0, 0], 3);
+			expect(result[0]).toBeCloseTo(3);
+			expect(result[1]).toBeCloseTo(0);
+			expect(result[2]).toBeCloseTo(0);
+		});
+
+		it('should return target when already close enough', () => {
+			const target: TVector3 = [5, 0, 0];
+			const result = VectorMoveTowards([0, 0, 0], target, 10);
+			expect(result).toEqual(target);
+		});
+
+		it('should return clone of current when maxDistance <= 0', () => {
+			const current: TVector3 = [1, 2, 3];
+			const result = VectorMoveTowards(current, [10, 10, 10], -1);
+			expect(result).toEqual(current);
+			expect(result).not.toBe(current);
+		});
+
+		it('should throw error for mismatched sizes', () => {
+			expect(() => VectorMoveTowards([1, 2], [1, 2, 3], 1)).toThrow(VectorError);
+		});
+
+		it('should not mutate input vectors', () => {
+			const current = [0, 0, 0];
+			const target = [10, 0, 0];
+			VectorMoveTowards(current, target, 3);
+			expect(current).toEqual([0, 0, 0]);
+			expect(target).toEqual([10, 0, 0]);
+		});
+	});
+
+	describe('Vector2AngleSigned', () => {
+		it('should calculate counterclockwise angle', () => {
+			const right: TVector2 = [1, 0];
+			const up: TVector2 = [0, 1];
+			const angle = Vector2AngleSigned(right, up);
+			expect(angle).toBeCloseTo(Math.PI / 2);
+		});
+
+		it('should calculate clockwise angle as negative', () => {
+			const up: TVector2 = [0, 1];
+			const right: TVector2 = [1, 0];
+			const angle = Vector2AngleSigned(up, right);
+			expect(angle).toBeCloseTo(-Math.PI / 2);
+		});
+
+		it('should handle same direction', () => {
+			const angle = Vector2AngleSigned([1, 0], [2, 0]);
+			expect(angle).toBeCloseTo(0, 5);
+		});
+
+		it('should handle opposite direction', () => {
+			const angle = Vector2AngleSigned([1, 0], [-1, 0]);
+			expect(Math.abs(angle)).toBeCloseTo(Math.PI);
+		});
+	});
+
+	describe('Vector3AngleSigned', () => {
+		it('should calculate signed angle around axis', () => {
+			const a: TVector3 = [1, 0, 0];
+			const b: TVector3 = [0, 1, 0];
+			const axis: TVector3 = [0, 0, 1];
+			const angle = Vector3AngleSigned(a, b, axis);
+			expect(angle).toBeCloseTo(Math.PI / 2);
+		});
+
+		it('should handle rotation in opposite direction', () => {
+			const a: TVector3 = [0, 1, 0];
+			const b: TVector3 = [1, 0, 0];
+			const axis: TVector3 = [0, 0, 1];
+			const angle = Vector3AngleSigned(a, b, axis);
+			expect(angle).toBeCloseTo(-Math.PI / 2);
+		});
+
+		it('should throw error if axis is zero', () => {
+			expect(() => Vector3AngleSigned([1, 0, 0], [0, 1, 0], [0, 0, 0])).toThrow(VectorError);
+		});
+	});
+
+	describe('VectorIsNormalized', () => {
+		it('should return true for unit vector', () => {
+			expect(VectorIsNormalized([1, 0, 0])).toBe(true);
+		});
+
+		it('should return true for normalized vector', () => {
+			const normalized = VectorNormalize([3, 4]);
+			expect(VectorIsNormalized(normalized)).toBe(true);
+		});
+
+		it('should return false for non-unit vector', () => {
+			expect(VectorIsNormalized([2, 0, 0])).toBe(false);
+		});
+
+		it('should respect custom tolerance', () => {
+			const almostUnit = [0.9999, 0.0001];
+			expect(VectorIsNormalized(almostUnit, 0.01)).toBe(true);
+			expect(VectorIsNormalized(almostUnit, 1e-10)).toBe(false);
+		});
+	});
+
+	describe('Vector3ProjectOnPlane', () => {
+		it('should project vector onto plane', () => {
+			const velocity: TVector3 = [1, 5, 0];
+			const groundNormal: TVector3 = [0, 1, 0];
+			const result = Vector3ProjectOnPlane(velocity, groundNormal);
+			expect(result[0]).toBeCloseTo(1);
+			expect(result[1]).toBeCloseTo(0);
+			expect(result[2]).toBeCloseTo(0);
+		});
+
+		it('should handle unnormalized normal', () => {
+			const v: TVector3 = [3, 4, 0];
+			const normal: TVector3 = [0, 2, 0];
+			const result = Vector3ProjectOnPlane(v, normal);
+			expect(result[0]).toBeCloseTo(3);
+			expect(result[1]).toBeCloseTo(0);
+			expect(result[2]).toBeCloseTo(0);
+		});
+
+		it('should throw error for zero normal', () => {
+			expect(() => Vector3ProjectOnPlane([1, 2, 3], [0, 0, 0])).toThrow(VectorError);
+		});
+
+		it('should not mutate input vectors', () => {
+			const v: TVector3 = [1, 5, 0];
+			const normal: TVector3 = [0, 1, 0];
+			Vector3ProjectOnPlane(v, normal);
+			expect(v).toEqual([1, 5, 0]);
+			expect(normal).toEqual([0, 1, 0]);
+		});
+	});
+
+	describe('Vector3RotateAround', () => {
+		it('should rotate around z-axis by 90 degrees', () => {
+			const vector: TVector3 = [1, 0, 0];
+			const axis: TVector3 = [0, 0, 1];
+			const result = Vector3RotateAround(vector, axis, Math.PI / 2);
+			expect(result[0]).toBeCloseTo(0, 8);
+			expect(result[1]).toBeCloseTo(1, 8);
+			expect(result[2]).toBeCloseTo(0, 8);
+		});
+
+		it('should rotate around x-axis by 90 degrees', () => {
+			const vector: TVector3 = [0, 1, 0];
+			const axis: TVector3 = [1, 0, 0];
+			const result = Vector3RotateAround(vector, axis, Math.PI / 2);
+			expect(result[0]).toBeCloseTo(0, 8);
+			expect(result[1]).toBeCloseTo(0, 8);
+			expect(result[2]).toBeCloseTo(1, 8);
+		});
+
+		it('should preserve magnitude', () => {
+			const vector: TVector3 = [3, 4, 0];
+			const axis: TVector3 = [0, 0, 1];
+			const result = Vector3RotateAround(vector, axis, Math.PI / 4);
+			const originalMag = VectorMagnitude(vector);
+			const resultMag = VectorMagnitude(result);
+			expect(resultMag).toBeCloseTo(originalMag);
+		});
+
+		it('should throw error if axis is zero', () => {
+			expect(() => Vector3RotateAround([1, 0, 0], [0, 0, 0], Math.PI / 2)).toThrow(VectorError);
+		});
+
+		it('should not mutate input vectors', () => {
+			const vector: TVector3 = [1, 0, 0];
+			const axis: TVector3 = [0, 0, 1];
+			Vector3RotateAround(vector, axis, Math.PI / 2);
+			expect(vector).toEqual([1, 0, 0]);
+			expect(axis).toEqual([0, 0, 1]);
+		});
+	});
+
+	describe('VectorManhattanDistance', () => {
+		it('should calculate Manhattan distance', () => {
+			const a: TVector3 = [0, 0, 0];
+			const b: TVector3 = [3, 4, 5];
+			const distance = VectorManhattanDistance(a, b);
+			expect(distance).toBe(12);
+		});
+
+		it('should handle 2D vectors', () => {
+			const a: TVector2 = [0, 0];
+			const b: TVector2 = [3, 4];
+			const distance = VectorManhattanDistance(a, b);
+			expect(distance).toBe(7);
+		});
+
+		it('should handle negative coordinates', () => {
+			const a = [-1, -2];
+			const b = [1, 2];
+			const distance = VectorManhattanDistance(a, b);
+			expect(distance).toBe(6);
+		});
+
+		it('should throw error for mismatched sizes', () => {
+			expect(() => VectorManhattanDistance([1, 2], [1, 2, 3])).toThrow(VectorError);
+		});
+	});
+
+	describe('VectorChebyshevDistance', () => {
+		it('should calculate Chebyshev distance', () => {
+			const a: TVector2 = [0, 0];
+			const b: TVector2 = [3, 5];
+			const distance = VectorChebyshevDistance(a, b);
+			expect(distance).toBe(5);
+		});
+
+		it('should return maximum difference', () => {
+			const a: TVector3 = [1, 2, 3];
+			const b: TVector3 = [4, 5, 6];
+			const distance = VectorChebyshevDistance(a, b);
+			expect(distance).toBe(3);
+		});
+
+		it('should handle negative coordinates', () => {
+			const a = [-3, -5];
+			const b = [2, 1];
+			const distance = VectorChebyshevDistance(a, b);
+			expect(distance).toBe(6);
+		});
+
+		it('should throw error for mismatched sizes', () => {
+			expect(() => VectorChebyshevDistance([1, 2], [1, 2, 3])).toThrow(VectorError);
 		});
 	});
 });
