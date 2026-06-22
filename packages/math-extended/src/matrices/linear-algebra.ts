@@ -1,6 +1,6 @@
 import { AssertNumber } from '../internal/guards.js';
 import { AssertMatrix, AssertMatrix1, AssertMatrix2, AssertMatrix3, AssertMatrixSquare, MatrixError } from './asserts.js';
-import { MatrixCreate, MatrixSize, MatrixSizeSquare, MatrixTranspose } from './core.js';
+import { MatrixCreate, MatrixSize, MatrixSizeSquare, MatrixTranspose, MatrixIdentity, MatrixClone } from './core.js';
 import { MatrixLU, MatrixSVD } from './decompositions.js';
 import { MatrixMultiply } from './arithmetic.js';
 import type { TMatrix } from './types.js';
@@ -847,6 +847,136 @@ export function MatrixLeastSquares(a: TMatrix, b: number[]): number[] {
 			throw new MatrixError('Solution element is not a number');
 		}
 		result.push(val);
+	}
+
+	return result;
+}
+
+/**
+ * Computes the integer power of a square matrix using exponentiation-by-squaring.
+ *
+ * For a square matrix A and non-negative integer n:
+ * - A^0 = I (identity matrix)
+ * - A^1 = A
+ * - A^n = A × A × ... × A (n times)
+ * - A^-n = (A^-1)^n (for negative n, requires invertible matrix)
+ *
+ * Uses efficient binary exponentiation: O(log n) matrix multiplications.
+ *
+ * @param matrix - The square matrix to raise to a power
+ * @param exponent - The integer exponent (can be positive, negative, or zero)
+ * @returns The matrix raised to the specified power
+ * @throws {MatrixError} If the matrix is not square or the exponent is not an integer
+ * @throws {MatrixError} If exponent is negative and the matrix is singular (not invertible)
+ * @example
+ * ```typescript
+ * // Identity: A^0 = I
+ * const A = [[1, 2], [3, 4]];
+ * MatrixPower(A, 0) // [[1, 0], [0, 1]]
+ *
+ * // First power: A^1 = A
+ * MatrixPower(A, 1) // [[1, 2], [3, 4]]
+ *
+ * // Square: A^2 = A × A
+ * MatrixPower(A, 2) // [[7, 10], [15, 22]]
+ *
+ * // Negative power: A^-1 = inverse(A)
+ * MatrixPower(A, -1) // (inverse of A)
+ * ```
+ */
+export function MatrixPower(matrix: TMatrix, exponent: number): TMatrix {
+	AssertMatrixSquare(matrix);
+	AssertNumber(exponent, { integer: true }, { message: 'Exponent must be an integer' });
+
+	const n = MatrixSizeSquare(matrix);
+
+	// Handle exponent = 0: return identity
+	if (exponent === 0) {
+		return MatrixIdentity(n);
+	}
+
+	// Handle negative exponents: compute inverse first, then raise to positive power
+	let base = MatrixClone(matrix);
+	let exp = exponent;
+
+	if (exp < 0) {
+		base = MatrixInverse(base);
+		exp = -exp;
+	}
+
+	// Exponentiation by squaring: O(log exp) multiplications
+	let result = MatrixIdentity(n);
+
+	while (exp > 0) {
+		if (exp % 2 === 1) {
+			result = MatrixMultiply(result, base) as TMatrix;
+		}
+		base = MatrixMultiply(base, base) as TMatrix;
+		exp = Math.floor(exp / 2);
+	}
+
+	return result;
+}
+
+/**
+ * Computes the Kronecker product of two matrices.
+ *
+ * For matrices A (m×n) and B (p×q), the Kronecker product A ⊗ B is an (mp)×(nq) matrix defined as:
+ *
+ * A ⊗ B = [A[0,0]×B,  A[0,1]×B,  ...,  A[0,n-1]×B ]
+ *          [A[1,0]×B,  A[1,1]×B,  ...,  A[1,n-1]×B ]
+ *          [...      ,  ...      ,  ...,  ...       ]
+ *          [A[m-1,0]×B, A[m-1,1]×B, ..., A[m-1,n-1]×B]
+ *
+ * Each element A[i,j] is multiplied by the entire matrix B, producing a block matrix.
+ *
+ * @param a - The left matrix (dimensions m×n)
+ * @param b - The right matrix (dimensions p×q)
+ * @returns The Kronecker product A ⊗ B (dimensions (m×p)×(n×q))
+ * @throws {MatrixError} If either matrix is invalid or empty
+ * @example
+ * ```typescript
+ * // Kronecker product with identity: I_2 ⊗ B creates block-diagonal [[B, 0], [0, B]]
+ * const I2 = [[1, 0], [0, 1]];
+ * const B = [[1, 2], [3, 4]];
+ * MatrixKronecker(I2, B)
+ * // Result: [[1, 2, 0, 0], [3, 4, 0, 0], [0, 0, 1, 2], [0, 0, 3, 4]]
+ *
+ * // Scalar case: [[2]] ⊗ B = 2×B
+ * const scalar = [[2]];
+ * MatrixKronecker(scalar, B)
+ * // Result: [[2, 4], [6, 8]]
+ * ```
+ */
+export function MatrixKronecker(a: TMatrix, b: TMatrix): TMatrix {
+	AssertMatrix(a);
+	AssertMatrix(b);
+
+	const [aRows, aCols] = MatrixSize(a);
+	const [bRows, bCols] = MatrixSize(b);
+
+	const resultRows = aRows * bRows;
+	const resultCols = aCols * bCols;
+
+	const result = MatrixCreate(resultRows, resultCols);
+
+	// Fill in the result matrix
+	for (let i = 0; i < aRows; i++) {
+		const aRow = a[i];
+		for (let j = 0; j < aCols; j++) {
+			const aVal = aRow[j];
+
+			// Place B at position (i*bRows, j*bCols), scaled by a[i][j]
+			for (let p = 0; p < bRows; p++) {
+				const bRow = b[p];
+				const resultRow = result[i * bRows + p];
+
+				for (let q = 0; q < bCols; q++) {
+					const bVal = bRow[q];
+					resultRow[j * bCols + q] = aVal * bVal;
+				}
+			}
+		}
 	}
 
 	return result;

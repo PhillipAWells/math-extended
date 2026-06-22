@@ -10,9 +10,12 @@ import {
 	MatrixNullSpace,
 	MatrixConditionNumber,
 	MatrixIsInvertible,
-	MatrixLeastSquares
+	MatrixLeastSquares,
+	MatrixPower,
+	MatrixKronecker
 } from './linear-algebra.js';
 import { MatrixMultiply } from './arithmetic.js';
+import { MatrixIdentity } from './core.js';
 import { type TMatrix } from './types.js';
 
 describe('Matrix Operations for Linear Algebra', () => {
@@ -775,6 +778,161 @@ describe('Matrix Operations for Linear Algebra', () => {
 				// Should approximately satisfy A*x ≈ b in least-squares sense
 				expect(x[0]).toBeCloseTo(1, 0);
 				expect(x[1]).toBeCloseTo(2, 0);
+			});
+		});
+
+		describe('MatrixPower', () => {
+			test('should return identity for exponent 0', () => {
+				const A: TMatrix = [[1, 2], [3, 4]];
+				const result = MatrixPower(A, 0);
+				const I = MatrixIdentity(2);
+				expect(result).toEqual(I);
+			});
+
+			test('should return original matrix for exponent 1', () => {
+				const A: TMatrix = [[1, 2], [3, 4]];
+				const result = MatrixPower(A, 1);
+				expect(result).toEqual(A);
+			});
+
+			test('should compute A^2 correctly', () => {
+				const A: TMatrix = [[1, 2], [3, 4]];
+				const result = MatrixPower(A, 2);
+				const expected = MatrixMultiply(A, A);
+				expect(result).toEqual(expected);
+			});
+
+			test('should compute A^3 correctly', () => {
+				const A: TMatrix = [[1, 2], [3, 4]];
+				const result = MatrixPower(A, 3);
+				const A2 = MatrixMultiply(A, A) as TMatrix;
+				const expected = MatrixMultiply(A2, A);
+				expect(result).toEqual(expected);
+			});
+
+			test('should compute A^4 correctly', () => {
+				const A: TMatrix = [[1, 2], [3, 4]];
+				const result = MatrixPower(A, 4);
+				const A2 = MatrixMultiply(A, A) as TMatrix;
+				const A4 = MatrixMultiply(A2, A2) as TMatrix;
+				expect(result).toEqual(A4);
+			});
+
+			test('should compute negative power A^-1 ≈ MatrixInverse(A)', () => {
+				const A: TMatrix = [[2, 1], [1, 1]];
+				const result = MatrixPower(A, -1);
+				const inverted = MatrixInverse(A);
+				expect(result[0][0]).toBeCloseTo(inverted[0][0], 9);
+				expect(result[0][1]).toBeCloseTo(inverted[0][1], 9);
+				expect(result[1][0]).toBeCloseTo(inverted[1][0], 9);
+				expect(result[1][1]).toBeCloseTo(inverted[1][1], 9);
+			});
+
+			test('should compute A^-2 ≈ (A^-1)^2', () => {
+				const A: TMatrix = [[2, 1], [1, 1]];
+				const result = MatrixPower(A, -2);
+				const inverted = MatrixInverse(A);
+				const invSquared = MatrixMultiply(inverted, inverted) as TMatrix;
+				expect(result[0][0]).toBeCloseTo(invSquared[0][0], 9);
+				expect(result[0][1]).toBeCloseTo(invSquared[0][1], 9);
+				expect(result[1][0]).toBeCloseTo(invSquared[1][0], 9);
+				expect(result[1][1]).toBeCloseTo(invSquared[1][1], 9);
+			});
+
+			test('should throw for non-square matrix', () => {
+				const A: TMatrix = [[1, 2, 3], [4, 5, 6]];
+				expect(() => MatrixPower(A, 2)).toThrow();
+			});
+
+			test('should throw for non-integer exponent', () => {
+				const A: TMatrix = [[1, 2], [3, 4]];
+				expect(() => MatrixPower(A, 2.5)).toThrow();
+			});
+
+			test('should throw for singular matrix with negative exponent', () => {
+				const A: TMatrix = [[1, 2], [2, 4]];
+				expect(() => MatrixPower(A, -1)).toThrow();
+			});
+		});
+
+		describe('MatrixKronecker', () => {
+			test('should compute Kronecker product with identity', () => {
+				const I2: TMatrix = [[1, 0], [0, 1]];
+				const B: TMatrix = [[1, 2], [3, 4]];
+				const result = MatrixKronecker(I2, B);
+				// I_2 ⊗ B = [[B, 0], [0, B]]
+				const expected: TMatrix = [
+					[1, 2, 0, 0],
+					[3, 4, 0, 0],
+					[0, 0, 1, 2],
+					[0, 0, 3, 4]
+				];
+				expect(result).toEqual(expected);
+			});
+
+			test('should compute Kronecker product with scalar matrix', () => {
+				const scalar: TMatrix = [[2]];
+				const B: TMatrix = [[1, 2], [3, 4]];
+				const result = MatrixKronecker(scalar, B);
+				const expected: TMatrix = [[2, 4], [6, 8]];
+				expect(result).toEqual(expected);
+			});
+
+			test('should compute Kronecker product with different sizes', () => {
+				const A: TMatrix = [[1, 2]];
+				const B: TMatrix = [[1], [2]];
+				const result = MatrixKronecker(A, B);
+				// A (1x2) ⊗ B (2x1) = (2x2)
+				const expected: TMatrix = [[1, 2], [2, 4]];
+				expect(result).toEqual(expected);
+			});
+
+			test('should produce correct dimensions for 2x2 ⊗ 2x2', () => {
+				const A: TMatrix = [[1, 0], [0, 1]];
+				const B: TMatrix = [[1, 2], [3, 4]];
+				const result = MatrixKronecker(A, B);
+				expect(result.length).toBe(4); // 2 * 2 rows
+				expect(result[0].length).toBe(4); // 2 * 2 cols
+			});
+
+			test('should produce correct dimensions for 3x2 ⊗ 2x3', () => {
+				const A: TMatrix = [[1, 0], [0, 1], [1, 1]];
+				const B: TMatrix = [[1, 2, 3], [4, 5, 6]];
+				const result = MatrixKronecker(A, B);
+				expect(result.length).toBe(6); // 3 * 2 rows
+				expect(result[0].length).toBe(6); // 2 * 3 cols
+			});
+
+			test('should compute Kronecker product with 1x1 matrices', () => {
+				const A: TMatrix = [[3]];
+				const B: TMatrix = [[4]];
+				const result = MatrixKronecker(A, B);
+				const expected: TMatrix = [[12]];
+				expect(result).toEqual(expected);
+			});
+
+			test('should compute Kronecker product A ⊗ B and B ⊗ A differently', () => {
+				const A: TMatrix = [[1, 0], [0, 2]];
+				const B: TMatrix = [[1, 1]];
+				const resultAB = MatrixKronecker(A, B);
+				const resultBA = MatrixKronecker(B, A);
+				// A ⊗ B should have size (2x4) while B ⊗ A should have size (2x4)
+				expect(resultAB.length).toBe(2);
+				expect(resultAB[0].length).toBe(4);
+				expect(resultBA.length).toBe(2);
+				expect(resultBA[0].length).toBe(4);
+				// Verify they are different
+				expect(resultAB).not.toEqual(resultBA);
+			});
+
+			test('should compute associative: (A ⊗ B) ⊗ C by verifying element pattern', () => {
+				const A: TMatrix = [[1]];
+				const B: TMatrix = [[2]];
+				const C: TMatrix = [[3]];
+				const resultAB = MatrixKronecker(A, B);
+				const resultABC = MatrixKronecker(resultAB, C);
+				// 1 ⊗ 2 = [[2]], then [[2]] ⊗ 3 = [[6]]
+				expect(resultABC[0][0]).toBe(6);
 			});
 		});
 	});
