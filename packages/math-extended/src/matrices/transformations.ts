@@ -450,6 +450,167 @@ export function MatrixScale3D(scaleOrX: number | TVector3, y?: number, z?: numbe
 }
 
 // ============================================================================
+// SHEAR TRANSFORMATIONS
+// ============================================================================
+
+/**
+ * Creates a 2D shear transformation matrix.
+ *
+ * Shearing skews points along the X and Y axes. The shear parameters determine
+ * how much a point moves along each axis based on its coordinate on the other axis.
+ *
+ * Matrix structure and convention:
+ * ```
+ * [1     shearX  0]
+ * [shearY   1    0]
+ * [0       0     1]
+ * ```
+ *
+ * Transformation formula (applied to point [x, y]):
+ * - x' = x + shearX · y
+ * - y' = shearY · x + y
+ *
+ * @param shearX - Shear factor along X-axis (applied based on Y coordinate)
+ * @param shearY - Shear factor along Y-axis (applied based on X coordinate)
+ * @returns {TMatrix3} A 3x3 shear transformation matrix for 2D transformations
+ *
+ * @throws {Error} If any shear factor is not a finite number
+ *
+ * @example
+ * ```typescript
+ * // Shear 0.5 along X based on Y, 0.3 along Y based on X
+ * const shearMatrix = MatrixShear2D(0.5, 0.3);
+ * // Apply to a point [1, 2]
+ * // x' = 1 + 0.5 * 2 = 2.0
+ * // y' = 0.3 * 1 + 2 = 2.3
+ * // Result: [2.0, 2.3]
+ * ```
+ */
+export function MatrixShear2D(shearX: number, shearY: number): TMatrix3 {
+	AssertNumber(shearX, { finite: true }, { message: 'X shear factor must be a finite number' });
+	AssertNumber(shearY, { finite: true }, { message: 'Y shear factor must be a finite number' });
+
+	return [
+		[1, shearX, 0], // [1, shearX, 0]
+		[shearY, 1, 0], // [shearY, 1, 0]
+		[0, 0, 1] // [0, 0, 1]
+	];
+}
+
+/**
+ * Creates a 3D shear transformation matrix.
+ *
+ * Shearing in 3D skews points along the X, Y, and Z axes based on coordinates
+ * on the other axes. The six shear parameters control how much movement occurs
+ * along each axis relative to the other two axes.
+ *
+ * Matrix structure and convention:
+ * ```
+ * [1   xy   xz   0]
+ * [yx  1    yz   0]
+ * [zx  zy   1    0]
+ * [0   0    0    1]
+ * ```
+ *
+ * Transformation formula (applied to point [x, y, z]):
+ * - x' = x + xy · y + xz · z
+ * - y' = yx · x + y + yz · z
+ * - z' = zx · x + zy · y + z
+ *
+ * @param xy - Shear factor: how much X changes based on Y
+ * @param xz - Shear factor: how much X changes based on Z
+ * @param yx - Shear factor: how much Y changes based on X
+ * @param yz - Shear factor: how much Y changes based on Z
+ * @param zx - Shear factor: how much Z changes based on X
+ * @param zy - Shear factor: how much Z changes based on Y
+ * @returns {TMatrix4} A 4x4 shear transformation matrix for 3D transformations
+ *
+ * @throws {Error} If any shear factor is not a finite number
+ *
+ * @example
+ * ```typescript
+ * // Shear with XY=0.2, XZ=0.1, YX=0.3, YZ=0.15, ZX=0.05, ZY=0.1
+ * const shearMatrix = MatrixShear3D(0.2, 0.1, 0.3, 0.15, 0.05, 0.1);
+ * // Apply to a point [1, 1, 1]
+ * // x' = 1 + 0.2 * 1 + 0.1 * 1 = 1.3
+ * // y' = 0.3 * 1 + 1 + 0.15 * 1 = 1.45
+ * // z' = 0.05 * 1 + 0.1 * 1 + 1 = 1.15
+ * // Result: [1.3, 1.45, 1.15]
+ * ```
+ */
+export function MatrixShear3D(xy: number, xz: number, yx: number, yz: number, zx: number, zy: number): TMatrix4 {
+	AssertNumber(xy, { finite: true }, { message: 'XY shear factor must be a finite number' });
+	AssertNumber(xz, { finite: true }, { message: 'XZ shear factor must be a finite number' });
+	AssertNumber(yx, { finite: true }, { message: 'YX shear factor must be a finite number' });
+	AssertNumber(yz, { finite: true }, { message: 'YZ shear factor must be a finite number' });
+	AssertNumber(zx, { finite: true }, { message: 'ZX shear factor must be a finite number' });
+	AssertNumber(zy, { finite: true }, { message: 'ZY shear factor must be a finite number' });
+
+	return [
+		[1, xy, xz, 0], // [1, xy, xz, 0]
+		[yx, 1, yz, 0], // [yx, 1, yz, 0]
+		[zx, zy, 1, 0], // [zx, zy, 1, 0]
+		[0, 0, 0, 1] // [0, 0, 0, 1]
+	];
+}
+
+// ============================================================================
+// REFLECTION TRANSFORMATIONS
+// ============================================================================
+
+/**
+ * Creates a 2D reflection transformation matrix across a line through the origin.
+ *
+ * Reflects points across a line at a specified angle from the X-axis. The reflection
+ * preserves distances from the line and creates a mirror image on the opposite side.
+ *
+ * Matrix structure and convention (for line at angle θ):
+ * ```
+ * [cos(2θ)   sin(2θ)  0]
+ * [sin(2θ)  -cos(2θ)  0]
+ * [   0         0     1]
+ * ```
+ *
+ * The angle parameter specifies the angle of the reflection line from the positive X-axis.
+ * For example:
+ * - angle = 0: reflect across the X-axis (horizontal line)
+ * - angle = π/4: reflect across a 45° line
+ * - angle = π/2: reflect across the Y-axis (vertical line)
+ *
+ * @param angle - Angle in radians of the reflection line from the X-axis
+ * @returns {TMatrix3} A 3x3 reflection transformation matrix for 2D transformations
+ *
+ * @throws {Error} If angle is not a finite number
+ *
+ * @example
+ * ```typescript
+ * // Reflect across the X-axis (angle = 0)
+ * // A point [x, y] becomes [x, -y]
+ * const reflectX = MatrixReflection2D(0);
+ *
+ * // Reflect across the Y-axis (angle = π/2)
+ * // A point [x, y] becomes [-x, y]
+ * const reflectY = MatrixReflection2D(Math.PI / 2);
+ *
+ * // Reflect across a 45° line
+ * const reflect45 = MatrixReflection2D(Math.PI / 4);
+ * ```
+ */
+export function MatrixReflection2D(angle: number): TMatrix3 {
+	AssertNumber(angle, { finite: true }, { message: 'Reflection angle must be a finite number' });
+
+	const twoAngle = 2 * angle;
+	const cos2 = Math.cos(twoAngle);
+	const sin2 = Math.sin(twoAngle);
+
+	return [
+		[cos2, sin2, 0], // [cos(2θ), sin(2θ), 0]
+		[sin2, -cos2, 0], // [sin(2θ), -cos(2θ), 0]
+		[0, 0, 1] // [0, 0, 1]
+	];
+}
+
+// ============================================================================
 // TRANSLATION TRANSFORMATIONS
 // ============================================================================
 

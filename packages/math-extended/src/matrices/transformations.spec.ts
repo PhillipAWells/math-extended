@@ -7,6 +7,9 @@ import {
 	MatrixRotation3DEulerAngles,
 	MatrixScale2D,
 	MatrixScale3D,
+	MatrixShear2D,
+	MatrixShear3D,
+	MatrixReflection2D,
 	MatrixTranslation2D,
 	MatrixTranslation3D,
 	MatrixTransform2D,
@@ -802,6 +805,122 @@ describe('Matrix Transformations', () => {
 				expect(ortho[0][0]).toBeCloseTo(2 / (-50 - -100));
 				expect(ortho[1][1]).toBeCloseTo(2 / (-10 - -25));
 				expect(ortho[2][2]).toBeCloseTo(-2 / (20 - 10));
+			});
+		});
+	});
+
+	describe('Shear Transformations', () => {
+		describe('MatrixShear2D', () => {
+			test('should create identity matrix for zero shear', () => {
+				const matrix = MatrixShear2D(0, 0);
+				expectMatrixToBeCloseTo(matrix, MatrixIdentity(3));
+			});
+
+			test('should apply shear transformation to a point correctly', () => {
+				const shearMatrix = MatrixShear2D(0.5, 0.3);
+				const point: TVector2 = [1, 2];
+				const result = MatrixTransform2D(point, shearMatrix);
+				// x' = 1 + 0.5 * 2 = 2.0
+				// y' = 0.3 * 1 + 2 = 2.3
+				expect(result[0]).toBeCloseTo(2.0);
+				expect(result[1]).toBeCloseTo(2.3);
+			});
+
+			test('should handle negative shear values', () => {
+				const shearMatrix = MatrixShear2D(-0.5, -0.3);
+				const point: TVector2 = [2, 3];
+				const result = MatrixTransform2D(point, shearMatrix);
+				// x' = 2 + (-0.5) * 3 = 0.5
+				// y' = (-0.3) * 2 + 3 = 2.4
+				expect(result[0]).toBeCloseTo(0.5);
+				expect(result[1]).toBeCloseTo(2.4);
+			});
+
+			test('should throw for non-finite shear values', () => {
+				expect(() => MatrixShear2D(NaN, 0)).toThrow('X shear factor must be a finite number');
+				expect(() => MatrixShear2D(0, NaN)).toThrow('Y shear factor must be a finite number');
+				expect(() => MatrixShear2D(Infinity, 0)).toThrow('X shear factor must be a finite number');
+				expect(() => MatrixShear2D(0, Infinity)).toThrow('Y shear factor must be a finite number');
+			});
+		});
+
+		describe('MatrixShear3D', () => {
+			test('should create identity matrix for zero shear', () => {
+				const matrix = MatrixShear3D(0, 0, 0, 0, 0, 0);
+				expectMatrixToBeCloseTo(matrix, MatrixIdentity(4));
+			});
+
+			test('should apply single-parameter shear to a point correctly', () => {
+				const shearMatrix = MatrixShear3D(0.2, 0, 0, 0, 0, 0);
+				const point: TVector3 = [1, 1, 1];
+				const result = MatrixTransform3D(point, shearMatrix);
+				// x' = 1 + 0.2 * 1 + 0 * 1 = 1.2
+				// y' = 0 * 1 + 1 + 0 * 1 = 1
+				// z' = 0 * 1 + 0 * 1 + 1 = 1
+				expect(result[0]).toBeCloseTo(1.2);
+				expect(result[1]).toBeCloseTo(1.0);
+				expect(result[2]).toBeCloseTo(1.0);
+			});
+
+			test('should apply full 3D shear to a point correctly', () => {
+				const shearMatrix = MatrixShear3D(0.2, 0.1, 0.3, 0.15, 0.05, 0.1);
+				const point: TVector3 = [1, 1, 1];
+				const result = MatrixTransform3D(point, shearMatrix);
+				// x' = 1 + 0.2 * 1 + 0.1 * 1 = 1.3
+				// y' = 0.3 * 1 + 1 + 0.15 * 1 = 1.45
+				// z' = 0.05 * 1 + 0.1 * 1 + 1 = 1.15
+				expect(result[0]).toBeCloseTo(1.3);
+				expect(result[1]).toBeCloseTo(1.45);
+				expect(result[2]).toBeCloseTo(1.15);
+			});
+
+			test('should throw for non-finite shear values', () => {
+				expect(() => MatrixShear3D(NaN, 0, 0, 0, 0, 0)).toThrow('XY shear factor must be a finite number');
+				expect(() => MatrixShear3D(0, NaN, 0, 0, 0, 0)).toThrow('XZ shear factor must be a finite number');
+				expect(() => MatrixShear3D(0, 0, NaN, 0, 0, 0)).toThrow('YX shear factor must be a finite number');
+				expect(() => MatrixShear3D(0, 0, 0, NaN, 0, 0)).toThrow('YZ shear factor must be a finite number');
+				expect(() => MatrixShear3D(0, 0, 0, 0, NaN, 0)).toThrow('ZX shear factor must be a finite number');
+				expect(() => MatrixShear3D(0, 0, 0, 0, 0, NaN)).toThrow('ZY shear factor must be a finite number');
+			});
+		});
+	});
+
+	describe('Reflection Transformations', () => {
+		describe('MatrixReflection2D', () => {
+			test('should reflect across X-axis at angle 0', () => {
+				const reflectMatrix = MatrixReflection2D(0);
+				const point: TVector2 = [3, 4];
+				const result = MatrixTransform2D(point, reflectMatrix);
+				// At angle 0: [x, y] -> [x, -y]
+				expect(result[0]).toBeCloseTo(3);
+				expect(result[1]).toBeCloseTo(-4);
+			});
+
+			test('should reflect across Y-axis at angle π/2', () => {
+				const reflectMatrix = MatrixReflection2D(Math.PI / 2);
+				const point: TVector2 = [3, 4];
+				const result = MatrixTransform2D(point, reflectMatrix);
+				// At angle π/2: [x, y] -> [-x, y]
+				expect(result[0]).toBeCloseTo(-3, 5);
+				expect(result[1]).toBeCloseTo(4, 5);
+			});
+
+			test('should apply reflection matrix formula correctly', () => {
+				const angle = Math.PI / 4;
+				const reflectMatrix = MatrixReflection2D(angle);
+				// Verify matrix structure: [[cos(2θ), sin(2θ), 0], [sin(2θ), -cos(2θ), 0], [0, 0, 1]]
+				const twoAngle = 2 * angle;
+				const expectedCos2 = Math.cos(twoAngle);
+				const expectedSin2 = Math.sin(twoAngle);
+				expect(reflectMatrix[0][0]).toBeCloseTo(expectedCos2, 5);
+				expect(reflectMatrix[0][1]).toBeCloseTo(expectedSin2, 5);
+				expect(reflectMatrix[1][0]).toBeCloseTo(expectedSin2, 5);
+				expect(reflectMatrix[1][1]).toBeCloseTo(-expectedCos2, 5);
+			});
+
+			test('should throw for non-finite angle', () => {
+				expect(() => MatrixReflection2D(NaN)).toThrow('Reflection angle must be a finite number');
+				expect(() => MatrixReflection2D(Infinity)).toThrow('Reflection angle must be a finite number');
 			});
 		});
 	});
