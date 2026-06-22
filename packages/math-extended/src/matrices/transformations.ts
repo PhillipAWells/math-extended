@@ -834,6 +834,133 @@ export function MatrixTRS(translation: TVector3, rotation: TVector3, scale: TVec
 }
 
 /**
+ * Decomposes a 4×4 composite transformation matrix into translation, rotation, and scale components.
+ *
+ * This function inverts the TRS (Translation-Rotation-Scale) composition: it extracts
+ * the translation vector, scale factors, and rotation angles from a composite matrix.
+ *
+ * **Assumptions:**
+ * - The input matrix is a valid TRS matrix created or compatible with MatrixTRS
+ * - No shear transformations are present (the matrix is orthogonal after removing scale)
+ * - Scale factors are positive (negative scales encode reflection + rotation; use absolute values)
+ *
+ * **Extraction order:**
+ * 1. **Translation:** Extracted from the last column (indices [0][3], [1][3], [2][3])
+ * 2. **Scale:** Computed as the magnitude of each basis vector (row norms of the 3×3 upper-left block)
+ * 3. **Rotation:** Extracted as Euler angles [roll, pitch, yaw] from the normalized rotation submatrix
+ *
+ * **Euler angle convention:** Roll (X) → Pitch (Y) → Yaw (Z) (intrinsic XYZ order), matching MatrixRotation3D.
+ * After normalization by scale, the angles can be recovered using atan2/asin.
+ *
+ * **Round-trip guarantee:** For most well-conditioned TRS matrices:
+ * `MatrixTRS(...MatrixDecomposeTRS(M)) ≈ M` within ~1e-9 tolerance (due to numerical precision).
+ *
+ * @param matrix - A 4×4 composite transformation matrix (ideally created by MatrixTRS)
+ * @returns Object containing readonly translation, rotation (Euler angles in radians), and scale
+ * @throws {MatrixError} If the matrix is not 4×4 or contains invalid values
+ *
+ * @example
+ * ```typescript
+ * // Create a TRS matrix
+ * const translation: TVector3 = [5, 10, -3];
+ * const rotation: TVector3 = [0.5, 0.2, 0.3]; // Radians: roll, pitch, yaw
+ * const scale: TVector3 = [2, 2, 2];
+ * const M = MatrixTRS(translation, rotation, scale);
+ *
+ * // Decompose it back
+ * const { translation: t, rotation: r, scale: s } = MatrixDecomposeTRS(M);
+ *
+ * // Verify round-trip: reconstruct ≈ original
+ * const reconstructed = MatrixTRS(t, r, s);
+ * // reconstructed ≈ M (element-wise, within ~1e-9)
+ *
+ * // Extract just the translation
+ * const trans = MatrixDecomposeTRS(M).translation;
+ * // trans ≈ [5, 10, -3]
+ * ```
+ */
+export function MatrixDecomposeTRS(matrix: TMatrix4): { readonly translation: TVector3; readonly rotation: TVector3; readonly scale: TVector3 } {
+	AssertMatrix4(matrix);
+
+	// ==================== Extract Translation ====================
+	// Translation is stored in the last column (homogeneous coordinates)
+	const translation: TVector3 = [
+		matrix[0][3],
+		matrix[1][3],
+		matrix[2][3]
+	];
+
+	// ==================== Extract Scale ====================
+	// Scale is the magnitude of each row of the 3×3 upper-left block
+	const scaleX = Math.sqrt((matrix[0][0] * matrix[0][0]) + (matrix[0][1] * matrix[0][1]) + (matrix[0][2] * matrix[0][2]));
+	const scaleY = Math.sqrt((matrix[1][0] * matrix[1][0]) + (matrix[1][1] * matrix[1][1]) + (matrix[1][2] * matrix[1][2]));
+	const scaleZ = Math.sqrt((matrix[2][0] * matrix[2][0]) + (matrix[2][1] * matrix[2][1]) + (matrix[2][2] * matrix[2][2]));
+
+	const scale: TVector3 = [
+		scaleX > 0 ? scaleX : 1,
+		scaleY > 0 ? scaleY : 1,
+		scaleZ > 0 ? scaleZ : 1
+	];
+
+	// ==================== Extract Rotation ====================
+	// Normalize the 3×3 rotation submatrix by dividing out the scale
+	const invScaleX = scaleX > 0 ? 1 / scaleX : 1;
+	const invScaleY = scaleY > 0 ? 1 / scaleY : 1;
+	const invScaleZ = scaleZ > 0 ? 1 / scaleZ : 1;
+
+	// Normalized rotation matrix (should be orthogonal)
+	const r00 = matrix[0][0] * invScaleX;
+	const r01 = matrix[0][1] * invScaleY;
+	const r10 = matrix[1][0] * invScaleX;
+	const r11 = matrix[1][1] * invScaleY;
+	const r20 = matrix[2][0] * invScaleX;
+	const r21 = matrix[2][1] * invScaleY;
+	const r22 = matrix[2][2] * invScaleZ;
+
+	// Extract Euler angles from the rotation matrix
+	// For XYZ intrinsic rotation (Roll → Pitch → Yaw):
+	// The combined rotation matrix R = Rz(yaw) × Ry(pitch) × Rx(roll)
+	// After multiplication and normalization:
+	// R[2][0] = -sin(pitch)
+	// R[2][1] = sin(roll) × cos(pitch)
+	// R[2][2] = cos(roll) × cos(pitch)
+	// R[0][0] = cos(yaw) × cos(pitch)
+	// R[1][0] = sin(yaw) × cos(pitch)
+	// R[1][1] = cos(yaw) × cos(roll) + sin(yaw) × sin(roll) × sin(pitch)
+	// R[0][1] = -sin(yaw)
+	// ... (other elements)
+
+	// Pitch: asin(-R[2][0]) with clamp to avoid numerical issues beyond [-1, 1]
+	const sinPitch = -r20;
+	const pitch = Math.asin(Math.max(-1, Math.min(1, sinPitch)));
+
+	const cosPitch = Math.cos(pitch);
+
+	let roll = 0;
+	let yaw = 0;
+
+	// Avoid division by zero when cos(pitch) is near zero (gimbal lock)
+	if (Math.abs(cosPitch) > 1e-6) {
+		// Normal case: recover roll and yaw
+		// roll = atan2(R[2][1] / cos(pitch), R[2][2] / cos(pitch))
+		roll = Math.atan2(r21 / cosPitch, r22 / cosPitch);
+		// yaw = atan2(R[1][0] / cos(pitch), R[0][0] / cos(pitch))
+		yaw = Math.atan2(r10 / cosPitch, r00 / cosPitch);
+	}
+	else {
+		// Gimbal lock: when pitch ≈ ±π/2, roll and yaw are not independently recoverable
+		// Arbitrarily set roll = 0 and solve for yaw
+		roll = 0;
+		// yaw = atan2(-R[0][1], R[1][1])
+		yaw = Math.atan2(-r01, r11);
+	}
+
+	const rotation: TVector3 = [roll, pitch, yaw];
+
+	return { translation, rotation, scale };
+}
+
+/**
  * Creates a perspective projection matrix for 3D rendering.
  * Transforms 3D view coordinates to normalized device coordinates with perspective effect.
  *

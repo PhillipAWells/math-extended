@@ -15,6 +15,7 @@ import {
 	MatrixView,
 	MatrixLookAt,
 	MatrixTRS,
+	MatrixDecomposeTRS,
 	MatrixPerspective,
 	MatrixOrthographic
 } from './transformations.js';
@@ -944,6 +945,82 @@ describe('Matrix Transformations', () => {
 			const rotation: TVector3 = [0, 0, 0];
 
 			expect(() => MatrixTRS(translation, rotation, 'invalid' as unknown as TVector3)).toThrow();
+		});
+	});
+
+	describe('MatrixDecomposeTRS', () => {
+		test('should decompose identity matrix', () => {
+			const identity = MatrixIdentity(4);
+			const { translation, rotation, scale } = MatrixDecomposeTRS(identity);
+			expect(translation[0]).toBeCloseTo(0, 9);
+			expect(translation[1]).toBeCloseTo(0, 9);
+			expect(translation[2]).toBeCloseTo(0, 9);
+			expect(rotation[0]).toBeCloseTo(0, 9);
+			expect(rotation[1]).toBeCloseTo(0, 9);
+			expect(rotation[2]).toBeCloseTo(0, 9);
+			expect(scale[0]).toBeCloseTo(1, 9);
+			expect(scale[1]).toBeCloseTo(1, 9);
+			expect(scale[2]).toBeCloseTo(1, 9);
+		});
+
+		test('should round-trip: compose then decompose equals original', () => {
+			const translation: TVector3 = [5, 10, -3];
+			const rotation: TVector3 = [0.5, 0.2, 0.3];
+			const scale: TVector3 = [2, 2, 2];
+
+			const composed = MatrixTRS(translation, rotation, scale);
+			const { translation: t, rotation: r, scale: s } = MatrixDecomposeTRS(composed);
+
+			expect(t[0]).toBeCloseTo(translation[0], 8);
+			expect(t[1]).toBeCloseTo(translation[1], 8);
+			expect(t[2]).toBeCloseTo(translation[2], 8);
+
+			expect(r[0]).toBeCloseTo(rotation[0], 8);
+			expect(r[1]).toBeCloseTo(rotation[1], 8);
+			expect(r[2]).toBeCloseTo(rotation[2], 8);
+
+			expect(s[0]).toBeCloseTo(scale[0], 8);
+			expect(s[1]).toBeCloseTo(scale[1], 8);
+			expect(s[2]).toBeCloseTo(scale[2], 8);
+		});
+
+		test('should decompose translation-only matrix', () => {
+			const translation: TVector3 = [7, 3, -1];
+			const rotation: TVector3 = [0, 0, 0];
+			const scale: TVector3 = [1, 1, 1];
+
+			const M = MatrixTRS(translation, rotation, scale);
+			const { translation: t } = MatrixDecomposeTRS(M);
+
+			expect(t[0]).toBeCloseTo(7, 9);
+			expect(t[1]).toBeCloseTo(3, 9);
+			expect(t[2]).toBeCloseTo(-1, 9);
+		});
+
+		test('should decompose scale-only matrix', () => {
+			const translation: TVector3 = [0, 0, 0];
+			const rotation: TVector3 = [0, 0, 0];
+			const scale: TVector3 = [2, 3, 4];
+
+			const M = MatrixTRS(translation, rotation, scale);
+			const { scale: s } = MatrixDecomposeTRS(M);
+
+			expect(s[0]).toBeCloseTo(2, 9);
+			expect(s[1]).toBeCloseTo(3, 9);
+			expect(s[2]).toBeCloseTo(4, 9);
+		});
+
+		test('should decompose rotation-only matrix', () => {
+			const translation: TVector3 = [0, 0, 0];
+			const rotation: TVector3 = [0.1, 0.2, 0.3];
+			const scale: TVector3 = [1, 1, 1];
+
+			const M = MatrixTRS(translation, rotation, scale);
+			const { rotation: r } = MatrixDecomposeTRS(M);
+
+			expect(r[0]).toBeCloseTo(rotation[0], 8);
+			expect(r[1]).toBeCloseTo(rotation[1], 8);
+			expect(r[2]).toBeCloseTo(rotation[2], 8);
 		});
 	});
 });
