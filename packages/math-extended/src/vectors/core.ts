@@ -1,0 +1,1483 @@
+/**
+ * Core vector mathematics operations for linear algebra and geometric calculations.
+ * Provides a comprehensive set of vector operations with type safety and error checking.
+ */
+
+import { Clamp } from '../clamp.js';
+import { EPSILON_LOOSE } from '../constants.js';
+import { AssertVector, AssertVector2, AssertVector3, AssertVectorNonZero, AssertVectorSameSize, ValidateVectorSameSize, VectorError } from './asserts.js';
+import type { TAnyVector, TVectorResult, TVector, TVector2, TVector3, TVector4 } from './types.js';
+
+/**
+ * Creates a deep copy of a vector.
+ * Essential for avoiding mutations when performing operations that should preserve the original vector.
+ *
+ * @template T - The vector type extending TVector
+ * @param vector - The vector to clone
+ * @returns A new vector with identical components
+ *
+ * @example
+ * ```typescript
+ * const original = [1, 2, 3];
+ * const copy = VectorClone(original);
+ * copy[0] = 10; // original remains unchanged
+ * ```
+ */
+export function VectorClone<T extends TAnyVector>(vector: T): TVectorResult<T> {
+	AssertVector(vector);
+	return [...vector] as TVectorResult<T>;
+}
+
+/**
+ * Compares two vectors for equality with optional tolerance for floating-point precision.
+ * Useful for comparing vectors that may have slight numerical differences due to calculations.
+ *
+ * @template T - The vector type extending TVector
+ * @param a - First vector to compare
+ * @param b - Second vector to compare
+ * @param tolerance - Maximum allowed difference between components (default: 0 for exact equality)
+ * @returns True if vectors are equal within tolerance, false otherwise
+ *
+ * @example
+ * ```typescript
+ * const a = [1.0001, 2.0001];
+ * const b = [1.0002, 2.0002];
+ * const exactlyEqual = VectorEquals(a, b); // false
+ * const approximatelyEqual = VectorEquals(a, b, 0.001); // true
+ * ```
+ */
+export function VectorEquals<T extends TAnyVector>(a: T, b: T, tolerance = 0): boolean {
+	if (!ValidateVectorSameSize([a, b])) return false;
+
+	AssertVector(a);
+	AssertVector(b);
+
+	for (let i = 0; i < a.length; i++) {
+		const av = a[i];
+		const bv = b[i];
+		if (tolerance !== 0) {
+			if (Math.abs(av - bv) > tolerance) return false;
+		}
+		else if (av !== bv) return false;
+	}
+
+	return true;
+}
+
+/**
+ * Converts a vector to a human-readable string representation.
+ * Useful for debugging, logging, and displaying vector values.
+ *
+ * @param vector - The vector to convert to string
+ * @param style - Output format: 'parens' for (x, y, z) or 'brackets' for [x, y, z]
+ * @returns String representation of the vector
+ *
+ * @example
+ * ```typescript
+ * const vec = [1, 2, 3];
+ * const parens = VectorToString(vec, 'parens'); // "(1, 2, 3)"
+ * const brackets = VectorToString(vec, 'brackets'); // "[1, 2, 3]"
+ * ```
+ */
+export function VectorToString(vector: TVector, style: 'parens' | 'brackets' = 'parens'): string {
+	AssertVector(vector);
+
+	const components = vector.map(v => v.toString()).join(', ');
+	if (style === 'parens') return `(${components})`;
+	return `[${components}]`;
+}
+
+/**
+ * Performs component-wise addition of two vectors.
+ * Fundamental operation for vector arithmetic, physics simulations, and geometric transformations.
+ *
+ * @template T - The vector type extending TVector
+ * @param a - First vector (augend)
+ * @param b - Second vector (addend)
+ * @returns New vector where each component is the sum of corresponding components
+ * @throws {VectorError} If vectors have different sizes or invalid structure
+ *
+ * @example
+ * ```typescript
+ * const position = [10, 20, 30];
+ * const velocity = [1, -2, 0.5];
+ * const newPosition = VectorAdd(position, velocity); // [11, 18, 30.5]
+ * ```
+ */
+export function VectorAdd<T extends TAnyVector>(a: T, b: T): TVectorResult<T> {
+	AssertVector(a);
+	AssertVector(b);
+	AssertVectorSameSize([a, b]);
+
+	const result: number[] = [];
+
+	for (let i = 0; i < a.length; i++) {
+		const av = a[i];
+		const bv = b[i];
+		result.push(av + bv);
+	}
+
+	return result as TVectorResult<T>;
+}
+
+/**
+ * Performs component-wise subtraction of two vectors.
+ * Essential for calculating displacement, relative positions, and vector differences.
+ *
+ * @template T - The vector type extending TVector
+ * @param a - First vector (minuend)
+ * @param b - Second vector (subtrahend)
+ * @returns New vector where each component is the difference of corresponding components
+ * @throws {VectorError} If vectors have different sizes or invalid structure
+ *
+ * @example
+ * ```typescript
+ * const target = [100, 50, 0];
+ * const current = [80, 30, 0];
+ * const direction = VectorSubtract(target, current); // [20, 20, 0]
+ * ```
+ */
+export function VectorSubtract<T extends TAnyVector>(a: T, b: T): TVectorResult<T> {
+	AssertVector(a);
+	AssertVector(b);
+	AssertVectorSameSize([a, b]);
+
+	const result: number[] = [];
+
+	for (let i = 0; i < a.length; i++) {
+		const av = a[i];
+		const bv = b[i];
+		result.push(av - bv);
+	}
+
+	return result as TVectorResult<T>;
+}
+
+/**
+ * Multiplies a vector by a scalar or performs component-wise multiplication with another vector.
+ * Scalar multiplication scales the vector magnitude; component-wise multiplication is useful for scaling factors.
+ *
+ * @template T - The vector type extending TVector
+ * @param a - Vector to multiply
+ * @param b - Scalar number or vector for component-wise multiplication
+ * @returns New vector with multiplied components
+ * @throws {VectorError} If vectors have different sizes or invalid structure
+ *
+ * @example
+ * ```typescript
+ * const velocity = [10, 5, 0];
+ * const scaled = VectorMultiply(velocity, 2); // [20, 10, 0] - scalar multiplication
+ * const factors = [1, -1, 0.5];
+ * const componentWise = VectorMultiply(velocity, factors); // [10, -5, 0] - component-wise
+ * ```
+ */
+export function VectorMultiply<T extends TAnyVector>(a: T, b: T | number): TVectorResult<T> {
+	AssertVector(a);
+
+	const result: number[] = [];
+
+	if (Array.isArray(b)) {
+		AssertVector(b);
+		AssertVectorSameSize([a, b]);
+
+		for (let i = 0; i < a.length; i++) {
+			const av = a[i];
+			const bv = b[i];
+			const prod = av * bv;
+			result.push(Object.is(prod, -0) ? 0 : prod);
+		}
+	}
+	else if (typeof b === 'number') {
+		for (const av of a) {
+			const prod = av * b;
+			result.push(Object.is(prod, -0) ? 0 : prod);
+		}
+	}
+
+	return result as TVectorResult<T>;
+}
+
+/**
+ * Calculates the Euclidean distance between two vectors.
+ * Fundamental for spatial calculations, collision detection, and proximity measurements.
+ *
+ * @param a - First vector
+ * @param b - Second vector
+ * @returns The straight-line distance between the two points represented by the vectors
+ * @throws {VectorError} If vectors have different sizes or invalid structure
+ *
+ * @example
+ * ```typescript
+ * const pointA = [0, 0, 0];
+ * const pointB = [3, 4, 0];
+ * const distance = VectorDistance(pointA, pointB); // 5.0 (3-4-5 triangle)
+ * ```
+ */
+export function VectorDistance(a: TVector, b: TVector): number {
+	return Math.sqrt(VectorDistanceSquared(a, b));
+}
+
+/**
+ * Calculates the squared distance between two vectors.
+ * More efficient than VectorDistance when only relative distances matter,
+ * as it avoids the expensive square root operation.
+ *
+ * @param a - First vector
+ * @param b - Second vector
+ * @returns The squared distance between vectors
+ * @throws {VectorError} If vectors have different sizes or invalid structure
+ *
+ * @example
+ * ```typescript
+ * const pointA = [1, 1];
+ * const pointB = [4, 5];
+ * const distSq = VectorDistanceSquared(pointA, pointB); // 25 (faster than distance comparison)
+ * ```
+ */
+export function VectorDistanceSquared(a: TVector, b: TVector): number {
+	AssertVector(a);
+	AssertVector(b);
+	AssertVectorSameSize([a, b]);
+
+	let sum = 0;
+
+	for (let i = 0; i < a.length; i++) {
+		const av = a[i];
+		const bv = b[i];
+		const diff = bv - av;
+		sum += diff * diff;
+	}
+
+	return sum;
+}
+
+/**
+ * Calculates the dot product (scalar product) of two vectors.
+ * Fundamental operation for projections, angles, and determining vector relationships.
+ * Returns positive for acute angles, zero for perpendicular vectors, negative for obtuse angles.
+ *
+ * @param a - First vector
+ * @param b - Second vector
+ * @returns The dot product (scalar value)
+ * @throws {VectorError} If vectors have different sizes or invalid structure
+ *
+ * @example
+ * ```typescript
+ * const forward = [0, 0, 1];
+ * const direction = [0, 0, 2];
+ * const dot = VectorDot(forward, direction); // 2 (same direction)
+ * const perpendicular = [1, 0, 0];
+ * const dotPerp = VectorDot(forward, perpendicular); // 0 (perpendicular)
+ * ```
+ */
+export function VectorDot(a: TVector, b: TVector): number {
+	AssertVector(a);
+	AssertVector(b);
+	AssertVectorSameSize([a, b]);
+
+	let dotProduct = 0;
+
+	for (let i = 0; i < a.length; i++) {
+		const av = a[i];
+		const bv = b[i];
+		dotProduct += av * bv;
+	}
+
+	return dotProduct;
+}
+
+/**
+ * Normalizes a vector to unit length (magnitude of 1).
+ * Essential for direction vectors, surface normals, and unit calculations.
+ * Preserves direction while standardizing magnitude.
+ *
+ * @template T - The vector type extending TVector
+ * @param a - Vector to normalize
+ * @returns Unit vector in the same direction
+ * @throws {VectorError} If the vector is zero or has infinite magnitude
+ *
+ * @example
+ * ```typescript
+ * const vector = [3, 4, 0];
+ * const normalized = VectorNormalize(vector); // [0.6, 0.8, 0] (magnitude = 1)
+ * const direction = [10, 0, 0];
+ * const unitDirection = VectorNormalize(direction); // [1, 0, 0]
+ * ```
+ */
+export function VectorNormalize<T extends TAnyVector>(a: T): TVectorResult<T> {
+	AssertVector(a);
+
+	const magnitude = VectorMagnitude(a);
+	if (magnitude === 0) throw new VectorError(`Cannot Normalize a Zero Vector: ${VectorToString(a)}`);
+	if (magnitude === Number.POSITIVE_INFINITY) throw new VectorError(`Cannot Normalize a Vector with Infinite Magnitude: ${VectorToString(a)}`);
+
+	const result = VectorClone(a);
+
+	for (let i = 0; i < a.length; i++) {
+		const av = a[i];
+		result[i] = av / magnitude;
+	}
+
+	return result as TVectorResult<T>;
+}
+
+/**
+ * Calculates the magnitude (length) of a vector.
+ * Fundamental for distance calculations, normalization, and vector analysis.
+ *
+ * @param a - Vector to measure
+ * @returns The magnitude (length) of the vector
+ * @throws {VectorError} If vector has invalid structure
+ *
+ * @example
+ * ```typescript
+ * const velocity = [3, 4, 0];
+ * const speed = VectorMagnitude(velocity); // 5.0
+ * const unitVector = [1, 0, 0];
+ * const unitLength = VectorMagnitude(unitVector); // 1.0
+ * ```
+ */
+export function VectorMagnitude(a: TVector): number {
+	AssertVector(a);
+
+	let sum = 0;
+
+	for (const av of a) sum += av * av;
+
+	return Math.sqrt(sum);
+}
+
+/**
+ * Returns a vector with the absolute value of each component.
+ * Useful for distance calculations, bounding box calculations, and ensuring positive values.
+ *
+ * @template T - The vector type extending TVector
+ * @param a - Vector to process
+ * @returns New vector with absolute values of all components
+ * @throws {VectorError} If vector has invalid structure
+ *
+ * @example
+ * ```typescript
+ * const vector = [-3, 4, -2];
+ * const absolute = VectorAbs(vector); // [3, 4, 2]
+ * const mixed = [1.5, -2.7, 0];
+ * const absValues = VectorAbs(mixed); // [1.5, 2.7, 0]
+ * ```
+ */
+export function VectorAbs<T extends TAnyVector>(a: T): TVectorResult<T> {
+	AssertVector(a);
+
+	const result: number[] = [];
+
+	for (const av of a) result.push(Math.abs(av));
+
+	return result as TVectorResult<T>;
+}
+
+/**
+ * Checks if a vector is a zero vector (all components are zero).
+ * Important for validating input vectors and avoiding division by zero in calculations.
+ *
+ * @param vector - Vector to check
+ * @returns True if all components are zero, false otherwise
+ *
+ * @example
+ * ```typescript
+ * const zero = [0, 0, 0];
+ * const isZero = VectorIsZero(zero); // true
+ * const notZero = [0, 0.001, 0];
+ * const isNotZero = VectorIsZero(notZero); // false
+ * ```
+ */
+export function VectorIsZero(vector: TVector): boolean {
+	return vector.every(v => v === 0);
+}
+
+/**
+ * Checks if all components of a vector are finite numbers.
+ * @param vector - The vector to check.
+ * @returns true if all components are finite (neither NaN nor Infinity), false otherwise.
+ * @throws {VectorError} if the input is not a valid vector structure (not array or contains non-numbers).
+ * @example
+ * ```typescript
+ * VectorIsFinite([1, 2, 3]) // true
+ * VectorIsFinite([1, NaN, 3]) // false
+ * VectorIsFinite([1, Infinity, 3]) // false
+ * ```
+ */
+export function VectorIsFinite(vector: TVector): boolean {
+	// Check basic structure (array of numbers), but allow NaN/Infinity
+	if (!Array.isArray(vector)) {
+		throw new VectorError('Invalid vector: Expected array, received ' + typeof vector);
+	}
+	for (const element of vector) {
+		if (typeof element !== 'number') {
+			throw new VectorError('Invalid vector: Expected number, received ' + typeof element);
+		}
+	}
+	// Now check if all components are finite (returns false if any NaN/Infinity)
+	return vector.every(v => Number.isFinite(v));
+}
+
+/**
+ * Calculates the angle between two vectors in radians.
+ * Essential for determining angular relationships, rotations, and orientations.
+ * Always returns a positive angle between 0 and π radians.
+ *
+ * @param a - First vector
+ * @param b - Second vector
+ * @returns Angle between vectors in radians (0 to π)
+ * @throws {VectorError} If either vector is zero
+ *
+ * @example
+ * ```typescript
+ * const right = [1, 0, 0];
+ * const up = [0, 1, 0];
+ * const angle = VectorAngle(right, up); // π/2 (90 degrees)
+ * const forward = [0, 0, 1];
+ * const backward = [0, 0, -1];
+ * const oppositeAngle = VectorAngle(forward, backward); // π (180 degrees)
+ * ```
+ */
+export function VectorAngle(a: TVector, b: TVector): number {
+	AssertVector(a);
+	AssertVector(b);
+	AssertVectorSameSize([a, b]);
+	if (VectorIsZero(a) || VectorIsZero(b)) throw new VectorError('Cannot Calculate Angle with Zero Vectors');
+	const magA = VectorMagnitude(a);
+	const magB = VectorMagnitude(b);
+	const dot = VectorDot(a, b);
+	const cosTheta = Clamp(dot / (magA * magB), -1, 1);
+	return Math.acos(cosTheta);
+}
+
+/**
+ * Limits (clamps) the magnitude of a vector to a maximum value.
+ * If the vector's magnitude exceeds the maximum, scales it down proportionally while preserving direction.
+ * If the magnitude is below the maximum, the vector is returned unchanged.
+ *
+ * @param vector - The input vector to limit
+ * @param maxMagnitude - The maximum allowed magnitude (must be >= 0)
+ * @returns A new vector with magnitude limited to maxMagnitude
+ * @throws {VectorError} If vector is invalid or maxMagnitude is invalid
+ *
+ * @example
+ * ```typescript
+ * const v = [3, 4]; // magnitude 5
+ * VectorLimit(v, 3); // [1.8, 2.4] — magnitude now 3
+ * ```
+ */
+export function VectorLimit<T extends TAnyVector>(vector: T, maxMagnitude: number): TVectorResult<T> {
+	AssertVector(vector);
+
+	if (maxMagnitude < 0) throw new VectorError(`maxMagnitude must be non-negative: ${maxMagnitude}`);
+
+	const mag = VectorMagnitude(vector);
+	if (mag <= maxMagnitude || mag === 0) return VectorClone(vector) as TVectorResult<T>;
+
+	const scale = maxMagnitude / mag;
+	return VectorMultiply(vector, scale) as TVectorResult<T>;
+}
+
+/**
+ * Rotates a 2D vector by the specified angle in radians.
+ * Essential for 2D transformations, sprite rotations, and directional calculations.
+ *
+ * @param vector - 2D vector to rotate
+ * @param radians - Rotation angle in radians (positive = counterclockwise)
+ * @returns New rotated 2D vector
+ * @throws {VectorError} If vector is not a valid 2D vector
+ *
+ * @example
+ * ```typescript
+ * const right = [1, 0];
+ * const rotated90 = Vector2Rotate(right, Math.PI / 2); // [0, 1] (up)
+ * const rotated180 = Vector2Rotate(right, Math.PI); // [-1, 0] (left)
+ * ```
+ */
+export function Vector2Rotate(vector: TVector2, radians: number): TVector2 {
+	AssertVector2(vector);
+
+	const cos = Math.cos(radians);
+	const sin = Math.sin(radians);
+	const [v0, v1] = vector;
+	return [
+		(v0 * cos) - (v1 * sin),
+		(v0 * sin) + (v1 * cos)
+	];
+}
+
+/**
+ * Creates a 2D unit vector from an angle in radians.
+ * Useful for creating directional vectors from angular measurements.
+ *
+ * @param radians - Angle in radians (0 = right, π/2 = up)
+ * @returns Unit vector pointing in the specified direction
+ *
+ * @example
+ * ```typescript
+ * const right = Vector2FromAngle(0); // [1, 0]
+ * const up = Vector2FromAngle(Math.PI / 2); // [0, 1]
+ * const diagonal = Vector2FromAngle(Math.PI / 4); // [0.707, 0.707]
+ * ```
+ */
+export function Vector2FromAngle(radians: number): TVector2 {
+	return [Math.cos(radians), Math.sin(radians)];
+}
+
+/**
+ * Calculates the 2D cross product (returns a scalar).
+ * In 2D, the cross product represents the signed area of the parallelogram formed by the vectors.
+ * Useful for determining relative orientation and winding order.
+ *
+ * @param a - First 2D vector
+ * @param b - Second 2D vector
+ * @returns Scalar cross product (positive = counterclockwise, negative = clockwise)
+ * @throws {VectorError} If either vector is not a valid 2D vector
+ *
+ * @example
+ * ```typescript
+ * const right = [1, 0];
+ * const up = [0, 1];
+ * const cross = Vector2Cross(right, up); // 1 (counterclockwise)
+ * const crossReverse = Vector2Cross(up, right); // -1 (clockwise)
+ * ```
+ */
+export function Vector2Cross(a: TVector2, b: TVector2): number {
+	AssertVector2(a);
+	AssertVector2(b);
+	return (a[0] * b[1]) - (a[1] * b[0]);
+}
+
+/**
+ * Calculates the 3D rejection of vector a from vector b.
+ * Returns the component of vector a that is perpendicular to vector b.
+ * Useful for separating parallel and perpendicular components.
+ *
+ * @param a - Vector to reject from
+ * @param b - Vector to reject onto
+ * @returns Component of a perpendicular to b
+ * @throws {VectorError} If vector b is zero
+ *
+ * @example
+ * ```typescript
+ * const force = [5, 3, 0];
+ * const surface = [1, 0, 0];
+ * const perpendicular = Vector3Reject(force, surface); // [0, 3, 0]
+ * ```
+ */
+export function Vector3Reject(a: TVector3, b: TVector3): TVector3 {
+	AssertVector3(a);
+	AssertVector3(b);
+	if (VectorIsZero(b)) throw new VectorError('Cannot compute rejection with a zero vector');
+	const projection = VectorProject(a, b);
+	return VectorSubtract(a, projection);
+}
+
+/**
+ * Projects vector a onto vector b.
+ * Returns the component of vector a that lies parallel to vector b.
+ * Essential for shadow calculations, force decomposition, and geometric projections.
+ *
+ * @template T - The vector type extending TVector
+ * @param a - Vector to project
+ * @param b - Vector to project onto
+ * @returns Component of a parallel to b
+ * @throws {VectorError} If vector b is zero
+ *
+ * @example
+ * ```typescript
+ * const force = [5, 3, 0];
+ * const surface = [1, 0, 0];
+ * const parallel = VectorProject(force, surface); // [5, 0, 0]
+ * ```
+ */
+export function VectorProject<T extends TAnyVector>(a: T, b: T): TVectorResult<T> {
+	AssertVector(a);
+	AssertVector(b);
+	AssertVectorSameSize([a, b]);
+	if (VectorIsZero(b)) throw new VectorError('Cannot project onto a zero vector');
+	const dot = VectorDot(a, b);
+	const magSquared = VectorDot(b, b);
+	const scalar = dot / magSquared;
+
+	const result: number[] = [];
+
+	for (const bv of b) result.push(scalar * bv);
+
+	return result as TVectorResult<T>;
+}
+
+/**
+ * Reflects an incident vector across a 3D normal (specialized version).
+ * This is a specialized version of VectorReflect for 3D vectors.
+ * Automatically normalizes the normal vector for consistent results.
+ *
+ * @param incident - The incoming vector to reflect
+ * @param normal - The surface normal (will be normalized automatically)
+ * @returns The reflected vector
+ * @throws {VectorError} If the normal is a zero vector
+ *
+ * @example
+ * ```typescript
+ * const incoming = [1, -1, 0];
+ * const normal = [0, 1, 0]; // surface normal (upward)
+ * const reflected = Vector3Reflect(incoming, normal); // [1, 1, 0]
+ * ```
+ */
+export function Vector3Reflect(incident: TVector3, normal: TVector3): TVector3 {
+	AssertVector3(incident);
+	AssertVector3(normal);
+	if (VectorIsZero(normal)) throw new VectorError('Cannot reflect across a zero normal');
+	const normalizedNormal = VectorNormalize(normal);
+	return VectorReflect(incident, normalizedNormal);
+}
+
+/**
+ * Calculates the 3D cross product of two vectors.
+ * Returns a vector perpendicular to both input vectors.
+ * Essential for surface normals, torque calculations, and 3D rotations.
+ *
+ * @param a - First 3D vector
+ * @param b - Second 3D vector
+ * @returns Vector perpendicular to both a and b (following right-hand rule)
+ * @throws {VectorError} If either vector is not a valid 3D vector
+ *
+ * @example
+ * ```typescript
+ * const right = [1, 0, 0];
+ * const forward = [0, 0, 1];
+ * const up = Vector3Cross(right, forward); // [0, 1, 0]
+ * const normal = Vector3Cross([1, 0, 0], [0, 1, 0]); // [0, 0, 1]
+ * ```
+ */
+export function Vector3Cross(a: TVector3, b: TVector3): TVector3 {
+	AssertVector3(a);
+	AssertVector3(b);
+	return [
+		(a[1] * b[2]) - (a[2] * b[1]),
+		(a[2] * b[0]) - (a[0] * b[2]),
+		(a[0] * b[1]) - (a[1] * b[0])
+	];
+}
+
+/**
+ * Calculates the magnitude of the 3D cross product.
+ * Equivalent to the area of the parallelogram formed by the two vectors.
+ * Useful for area calculations and determining vector orthogonality.
+ *
+ * @param a - First 3D vector
+ * @param b - Second 3D vector
+ * @returns Magnitude of the cross product
+ * @throws {VectorError} If either vector is not a valid 3D vector
+ *
+ * @example
+ * ```typescript
+ * const side1 = [3, 0, 0];
+ * const side2 = [0, 4, 0];
+ * const area = VectorCrossMagnitude(side1, side2); // 12 (area of rectangle)
+ * ```
+ */
+export function VectorCrossMagnitude(a: TVector3, b: TVector3): number {
+	AssertVector3(a);
+	AssertVector3(b);
+
+	const c = Vector3Cross(a, b);
+	return Math.sqrt((c[0] * c[0]) + (c[1] * c[1]) + (c[2] * c[2]));
+}
+
+/**
+ * Calculates the scalar triple product of three 3D vectors.
+ * Returns the signed volume of the parallelepiped formed by the three vectors.
+ * Useful for determining orientation and volume calculations.
+ *
+ * @param a - First 3D vector
+ * @param b - Second 3D vector
+ * @param c - Third 3D vector
+ * @returns Signed volume (positive = right-handed orientation)
+ * @throws {VectorError} If any vector is not a valid 3D vector
+ *
+ * @example
+ * ```typescript
+ * const x = [1, 0, 0];
+ * const y = [0, 1, 0];
+ * const z = [0, 0, 1];
+ * const volume = Vector3ScalarTripleProduct(x, y, z); // 1 (unit cube)
+ * ```
+ */
+export function Vector3ScalarTripleProduct(a: TVector3, b: TVector3, c: TVector3): number {
+	AssertVector3(a);
+	AssertVector3(b);
+	AssertVector3(c);
+
+	const crossProduct = Vector3Cross(b, c);
+	return VectorDot(a, crossProduct);
+}
+
+/**
+ * Calculates the vector triple product of three 3D vectors.
+ * Implements the formula: a × (b × c)
+ * Useful for advanced geometric calculations and physics simulations.
+ *
+ * @param a - First 3D vector
+ * @param b - Second 3D vector
+ * @param c - Third 3D vector
+ * @returns Vector result of a × (b × c)
+ * @throws {VectorError} If any vector is not a valid 3D vector
+ *
+ * @example
+ * ```typescript
+ * const a = [1, 0, 0];
+ * const b = [0, 1, 0];
+ * const c = [0, 0, 1];
+ * const result = Vector3TripleProduct(a, b, c); // [0, 0, 0]
+ * ```
+ */
+export function Vector3TripleProduct(a: TVector3, b: TVector3, c: TVector3): TVector3 {
+	AssertVector3(a);
+	AssertVector3(b);
+	AssertVector3(c);
+
+	const crossProduct = Vector3Cross(b, c);
+	return Vector3Cross(a, crossProduct);
+}
+
+/**
+ * Reflects a vector across a normal surface.
+ * Simulates perfect reflection like light bouncing off a mirror.
+ * The normal vector is automatically normalized for consistent results.
+ *
+ * @template T - The vector type extending TVector
+ * @param incident - The incoming vector to reflect
+ * @param normal - The surface normal vector
+ * @returns The reflected vector
+ * @throws {VectorError} If vectors have different sizes or invalid structure
+ *
+ * @example
+ * ```typescript
+ * const incoming = [1, -1, 0];
+ * const wall = [0, 1, 0]; // vertical wall normal
+ * const bounced = VectorReflect(incoming, wall); // [1, 1, 0]
+ * ```
+ */
+export function VectorReflect<T extends TAnyVector>(incident: T, normal: T): TVectorResult<T> {
+	AssertVector(incident);
+	AssertVector(normal);
+	AssertVectorSameSize([incident, normal]);
+
+	const normalizedNormal = VectorNormalize(normal);
+	const dot = VectorDot(incident, normalizedNormal);
+
+	const result: number[] = [];
+
+	for (let i = 0; i < incident.length; i++) {
+		const iv = incident[i];
+		const nnv = normalizedNormal[i];
+		result.push(iv - (2 * dot * nnv));
+	}
+
+	return result as TVectorResult<T>;
+}
+
+/**
+ * Negates all components of a vector (multiplies by -1).
+ * Creates a vector pointing in the exact opposite direction.
+ * Handles special case of zero to avoid negative zero (-0).
+ *
+ * @template T - The vector type extending TVector
+ * @param a - Vector to negate
+ * @returns Vector with all components negated
+ * @throws {VectorError} If vector has invalid structure
+ *
+ * @example
+ * ```typescript
+ * const forward = [0, 0, 1];
+ * const backward = VectorNegate(forward); // [0, 0, -1]
+ * const velocity = [5, -3, 2];
+ * const opposite = VectorNegate(velocity); // [-5, 3, -2]
+ * ```
+ */
+export function VectorNegate<T extends TAnyVector>(a: T): TVectorResult<T> {
+	AssertVector(a);
+
+	const result: number[] = [];
+
+	for (const av of a) result.push(av === 0 ? 0 : -1 * av);
+
+	return result as TVectorResult<T>;
+}
+
+/**
+ * Divides a vector by a scalar or performs component-wise division with another vector.
+ * Scalar division scales the vector magnitude down; component-wise division is the inverse of component-wise multiplication.
+ *
+ * @template T - The vector type extending TVector
+ * @param a - Vector to divide (dividend)
+ * @param b - Scalar number or vector for component-wise division (divisor)
+ * @returns New vector with divided components
+ * @throws {VectorError} If any divisor component is zero
+ *
+ * @example
+ * ```typescript
+ * const velocity = [20, 10, 0];
+ * const halved = VectorDivide(velocity, 2); // [10, 5, 0] - scalar division
+ * const factors = [2, 5, 1];
+ * const componentWise = VectorDivide(velocity, factors); // [10, 2, 0] - component-wise
+ * ```
+ */
+export function VectorDivide<T extends TAnyVector>(a: T, b: T | number): TVectorResult<T> {
+	AssertVector(a);
+
+	const result: number[] = [];
+
+	if (Array.isArray(b)) {
+		AssertVector(b);
+		AssertVectorSameSize([a, b]);
+
+		for (let i = 0; i < a.length; i++) {
+			const av = a[i];
+			const bv = b[i];
+			if (bv === 0) throw new VectorError(`Division by zero at component [${i}]`);
+
+			const quot = av / bv;
+			result.push(Object.is(quot, -0) ? 0 : quot);
+		}
+	}
+	else if (typeof b === 'number') {
+		if (b === 0) throw new VectorError('Division by zero scalar');
+		for (const av of a) {
+			const quot = av / b;
+			result.push(Object.is(quot, -0) ? 0 : quot);
+		}
+	}
+
+	return result as TVectorResult<T>;
+}
+
+/**
+ * Clamps each component of a vector between the corresponding min and max values.
+ * Can accept scalar min/max (same bounds for all components) or vectors for per-component bounds.
+ * Mirrors the scalar `Clamp` function for vector operations.
+ *
+ * @template T - The vector type extending TVector
+ * @param a - Vector whose components are to be clamped
+ * @param min - Minimum value (scalar applied to all components, or vector for per-component bounds)
+ * @param max - Maximum value (scalar applied to all components, or vector for per-component bounds)
+ * @returns New vector with each component clamped between min and max
+ * @throws {VectorError} If vector has invalid structure or bounds vectors are mismatched
+ *
+ * @example
+ * ```typescript
+ * const v = [5, -3, 12, 0];
+ * VectorClamp(v, 0, 10); // [5, 0, 10, 0] - scalar bounds
+ * const mins = [0, -5, 0, -1];
+ * const maxs = [10, 5, 8, 1];
+ * VectorClamp(v, mins, maxs); // [5, -3, 8, 0] - per-component bounds
+ * ```
+ */
+export function VectorClamp<T extends TAnyVector>(a: T, min: T | number, max: T | number): TVectorResult<T> {
+	AssertVector(a);
+
+	const result: number[] = [];
+
+	for (let i = 0; i < a.length; i++) {
+		const av = a[i];
+		let minV: number;
+		let maxV: number;
+
+		if (Array.isArray(min)) {
+			const minVal = min[i];
+			if (minVal === undefined) {
+				throw new VectorError(`Clamp: min vector index [${i}] is out of bounds`, { cause: undefined });
+			}
+			minV = minVal;
+		}
+		else {
+			minV = min;
+		}
+
+		if (Array.isArray(max)) {
+			const maxVal = max[i];
+			if (maxVal === undefined) {
+				throw new VectorError(`Clamp: max vector index [${i}] is out of bounds`, { cause: undefined });
+			}
+			maxV = maxVal;
+		}
+		else {
+			maxV = max;
+		}
+
+		result.push(Math.max(minV, Math.min(av, maxV)));
+	}
+
+	return result as TVectorResult<T>;
+}
+
+/**
+ * Performs Gram-Schmidt orthogonalization on a set of vectors.
+ * Converts a set of linearly independent vectors into an orthogonal (or orthonormal) set.
+ * Essential for creating coordinate systems and orthogonal bases.
+ *
+ * @param vectors - Array of 2D vectors to orthogonalize
+ * @param normalize - Whether to normalize the resulting vectors (default: false)
+ * @returns Array of orthogonal (or orthonormal) 2D vectors
+ * @throws {VectorError} If vectors are linearly dependent or invalid
+ */
+export function VectorGramSchmidt(vectors: TVector2[], normalize?: boolean): TVector2[];
+
+/**
+ * Performs Gram-Schmidt orthogonalization on a set of vectors.
+ * Converts a set of linearly independent vectors into an orthogonal (or orthonormal) set.
+ * Essential for creating coordinate systems and orthogonal bases.
+ *
+ * @param vectors - Array of 3D vectors to orthogonalize
+ * @param normalize - Whether to normalize the resulting vectors (default: false)
+ * @returns Array of orthogonal (or orthonormal) 3D vectors
+ * @throws {VectorError} If vectors are linearly dependent or invalid
+ */
+export function VectorGramSchmidt(vectors: TVector3[], normalize?: boolean): TVector3[];
+
+/**
+ * Performs Gram-Schmidt orthogonalization on a set of vectors.
+ * Converts a set of linearly independent vectors into an orthogonal (or orthonormal) set.
+ * Essential for creating coordinate systems and orthogonal bases.
+ *
+ * @param vectors - Array of 4D vectors to orthogonalize
+ * @param normalize - Whether to normalize the resulting vectors (default: false)
+ * @returns Array of orthogonal (or orthonormal) 4D vectors
+ * @throws {VectorError} If vectors are linearly dependent or invalid
+ */
+export function VectorGramSchmidt(vectors: TVector4[], normalize?: boolean): TVector4[];
+
+/**
+ * Performs Gram-Schmidt orthogonalization on a set of vectors.
+ * Converts a set of linearly independent vectors into an orthogonal (or orthonormal) set.
+ * Essential for creating coordinate systems and orthogonal bases.
+ *
+ * @template T - The vector type extending TVector
+ * @param vectors - Array of vectors to orthogonalize
+ * @param normalize - Whether to normalize the resulting vectors (default: false)
+ * @returns Array of orthogonal (or orthonormal) vectors
+ * @throws {VectorError} If vectors are linearly dependent or invalid
+ *
+ * @example
+ * ```typescript
+ * const vectors = [[1, 1, 0], [1, 0, 1], [0, 1, 1]];
+ * const orthogonal = VectorGramSchmidt(vectors); // Orthogonal set
+ * const orthonormal = VectorGramSchmidt(vectors, true); // Orthonormal set
+ * ```
+ */
+export function VectorGramSchmidt(vectors: number[][], normalize = false): number[][] {
+	if (vectors.length === 0) throw new VectorError('GramSchmidt: Empty Vector Set');
+	const [firstVector] = vectors;
+	if (!firstVector) throw new VectorError('GramSchmidt: Undefined First Vector');
+	const dimension = firstVector.length;
+	for (const [i, vector] of vectors.entries()) {
+		AssertVector(vector);
+		if (vector.length !== dimension) throw new VectorError(`GramSchmidt: Vector at index ${i} has different dimension than first vector. Expected ${dimension}, got ${vector.length}`);
+		AssertVectorNonZero(vector, `GramSchmidt vector at index ${i}`);
+	}
+
+	const result: number[][] = [];
+
+	for (const [i, currentVector] of vectors.entries()) {
+		AssertVector(currentVector);
+
+		const orthogonalBase = VectorClone(currentVector);
+		let orthogonalVector = orthogonalBase;
+
+		for (let j = 0; j < i; j++) {
+			const previousVector = result[j];
+			AssertVector(previousVector);
+
+			const projection = VectorProject(currentVector, previousVector);
+			orthogonalVector = VectorSubtract(orthogonalVector, projection);
+		}
+		AssertVectorNonZero(orthogonalVector, `GramSchmidt orthogonalized vector at index ${i}`);
+		if (normalize) orthogonalVector = VectorNormalize(orthogonalVector);
+		result.push(orthogonalVector);
+	}
+
+	return result;
+}
+
+/**
+ * Scales a vector by multiplying each component by a scalar.
+ * Equivalent to scalar multiplication; provided for API clarity alongside component-wise operations.
+ *
+ * @template T - The vector type extending TVector
+ * @param vector - The vector to scale
+ * @param scalar - The scalar multiplier
+ * @returns New vector with each component multiplied by the scalar
+ * @throws {VectorError} If vector has invalid structure
+ *
+ * @example
+ * ```typescript
+ * const velocity = [10, 20, 30];
+ * const scaled = VectorScale(velocity, 2); // [20, 40, 60]
+ * const halved = VectorScale(velocity, 0.5); // [5, 10, 15]
+ * ```
+ */
+export function VectorScale<T extends TAnyVector>(vector: T, scalar: number): TVectorResult<T> {
+	AssertVector(vector);
+
+	const result: number[] = [];
+
+	for (const vv of vector) {
+		const prod = vv * scalar;
+		result.push(Object.is(prod, -0) ? 0 : prod);
+	}
+
+	return result as TVectorResult<T>;
+}
+
+/**
+ * Applies Math.floor to each component of a vector.
+ * Returns a new vector with all components rounded down to the nearest integer.
+ *
+ * @template T - The vector type extending TVector
+ * @param vector - The vector to floor
+ * @returns New vector with floored components
+ * @throws {VectorError} If vector has invalid structure
+ *
+ * @example
+ * ```typescript
+ * const vec = [1.9, -2.3, 0.1];
+ * const floored = VectorFloor(vec); // [1, -3, 0]
+ * ```
+ */
+export function VectorFloor<T extends TAnyVector>(vector: T): TVectorResult<T> {
+	AssertVector(vector);
+
+	const result: number[] = [];
+
+	for (const vv of vector) {
+		const floored = Math.floor(vv);
+		result.push(Object.is(floored, -0) ? 0 : floored);
+	}
+
+	return result as TVectorResult<T>;
+}
+
+/**
+ * Applies Math.ceil to each component of a vector.
+ * Returns a new vector with all components rounded up to the nearest integer.
+ *
+ * @template T - The vector type extending TVector
+ * @param vector - The vector to ceil
+ * @returns New vector with ceiled components
+ * @throws {VectorError} If vector has invalid structure
+ *
+ * @example
+ * ```typescript
+ * const vec = [1.1, -2.9, 0.5];
+ * const ceiled = VectorCeil(vec); // [2, -2, 1]
+ * ```
+ */
+export function VectorCeil<T extends TAnyVector>(vector: T): TVectorResult<T> {
+	AssertVector(vector);
+
+	const result: number[] = [];
+
+	for (const vv of vector) {
+		const ceiled = Math.ceil(vv);
+		result.push(Object.is(ceiled, -0) ? 0 : ceiled);
+	}
+
+	return result as TVectorResult<T>;
+}
+
+/**
+ * Applies Math.round to each component of a vector.
+ * Returns a new vector with all components rounded to the nearest integer.
+ *
+ * @template T - The vector type extending TVector
+ * @param vector - The vector to round
+ * @returns New vector with rounded components
+ * @throws {VectorError} If vector has invalid structure
+ *
+ * @example
+ * ```typescript
+ * const vec = [1.4, 2.6, -3.5];
+ * const rounded = VectorRound(vec); // [1, 3, -4]
+ * ```
+ */
+export function VectorRound<T extends TAnyVector>(vector: T): TVectorResult<T> {
+	AssertVector(vector);
+
+	const result: number[] = [];
+
+	for (const vv of vector) {
+		const rounded = Math.round(vv);
+		result.push(Object.is(rounded, -0) ? 0 : rounded);
+	}
+
+	return result as TVectorResult<T>;
+}
+
+/**
+ * Returns the component-wise minimum of two vectors.
+ * Each component of the result is the smaller of the corresponding components in the input vectors.
+ *
+ * @template T - The vector type extending TVector
+ * @param a - First vector
+ * @param b - Second vector
+ * @returns New vector where each component is the minimum of the corresponding components
+ * @throws {VectorError} If vectors have different sizes
+ *
+ * @example
+ * ```typescript
+ * const a = [5, 2, 8];
+ * const b = [3, 7, 1];
+ * const result = VectorMin(a, b); // [3, 2, 1]
+ * ```
+ */
+export function VectorMin<T extends TAnyVector>(a: T, b: T): TVectorResult<T> {
+	AssertVector(a);
+	AssertVector(b);
+	AssertVectorSameSize([a, b]);
+
+	const result: number[] = [];
+
+	for (let i = 0; i < a.length; i++) {
+		const av = a[i];
+		const bv = b[i];
+		result.push(Math.min(av, bv));
+	}
+
+	return result as TVectorResult<T>;
+}
+
+/**
+ * Returns the component-wise maximum of two vectors.
+ * Each component of the result is the larger of the corresponding components in the input vectors.
+ *
+ * @template T - The vector type extending TVector
+ * @param a - First vector
+ * @param b - Second vector
+ * @returns New vector where each component is the maximum of the corresponding components
+ * @throws {VectorError} If vectors have different sizes
+ *
+ * @example
+ * ```typescript
+ * const a = [5, 2, 8];
+ * const b = [3, 7, 1];
+ * const result = VectorMax(a, b); // [5, 7, 8]
+ * ```
+ */
+export function VectorMax<T extends TAnyVector>(a: T, b: T): TVectorResult<T> {
+	AssertVector(a);
+	AssertVector(b);
+	AssertVectorSameSize([a, b]);
+
+	const result: number[] = [];
+
+	for (let i = 0; i < a.length; i++) {
+		const av = a[i];
+		const bv = b[i];
+		result.push(Math.max(av, bv));
+	}
+
+	return result as TVectorResult<T>;
+}
+
+/**
+ * Calculates the midpoint between two vectors.
+ * Returns the average of corresponding components.
+ *
+ * @template T - The vector type extending TVector
+ * @param a - First vector
+ * @param b - Second vector
+ * @returns New vector representing the midpoint
+ * @throws {VectorError} If vectors have different sizes
+ *
+ * @example
+ * ```typescript
+ * const start = [0, 0, 0];
+ * const end = [4, 8, 12];
+ * const mid = VectorMidpoint(start, end); // [2, 4, 6]
+ * ```
+ */
+export function VectorMidpoint<T extends TAnyVector>(a: T, b: T): TVectorResult<T> {
+	AssertVector(a);
+	AssertVector(b);
+	AssertVectorSameSize([a, b]);
+
+	const result: number[] = [];
+
+	for (let i = 0; i < a.length; i++) {
+		const av = a[i];
+		const bv = b[i];
+		result.push((av + bv) / 2);
+	}
+
+	return result as TVectorResult<T>;
+}
+
+/**
+ * Moves a vector towards a target by at most a specified distance.
+ * If the distance between current and target is less than or equal to maxDistance,
+ * returns a clone of the target. Otherwise, moves in the direction of the target
+ * by exactly maxDistance units.
+ *
+ * @template T - The vector type extending TVector
+ * @param current - The starting vector
+ * @param target - The destination vector
+ * @param maxDistance - Maximum distance to move (must be >= 0)
+ * @returns New vector moved towards target by at most maxDistance units
+ * @throws {VectorError} If vectors have different sizes
+ *
+ * @example
+ * ```typescript
+ * const current = [0, 0, 0];
+ * const target = [10, 0, 0];
+ * const result = VectorMoveTowards(current, target, 3); // [3, 0, 0]
+ * const closeResult = VectorMoveTowards(current, target, 15); // [10, 0, 0]
+ * ```
+ */
+export function VectorMoveTowards<T extends TAnyVector>(current: T, target: T, maxDistance: number): TVectorResult<T> {
+	AssertVector(current);
+	AssertVector(target);
+	AssertVectorSameSize([current, target]);
+
+	if (maxDistance <= 0) {
+		return VectorClone(current) as TVectorResult<T>;
+	}
+
+	const distance = VectorDistance(current, target);
+
+	if (distance <= maxDistance) {
+		return VectorClone(target) as TVectorResult<T>;
+	}
+
+	const diff = VectorSubtract(target, current);
+	const direction = VectorNormalize(diff);
+	const scaled = VectorScale(direction, maxDistance);
+	const result: number[] = [];
+
+	for (let i = 0; i < current.length; i++) {
+		const cv = current[i];
+		const sv = scaled[i];
+		if (sv !== undefined) {
+			result.push(cv + sv);
+		}
+	}
+
+	return result as TVectorResult<T>;
+}
+
+/**
+ * Calculates the signed angle from vector a to vector b in 2D (in radians).
+ * Returns a value in the range (-π, π] where positive values indicate counterclockwise rotation.
+ *
+ * @param a - First 2D vector
+ * @param b - Second 2D vector
+ * @returns Signed angle in radians from a to b
+ * @throws {VectorError} If either input is not a valid 2D vector
+ *
+ * @example
+ * ```typescript
+ * const right = [1, 0];
+ * const up = [0, 1];
+ * const angle = Vector2AngleSigned(right, up); // π/2 (counterclockwise)
+ * const angle2 = Vector2AngleSigned(up, right); // -π/2 (clockwise)
+ * ```
+ */
+export function Vector2AngleSigned(a: TVector2, b: TVector2): number {
+	AssertVector2(a);
+	AssertVector2(b);
+
+	const cross = Vector2Cross(a, b);
+	const dot = VectorDot(a, b);
+
+	return Math.atan2(cross, dot);
+}
+
+/**
+ * Calculates the signed angle from vector a to vector b around a specified axis in 3D (in radians).
+ * The magnitude of the result is the unsigned angle between a and b.
+ * The sign indicates rotation direction relative to the axis using the right-hand rule.
+ *
+ * @param a - First 3D vector
+ * @param b - Second 3D vector
+ * @param axis - The rotation axis (will be normalized internally)
+ * @returns Signed angle in radians around the axis
+ * @throws {VectorError} If any input is not a valid 3D vector, or if axis is a zero vector
+ *
+ * @example
+ * ```typescript
+ * const a = [1, 0, 0];
+ * const b = [0, 1, 0];
+ * const axis = [0, 0, 1];
+ * const angle = Vector3AngleSigned(a, b, axis); // π/2 (counterclockwise around z-axis)
+ * ```
+ */
+export function Vector3AngleSigned(a: TVector3, b: TVector3, axis: TVector3): number {
+	AssertVector3(a);
+	AssertVector3(b);
+	AssertVector3(axis);
+
+	const normalizedAxis = VectorNormalize(axis);
+	const cross = Vector3Cross(a, b);
+	const dot = VectorDot(a, b);
+	const sign = Math.sign(VectorDot(normalizedAxis, cross));
+
+	const unsignedAngle = Math.atan2(VectorMagnitude(cross), dot);
+	return unsignedAngle * sign;
+}
+
+/**
+ * Checks if a vector has a magnitude approximately equal to 1 (is normalized).
+ * Uses a default tolerance of EPSILON_LOOSE for floating-point robustness.
+ *
+ * @template T - The vector type extending TVector
+ * @param vector - The vector to check
+ * @param tolerance - Maximum allowed deviation from magnitude 1 (default: EPSILON_LOOSE)
+ * @returns True if the vector's magnitude is within tolerance of 1, false otherwise
+ * @throws {VectorError} If the input is not a valid vector
+ *
+ * @example
+ * ```typescript
+ * const unit = [1, 0, 0];
+ * VectorIsNormalized(unit); // true
+ *
+ * const normalized = [0.6, 0.8];
+ * VectorIsNormalized(normalized); // true (magnitude = 1)
+ *
+ * const notUnit = [2, 0, 0];
+ * VectorIsNormalized(notUnit); // false
+ * ```
+ */
+export function VectorIsNormalized<T extends TAnyVector>(vector: T, tolerance = EPSILON_LOOSE): boolean {
+	AssertVector(vector);
+
+	const magnitude = VectorMagnitude(vector);
+	return Math.abs(magnitude - 1) <= tolerance;
+}
+
+/**
+ * Projects a vector onto a plane defined by its surface normal.
+ * Returns the component of the vector that lies in the plane (perpendicular to the normal).
+ *
+ * @param v - Vector to project onto the plane
+ * @param planeNormal - The plane's surface normal (will be normalized internally)
+ * @returns New vector representing the projection onto the plane
+ * @throws {VectorError} If planeNormal is a zero vector
+ *
+ * @example
+ * ```typescript
+ * const velocity = [1, 5, 0];
+ * const groundNormal = [0, 1, 0]; // vertical surface
+ * const result = Vector3ProjectOnPlane(velocity, groundNormal); // [1, 0, 0]
+ * ```
+ */
+export function Vector3ProjectOnPlane(v: TVector3, planeNormal: TVector3): TVector3 {
+	AssertVector3(v);
+	AssertVector3(planeNormal);
+
+	const normalizedNormal = VectorNormalize(planeNormal);
+	const projection = VectorScale(normalizedNormal, VectorDot(v, normalizedNormal));
+	return VectorSubtract(v, projection);
+}
+
+/**
+ * Rotates a 3D vector around an axis by a specified angle using Rodrigues' rotation formula.
+ * Implements: result = v*cosθ + (k×v)*sinθ + k*(k·v)*(1-cosθ)
+ * where k is the normalized axis and θ is the rotation angle.
+ *
+ * @param v - Vector to rotate
+ * @param axis - Rotation axis (will be normalized internally)
+ * @param radians - Rotation angle in radians
+ * @returns New rotated vector
+ * @throws {VectorError} If axis is a zero vector
+ *
+ * @example
+ * ```typescript
+ * const vector = [1, 0, 0];
+ * const axis = [0, 0, 1];
+ * const result = Vector3RotateAround(vector, axis, Math.PI / 2); // [0, 1, 0]
+ * ```
+ */
+export function Vector3RotateAround(v: TVector3, axis: TVector3, radians: number): TVector3 {
+	AssertVector3(v);
+	AssertVector3(axis);
+
+	const k = VectorNormalize(axis);
+	const cos = Math.cos(radians);
+	const sin = Math.sin(radians);
+	const oneMinusCos = 1 - cos;
+
+	const term1 = VectorScale(v, cos);
+	const term2 = VectorScale(Vector3Cross(k, v), sin);
+	const term3 = VectorScale(k, VectorDot(k, v) * oneMinusCos);
+
+	const result1 = VectorAdd(term1, term2);
+	const result2 = VectorAdd(result1, term3);
+
+	return result2;
+}
+
+/**
+ * Calculates the Manhattan distance (taxicab distance) between two vectors.
+ * Returns the sum of absolute differences of corresponding components.
+ *
+ * @param a - First vector
+ * @param b - Second vector
+ * @returns Sum of absolute differences between corresponding components
+ * @throws {VectorError} If vectors have different sizes
+ *
+ * @example
+ * ```typescript
+ * const a = [0, 0, 0];
+ * const b = [3, 4, 5];
+ * const distance = VectorManhattanDistance(a, b); // 12
+ * ```
+ */
+export function VectorManhattanDistance(a: TVector, b: TVector): number {
+	AssertVector(a);
+	AssertVector(b);
+	AssertVectorSameSize([a, b]);
+
+	let sum = 0;
+
+	for (let i = 0; i < a.length; i++) {
+		const av = a[i];
+		const bv = b[i];
+		sum += Math.abs(bv - av);
+	}
+
+	return sum;
+}
+
+/**
+ * Calculates the Chebyshev distance (chessboard distance) between two vectors.
+ * Returns the maximum absolute difference of corresponding components.
+ *
+ * @param a - First vector
+ * @param b - Second vector
+ * @returns Maximum absolute difference between corresponding components
+ * @throws {VectorError} If vectors have different sizes
+ *
+ * @example
+ * ```typescript
+ * const a = [0, 0];
+ * const b = [3, 5];
+ * const distance = VectorChebyshevDistance(a, b); // 5
+ * ```
+ */
+export function VectorChebyshevDistance(a: TVector, b: TVector): number {
+	AssertVector(a);
+	AssertVector(b);
+	AssertVectorSameSize([a, b]);
+
+	let max = 0;
+
+	for (let i = 0; i < a.length; i++) {
+		const av = a[i];
+		const bv = b[i];
+		const diff = Math.abs(bv - av);
+		if (diff > max) max = diff;
+	}
+
+	return max;
+}

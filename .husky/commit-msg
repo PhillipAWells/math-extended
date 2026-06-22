@@ -1,0 +1,34 @@
+#!/bin/sh
+# Husky commit-msg hook
+# Policy: reject co-authored-by trailers and AI-attribution lines.
+
+COMMIT_MSG_FILE="$1"
+
+# Scan the message but ignore git comment lines (start with #)
+SCAN=$(grep -v '^[[:space:]]*#' "$COMMIT_MSG_FILE")
+
+reject() {
+	cat >&2 <<EOF
+
+❌ Commit rejected: $1
+
+This project does not allow co-authored or AI-attributed commits.
+Remove the offending line(s) and commit again.
+
+EOF
+	exit 1
+}
+
+# 1) Co-Authored-By trailer (any author) — case-insensitive, allows leading whitespace
+printf '%s\n' "$SCAN" | grep -iqE '^[[:space:]]*co-authored-by:' && reject "Co-Authored-By trailer found"
+
+# 2) Robot emoji used by AI tool footers
+printf '%s\n' "$SCAN" | grep -q '🤖' && reject "AI-attribution marker found"
+
+# 3) AI-vendor noreply emails / tool URLs
+printf '%s\n' "$SCAN" | grep -iqE 'noreply@anthropic\.com|claude\.com/claude-code|claude\.ai' && reject "AI tool attribution (vendor email or URL) found"
+
+# 4) "Generated with/by <AI tool>" attribution
+printf '%s\n' "$SCAN" | grep -iqE 'generated[[:space:]]+(with|by)[[:space:]]+\[?(claude|chatgpt|gpt-[0-9]|copilot|github[[:space:]]+copilot|cursor|codeium|codex|gemini|bard|llama|devin|anthropic|openai)' && reject "AI-generation attribution line found"
+
+exit 0
