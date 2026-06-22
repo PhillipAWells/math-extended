@@ -1,7 +1,8 @@
 import { expect, test, describe } from 'vitest';
 import {
 	Lerp, LerpUnclamped, InverseLerp, Remap, MoveTowards, Mod, Repeat, PingPong,
-	Approximately, Clamp01, Sign, RoundToNearest, ScalarError
+	Approximately, Clamp01, Sign, RoundToNearest, ScalarError,
+	Gcd, Lcm, Factorial, Linspace, Range
 } from './scalar.js';
 
 describe('Math Extended > Scalar', () => {
@@ -283,6 +284,208 @@ describe('Math Extended > Scalar', () => {
 		test('RoundToNearest throws on non-finite inputs', () => {
 			expect(() => RoundToNearest(Number.NaN, 1)).toThrow(RangeError);
 			expect(() => RoundToNearest(5, Infinity)).toThrow(RangeError);
+		});
+	});
+
+	describe('Gcd', () => {
+		test('Gcd returns correct GCD for positive integers', () => {
+			expect(Gcd(12, 18)).toBe(6);
+			expect(Gcd(48, 18)).toBe(6);
+			expect(Gcd(7, 5)).toBe(1);
+		});
+
+		test('Gcd handles zero values', () => {
+			expect(Gcd(0, 5)).toBe(5);
+			expect(Gcd(5, 0)).toBe(5);
+			expect(Gcd(0, 0)).toBe(0);
+		});
+
+		test('Gcd works with negative integers', () => {
+			expect(Gcd(-12, 18)).toBe(6);
+			expect(Gcd(12, -18)).toBe(6);
+			expect(Gcd(-12, -18)).toBe(6);
+		});
+
+		test('Gcd of identical values returns the value', () => {
+			expect(Gcd(7, 7)).toBe(7);
+			expect(Gcd(100, 100)).toBe(100);
+		});
+
+		test('Gcd throws RangeError for non-integer a', () => {
+			expect(() => Gcd(12.5, 18)).toThrow(RangeError);
+			expect(() => Gcd(Number.NaN, 18)).toThrow(RangeError);
+		});
+
+		test('Gcd throws RangeError for non-integer b', () => {
+			expect(() => Gcd(12, 18.5)).toThrow(RangeError);
+			expect(() => Gcd(12, Number.POSITIVE_INFINITY)).toThrow(RangeError);
+		});
+	});
+
+	describe('Lcm', () => {
+		test('Lcm returns correct LCM for positive integers', () => {
+			expect(Lcm(4, 6)).toBe(12);
+			expect(Lcm(12, 18)).toBe(36);
+			expect(Lcm(7, 5)).toBe(35);
+		});
+
+		test('Lcm returns 0 when either argument is 0', () => {
+			expect(Lcm(0, 5)).toBe(0);
+			expect(Lcm(5, 0)).toBe(0);
+			expect(Lcm(0, 0)).toBe(0);
+		});
+
+		test('Lcm works with negative integers', () => {
+			expect(Lcm(-4, 6)).toBe(12);
+			expect(Lcm(4, -6)).toBe(12);
+			expect(Lcm(-4, -6)).toBe(12);
+		});
+
+		test('Lcm of identical values returns the value', () => {
+			expect(Lcm(7, 7)).toBe(7);
+			expect(Lcm(10, 10)).toBe(10);
+		});
+
+		test('Lcm throws RangeError for non-integer a', () => {
+			expect(() => Lcm(4.5, 6)).toThrow(RangeError);
+			expect(() => Lcm(Number.NaN, 6)).toThrow(RangeError);
+		});
+
+		test('Lcm throws RangeError for non-integer b', () => {
+			expect(() => Lcm(4, 6.5)).toThrow(RangeError);
+			expect(() => Lcm(4, Number.POSITIVE_INFINITY)).toThrow(RangeError);
+		});
+	});
+
+	describe('Factorial', () => {
+		test('Factorial returns correct factorial for small values', () => {
+			expect(Factorial(0)).toBe(1);
+			expect(Factorial(1)).toBe(1);
+			expect(Factorial(5)).toBe(120);
+			expect(Factorial(10)).toBe(3628800);
+		});
+
+		test('Factorial of 2 is 2', () => {
+			expect(Factorial(2)).toBe(2);
+		});
+
+		test('Factorial of 3 is 6', () => {
+			expect(Factorial(3)).toBe(6);
+		});
+
+		test('Factorial of 4 is 24', () => {
+			expect(Factorial(4)).toBe(24);
+		});
+
+		test('Factorial throws RangeError for negative n', () => {
+			expect(() => Factorial(-1)).toThrow(RangeError);
+			expect(() => Factorial(-5)).toThrow(RangeError);
+		});
+
+		test('Factorial throws RangeError for non-integer n', () => {
+			expect(() => Factorial(5.5)).toThrow(RangeError);
+			expect(() => Factorial(Number.NaN)).toThrow(RangeError);
+			expect(() => Factorial(Number.POSITIVE_INFINITY)).toThrow(RangeError);
+		});
+	});
+
+	describe('Linspace', () => {
+		test('Linspace generates evenly spaced values from start to stop', () => {
+			const result = Linspace(0, 1, 5);
+			expect(result.length).toBe(5);
+			expect(result[0]).toBe(0);
+			expect(result[4]).toBe(1);
+			expect(result[1]).toBeCloseTo(0.25, 1e-9);
+			expect(result[2]).toBeCloseTo(0.5, 1e-9);
+			expect(result[3]).toBeCloseTo(0.75, 1e-9);
+		});
+
+		test('Linspace with count 0 returns empty array', () => {
+			expect(Linspace(0, 1, 0)).toEqual([]);
+			expect(Linspace(5, 10, 0)).toEqual([]);
+		});
+
+		test('Linspace with count 1 returns array containing start value', () => {
+			expect(Linspace(0, 1, 1)).toEqual([0]);
+			expect(Linspace(5, 10, 1)).toEqual([5]);
+		});
+
+		test('Linspace with count 2 returns [start, stop]', () => {
+			expect(Linspace(0, 1, 2)).toEqual([0, 1]);
+			expect(Linspace(5, 15, 2)).toEqual([5, 15]);
+		});
+
+		test('Linspace last element is exactly stop', () => {
+			const result = Linspace(0, 10, 11);
+			expect(result[result.length - 1]).toBe(10);
+		});
+
+		test('Linspace works with negative ranges', () => {
+			const result = Linspace(-5, 5, 11);
+			expect(result[0]).toBe(-5);
+			expect(result[10]).toBe(5);
+			expect(result.length).toBe(11);
+		});
+
+		test('Linspace throws RangeError for non-integer count', () => {
+			expect(() => Linspace(0, 1, 5.5)).toThrow(RangeError);
+			expect(() => Linspace(0, 1, Number.NaN)).toThrow(RangeError);
+		});
+
+		test('Linspace throws RangeError for negative count', () => {
+			expect(() => Linspace(0, 1, -1)).toThrow(RangeError);
+			expect(() => Linspace(0, 1, -5)).toThrow(RangeError);
+		});
+	});
+
+	describe('Range', () => {
+		test('Range generates values from start to stop with default step 1', () => {
+			expect(Range(0, 5)).toEqual([0, 1, 2, 3, 4]);
+			expect(Range(2, 7)).toEqual([2, 3, 4, 5, 6]);
+		});
+
+		test('Range with custom positive step', () => {
+			const result = Range(0, 1, 0.25);
+			expect(result.length).toBe(4);
+			expect(result[0]).toBe(0);
+			expect(result[1]).toBeCloseTo(0.25, 1e-9);
+			expect(result[2]).toBeCloseTo(0.5, 1e-9);
+			expect(result[3]).toBeCloseTo(0.75, 1e-9);
+		});
+
+		test('Range with negative step goes backwards', () => {
+			expect(Range(5, 0, -1)).toEqual([5, 4, 3, 2, 1]);
+			expect(Range(10, 5, -2)).toEqual([10, 8, 6]);
+		});
+
+		test('Range returns empty array when step points away from stop', () => {
+			expect(Range(0, 5, -1)).toEqual([]);
+			expect(Range(10, 5, 2)).toEqual([]);
+			expect(Range(0, -5, 1)).toEqual([]);
+		});
+
+		test('Range with step 2', () => {
+			expect(Range(0, 10, 2)).toEqual([0, 2, 4, 6, 8]);
+		});
+
+		test('Range does not include stop value', () => {
+			const result = Range(0, 5, 1);
+			expect(result).not.toContain(5);
+		});
+
+		test('Range throws RangeError when step is 0', () => {
+			expect(() => Range(0, 5, 0)).toThrow(RangeError);
+		});
+
+		test('Range works with negative start and positive stop', () => {
+			expect(Range(-5, 0, 1)).toEqual([-5, -4, -3, -2, -1]);
+		});
+
+		test('Range with floating-point step', () => {
+			const result = Range(0, 1, 0.5);
+			expect(result.length).toBe(2);
+			expect(result[0]).toBe(0);
+			expect(result[1]).toBeCloseTo(0.5, 1e-9);
 		});
 	});
 });

@@ -383,3 +383,170 @@ export function RoundToNearest(value: number, step: number): number {
 	}
 	return Math.round(value / step) * step;
 }
+
+/**
+ * Greatest common divisor of two integers using Euclidean algorithm.
+ * Works with absolute values; Gcd(0,0) = 0.
+ *
+ * @param a - First integer
+ * @param b - Second integer
+ * @returns Greatest common divisor as a non-negative integer
+ * @throws {RangeError} If a or b is not an integer
+ *
+ * @example
+ * ```typescript
+ * Gcd(12, 18)  // 6
+ * Gcd(0, 5)    // 5
+ * Gcd(7, 7)    // 7
+ * ```
+ */
+export function Gcd(a: number, b: number): number {
+	if (!Number.isInteger(a)) {
+		throw new RangeError('Gcd: a must be an integer');
+	}
+	if (!Number.isInteger(b)) {
+		throw new RangeError('Gcd: b must be an integer');
+	}
+	a = Math.abs(a);
+	b = Math.abs(b);
+	while (b !== 0) {
+		const temp = b;
+		b = a % b;
+		a = temp;
+	}
+	return a;
+}
+
+/**
+ * Least common multiple of two integers.
+ * Computed as |a * b| / Gcd(a, b); returns 0 if either argument is 0.
+ *
+ * @param a - First integer
+ * @param b - Second integer
+ * @returns Least common multiple as a non-negative integer
+ * @throws {RangeError} If a or b is not an integer
+ *
+ * @example
+ * ```typescript
+ * Lcm(4, 6)   // 12
+ * Lcm(0, 5)   // 0
+ * Lcm(7, 7)   // 7
+ * ```
+ */
+export function Lcm(a: number, b: number): number {
+	if (!Number.isInteger(a)) {
+		throw new RangeError('Lcm: a must be an integer');
+	}
+	if (!Number.isInteger(b)) {
+		throw new RangeError('Lcm: b must be an integer');
+	}
+	if (a === 0 || b === 0) {
+		return 0;
+	}
+	return Math.abs(a / Gcd(a, b) * b);
+}
+
+/**
+ * Factorial of a non-negative integer.
+ * Returns n! = n × (n-1) × ... × 1; 0! = 1.
+ *
+ * @param n - Non-negative integer
+ * @returns Factorial of n
+ * @throws {RangeError} If n is negative or not an integer
+ *
+ * @example
+ * ```typescript
+ * Factorial(0)  // 1
+ * Factorial(5)  // 120
+ * Factorial(10) // 3628800
+ * ```
+ */
+export function Factorial(n: number): number {
+	if (!Number.isInteger(n)) {
+		throw new RangeError('Factorial: n must be an integer');
+	}
+	if (n < 0) {
+		throw new RangeError('Factorial: n must be non-negative');
+	}
+	let result = 1;
+	for (let i = 2; i <= n; i++) {
+		result *= i;
+	}
+	return result;
+}
+
+/**
+ * Generates count evenly spaced values from start to stop (inclusive).
+ * Both start and stop are always included; the last element is exactly stop.
+ *
+ * @param start - Start value (first element)
+ * @param stop - Stop value (last element, exact)
+ * @param count - Number of values to generate (non-negative integer)
+ * @returns Array of evenly spaced values; empty if count is 0
+ * @throws {RangeError} If count is negative or not an integer
+ *
+ * @example
+ * ```typescript
+ * Linspace(0, 1, 5)     // [0, 0.25, 0.5, 0.75, 1]
+ * Linspace(0, 1, 0)     // []
+ * Linspace(0, 1, 1)     // [0]
+ * Linspace(0, 10, 3)    // [0, 5, 10]
+ * ```
+ */
+export function Linspace(start: number, stop: number, count: number): number[] {
+	if (!Number.isInteger(count)) {
+		throw new RangeError('Linspace: count must be an integer');
+	}
+	if (count < 0) {
+		throw new RangeError('Linspace: count must be non-negative');
+	}
+	if (count === 0) {
+		return [];
+	}
+	if (count === 1) {
+		return [start];
+	}
+	const result: number[] = [];
+	for (let i = 0; i < count; i++) {
+		result.push(start + (stop - start) * (i / (count - 1)));
+	}
+	result[count - 1] = stop;
+	return result;
+}
+
+/**
+ * Generates an array of numbers in a half-open range [start, stop) with a given step.
+ * Supports positive and negative step; returns empty array if step points away from stop.
+ *
+ * @param start - Start value (inclusive)
+ * @param stop - Stop value (exclusive)
+ * @param step - Step size (default: 1; must not be 0)
+ * @returns Array of values from start towards stop by step
+ * @throws {RangeError} If step is 0
+ *
+ * @example
+ * ```typescript
+ * Range(0, 5)           // [0, 1, 2, 3, 4]
+ * Range(0, 1, 0.25)     // [0, 0.25, 0.5, 0.75]
+ * Range(5, 0, -1)       // [5, 4, 3, 2, 1]
+ * Range(0, 5, -1)       // [] (step points away from stop)
+ * Range(0, 5, 0)        // throws RangeError
+ * ```
+ */
+export function Range(start: number, stop: number, step = 1): number[] {
+	if (step === 0) {
+		throw new RangeError('Range: step cannot be zero');
+	}
+	const result: number[] = [];
+	if (step > 0) {
+		for (let i = start; i < stop; i += step) {
+			result.push(i);
+		}
+	}
+	else {
+		for (let i = start; i > stop; i += step) {
+			result.push(i);
+		}
+	}
+	return result;
+}
