@@ -765,6 +765,75 @@ export function MatrixView(eye: TVector3, target: TVector3, up: TVector3): TMatr
 }
 
 /**
+ * Creates a view matrix for positioning and orienting a 3D camera (alias of MatrixView).
+ *
+ * This is the industry-standard "look-at" function name for constructing a camera view matrix
+ * that transforms world coordinates to camera coordinates. It is functionally identical to
+ * MatrixView and provided for API consistency with graphics libraries.
+ *
+ * @param eye - Camera position in world coordinates.
+ * @param target - Point the camera is looking at.
+ * @param up - Up direction vector (usually [0, 1, 0]).
+ * @returns {TMatrix4} A 4x4 view transformation matrix.
+ *
+ * @throws {Error} If inputs are not valid 3D vectors.
+ *
+ * @see MatrixView
+ *
+ * @example
+ * ```typescript
+ * const viewMatrix = MatrixLookAt(
+ *   [10, 5, 10],  // Camera position
+ *   [0, 0, 0],    // Looking at origin
+ *   [0, 1, 0]     // Y-axis is up
+ * );
+ * ```
+ */
+export function MatrixLookAt(eye: TVector3, target: TVector3, up: TVector3): TMatrix4 {
+	return MatrixView(eye, target, up);
+}
+
+/**
+ * Creates a composite transformation matrix by composing translation, rotation, and scale.
+ *
+ * Applies transformations in the standard TRS (Translation-Rotation-Scale) order:
+ * result = Translation × Rotation × Scale. When applied to a column vector v,
+ * this yields: T(R(S(v))), meaning scale is applied first, then rotation, then translation.
+ *
+ * @param translation - Translation vector [x, y, z] in world units.
+ * @param rotation - Rotation as Euler angles [roll, pitch, yaw] in radians (intrinsic X→Y→Z order).
+ * @param scale - Scale factors [x, y, z] (1.0 = normal size).
+ * @returns {TMatrix4} A 4x4 composite transformation matrix.
+ *
+ * @throws {Error} If any component is not a valid 3D vector or contains non-finite numbers.
+ *
+ * @example
+ * ```typescript
+ * // Create a TRS matrix: move 5 units right, rotate 45° around Z, scale 2x
+ * const transform = MatrixTRS(
+ *   [5, 0, 0],           // translation
+ *   [0, 0, Math.PI / 4], // rotation (45° yaw)
+ *   [2, 2, 2]            // scale
+ * );
+ * ```
+ */
+export function MatrixTRS(translation: TVector3, rotation: TVector3, scale: TVector3): TMatrix4 {
+	AssertVector3(translation);
+	AssertVector3(rotation);
+	AssertVector3(scale);
+
+	const translationMatrix = MatrixTranslation3D(translation);
+	const rotationMatrix = MatrixRotation3D(rotation);
+	const scaleMatrix = MatrixScale3D(scale);
+
+	// Compose in TRS order: Translation × Rotation × Scale
+	const rotationScale = MatrixMultiply(rotationMatrix, scaleMatrix);
+	const result = MatrixMultiply(translationMatrix, rotationScale);
+	AssertMatrix4(result);
+	return result;
+}
+
+/**
  * Creates a perspective projection matrix for 3D rendering.
  * Transforms 3D view coordinates to normalized device coordinates with perspective effect.
  *

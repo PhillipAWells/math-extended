@@ -13,6 +13,8 @@ import {
 	MatrixTransform3D,
 	MatrixDirection3D,
 	MatrixView,
+	MatrixLookAt,
+	MatrixTRS,
 	MatrixPerspective,
 	MatrixOrthographic
 } from './transformations.js';
@@ -870,6 +872,78 @@ describe('Matrix Transformations', () => {
 			const rotatedMagnitude = VectorMagnitude(rotatedDirection);
 			// Direction transformations should preserve magnitude
 			expect(rotatedMagnitude).toBeCloseTo(originalMagnitude, 5);
+		});
+	});
+
+	describe('MatrixLookAt', () => {
+		test('should produce same result as MatrixView', () => {
+			const eye: TVector3 = [10, 5, 10];
+			const target: TVector3 = [0, 0, 0];
+			const up: TVector3 = [0, 1, 0];
+
+			const lookAtMatrix = MatrixLookAt(eye, target, up);
+			const viewMatrix = MatrixView(eye, target, up);
+
+			expectMatrixToBeCloseTo(lookAtMatrix, viewMatrix);
+		});
+
+		test('should throw for invalid eye vector', () => {
+			const target: TVector3 = [0, 0, 0];
+			const up: TVector3 = [0, 1, 0];
+
+			expect(() => MatrixLookAt('invalid' as unknown as TVector3, target, up)).toThrow();
+		});
+	});
+
+	describe('MatrixTRS', () => {
+		test('identity composition should produce identity matrix', () => {
+			const translation: TVector3 = [0, 0, 0];
+			const rotation: TVector3 = [0, 0, 0];
+			const scale: TVector3 = [1, 1, 1];
+
+			const trsMatrix = MatrixTRS(translation, rotation, scale);
+			const identityMatrix = MatrixIdentity(4);
+
+			expectMatrixToBeCloseTo(trsMatrix, identityMatrix);
+		});
+
+		test('should compose translation, rotation, and scale correctly', () => {
+			const translation: TVector3 = [5, 0, 0];
+			const rotation: TVector3 = [0, 0, 0]; // No rotation
+			const scale: TVector3 = [2, 2, 2];
+
+			const trsMatrix = MatrixTRS(translation, rotation, scale);
+
+			// Test that a point [1, 0, 0] is scaled first then translated
+			// S: [1, 0, 0] -> [2, 0, 0]
+			// R: [2, 0, 0] -> [2, 0, 0]
+			// T: [2, 0, 0] -> [7, 0, 0]
+			const point: TVector3 = [1, 0, 0];
+			const transformed = MatrixTransform3D(point, trsMatrix);
+			expect(transformed[0]).toBeCloseTo(7, 5);
+			expect(transformed[1]).toBeCloseTo(0, 5);
+			expect(transformed[2]).toBeCloseTo(0, 5);
+		});
+
+		test('should throw for invalid translation vector', () => {
+			const rotation: TVector3 = [0, 0, 0];
+			const scale: TVector3 = [1, 1, 1];
+
+			expect(() => MatrixTRS('invalid' as unknown as TVector3, rotation, scale)).toThrow();
+		});
+
+		test('should throw for invalid rotation vector', () => {
+			const translation: TVector3 = [0, 0, 0];
+			const scale: TVector3 = [1, 1, 1];
+
+			expect(() => MatrixTRS(translation, 'invalid' as unknown as TVector3, scale)).toThrow();
+		});
+
+		test('should throw for invalid scale vector', () => {
+			const translation: TVector3 = [0, 0, 0];
+			const rotation: TVector3 = [0, 0, 0];
+
+			expect(() => MatrixTRS(translation, rotation, 'invalid' as unknown as TVector3)).toThrow();
 		});
 	});
 });
