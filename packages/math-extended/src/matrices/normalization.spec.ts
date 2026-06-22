@@ -1,5 +1,6 @@
-import { MatrixFrobeniusNorm, MatrixSpectralNorm, Matrix1Norm, MatrixInfinityNorm, MatrixNuclearNorm, MatrixMaxNorm, MatrixPNorm } from './normalization.js';
+import { MatrixFrobeniusNorm, MatrixSpectralNorm, Matrix1Norm, MatrixInfinityNorm, MatrixNuclearNorm, MatrixMaxNorm, MatrixPNorm, MatrixNormalize } from './normalization.js';
 import { MatrixIdentity } from './core.js';
+import { MatrixError } from './asserts.js';
 import { type TMatrix } from './types.js';
 
 describe('Matrix Normalizations', () => {
@@ -399,6 +400,76 @@ describe('Matrix Normalizations', () => {
 			expect(MatrixMaxNorm(matrix)).toBe(4e-10);
 			expect(Matrix1Norm(matrix)).toBe(6e-10);
 			expect(MatrixInfinityNorm(matrix)).toBeCloseTo(7e-10);
+		});
+	});
+
+	describe('MatrixNormalize', () => {
+		test('should normalize matrix to unit Frobenius norm', () => {
+			const matrix = [[3, 4], [0, 0]];
+			const normalized = MatrixNormalize(matrix);
+
+			const norm = MatrixFrobeniusNorm(normalized);
+			expect(norm).toBeCloseTo(1, 10);
+		});
+
+		test('should preserve direction while normalizing', () => {
+			const matrix = [[2, 4], [6, 8]];
+			const normalized = MatrixNormalize(matrix);
+
+			// Check that normalized is proportional to original
+			const originalNorm = MatrixFrobeniusNorm(matrix);
+			for (let i = 0; i < matrix.length; i++) {
+				for (let j = 0; j < matrix[i].length; j++) {
+					expect(normalized[i][j]).toBeCloseTo(matrix[i][j] / originalNorm, 10);
+				}
+			}
+		});
+
+		test('should work with identity matrix', () => {
+			const matrix = MatrixIdentity(3);
+			const normalized = MatrixNormalize(matrix);
+
+			const norm = MatrixFrobeniusNorm(normalized);
+			expect(norm).toBeCloseTo(1, 10);
+		});
+
+		test('should work with rectangular matrices', () => {
+			const matrix = [[1, 2, 3], [4, 5, 6]];
+			const normalized = MatrixNormalize(matrix);
+
+			const norm = MatrixFrobeniusNorm(normalized);
+			expect(norm).toBeCloseTo(1, 10);
+		});
+
+		test('should throw for zero matrix', () => {
+			const matrix = [[0, 0], [0, 0]];
+			expect(() => MatrixNormalize(matrix)).toThrow(MatrixError);
+		});
+
+		test('should throw for invalid matrix', () => {
+			expect(() => MatrixNormalize('invalid' as unknown as number[][])).toThrow(MatrixError);
+		});
+
+		test('should preserve immutability', () => {
+			const matrix = [[3, 4], [0, 0]];
+			const original = JSON.stringify(matrix);
+
+			MatrixNormalize(matrix);
+
+			expect(JSON.stringify(matrix)).toBe(original);
+		});
+
+		test('should handle negative values', () => {
+			const matrix = [[-3, 4], [0, 0]];
+			const normalized = MatrixNormalize(matrix);
+
+			const norm = MatrixFrobeniusNorm(normalized);
+			expect(norm).toBeCloseTo(1, 10);
+
+			// Check proportionality
+			const originalNorm = MatrixFrobeniusNorm(matrix);
+			expect(normalized[0][0]).toBeCloseTo(-3 / originalNorm, 10);
+			expect(normalized[0][1]).toBeCloseTo(4 / originalNorm, 10);
 		});
 	});
 });

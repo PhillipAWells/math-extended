@@ -1,13 +1,13 @@
 import { AssertMatrix, MatrixError } from './asserts.js';
-import { MatrixSize } from './core.js';
+import { MatrixCreate, MatrixSize } from './core.js';
 import { MatrixSVD } from './decompositions.js';
-import type { TMatrix } from './types.js';
+import type { TMatrix, TMatrixResult } from './types.js';
 
 /**
  * Computes the Frobenius norm (Euclidean norm) of a matrix.
  * @param matrix - The input matrix (any dimensions)
  * @returns {number} The Frobenius norm (always non-negative)
- * @throws {Error} If the matrix contains invalid values
+ * @throws {MatrixError} If the matrix contains invalid values
  * @example
  * ```typescript
  * MatrixFrobeniusNorm([[3, 4], [0, 0]]) // 5 (sqrt(3² + 4²))
@@ -46,7 +46,7 @@ export function MatrixFrobeniusNorm(matrix: TMatrix): number {
  *
  * @param matrix - The input matrix
  * @returns {number} The spectral norm (always non-negative)
- * @throws {Error} If the matrix contains invalid values
+ * @throws {MatrixError} If the matrix contains invalid values
  * @example
  * ```typescript
  * MatrixSpectralNorm([[3, 0], [0, 4]]) // 4 (largest singular value)
@@ -69,7 +69,7 @@ export function MatrixSpectralNorm(matrix: TMatrix): number {
  * Computes the 1-norm (maximum column sum) of a matrix.
  * @param matrix - The input matrix
  * @returns {number} The 1-norm (always non-negative)
- * @throws {Error} If the matrix contains invalid values
+ * @throws {MatrixError} If the matrix contains invalid values
  * @example
  * ```typescript
  * Matrix1Norm([[1, 2], [3, 4]]) // 6 (max of column sums: 4, 6)
@@ -103,7 +103,7 @@ export function Matrix1Norm(matrix: TMatrix): number {
  * Computes the infinity norm (maximum row sum) of a matrix.
  * @param matrix - The input matrix
  * @returns {number} The infinity norm (always non-negative)
- * @throws {Error} If the matrix contains invalid values
+ * @throws {MatrixError} If the matrix contains invalid values
  * @example
  * ```typescript
  * MatrixInfinityNorm([[1, 2], [3, 4]]) // 7 (max of row sums: 3, 7)
@@ -147,7 +147,7 @@ export function MatrixInfinityNorm(matrix: TMatrix): number {
  *
  * @param matrix - The input matrix
  * @returns {number} The nuclear norm (always non-negative)
- * @throws {Error} If the matrix contains invalid values
+ * @throws {MatrixError} If the matrix contains invalid values
  * @example
  * ```typescript
  * MatrixNuclearNorm([[3, 0], [0, 4]]) // 7 (sum of singular values: 3 + 4)
@@ -171,7 +171,7 @@ export function MatrixNuclearNorm(matrix: TMatrix): number {
  * This is the maximum absolute value of any matrix element.
  * @param matrix - The input matrix
  * @returns {number} The max norm (always non-negative)
- * @throws {Error} If the matrix contains invalid values
+ * @throws {MatrixError} If the matrix contains invalid values
  * @example
  * ```typescript
  * MatrixMaxNorm([[1, -5], [3, 2]]) // 5 (max absolute value)
@@ -200,7 +200,7 @@ export function MatrixMaxNorm(matrix: TMatrix): number {
  * @param matrix - The input matrix
  * @param p - The norm parameter (must be >= 1)
  * @returns {number} The p-norm (always non-negative)
- * @throws {Error} If the matrix contains invalid values or p < 1
+ * @throws {MatrixError} If the matrix contains invalid values or p < 1
  * @example
  * ```typescript
  * MatrixPNorm([[1, 2], [3, 4]], 1) // 10 (sum of absolute values)
@@ -226,4 +226,47 @@ export function MatrixPNorm(matrix: TMatrix, p: number): number {
 	}
 
 	return Math.pow(sum, 1 / p);
+}
+
+/**
+ * Normalizes a matrix to have unit Frobenius norm.
+ *
+ * Divides every element of the matrix by its Frobenius norm, resulting in a matrix
+ * with Frobenius norm equal to 1.0. This is useful for scaling matrices to a canonical
+ * size while preserving direction and relative magnitudes.
+ *
+ * @param matrix - The input matrix (any dimensions)
+ * @returns {TMatrixResult<T>} A normalized matrix with unit Frobenius norm
+ *
+ * @throws {MatrixError} If the matrix is all zeros (norm is 0) or contains invalid values
+ *
+ * @example
+ * ```typescript
+ * const matrix = [[3, 4], [0, 0]]; // Frobenius norm = 5
+ * const normalized = MatrixNormalize(matrix); // [[0.6, 0.8], [0, 0]]
+ * MatrixFrobeniusNorm(normalized); // 1.0
+ * ```
+ */
+export function MatrixNormalize<T extends TMatrix>(matrix: T): TMatrixResult<T> {
+	AssertMatrix(matrix);
+
+	const norm = MatrixFrobeniusNorm(matrix);
+
+	if (norm === 0) {
+		throw new MatrixError('Cannot normalize a zero matrix (Frobenius norm is 0)');
+	}
+
+	const [rows, cols] = MatrixSize(matrix);
+	const result = MatrixCreate(rows, cols);
+
+	for (let row = 0; row < rows; row++) {
+		const matrixRow = matrix[row];
+		const resultRow = result[row];
+
+		for (let col = 0; col < cols; col++) {
+			resultRow[col] = matrixRow[col] / norm;
+		}
+	}
+
+	return result as TMatrixResult<T>;
 }
