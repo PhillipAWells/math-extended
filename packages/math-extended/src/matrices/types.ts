@@ -104,5 +104,44 @@ export type TMatrixAll = TMatrix1 | TMatrix2 | TMatrix3 | TMatrix4 | TMatrix;
  */
 export type TMatrixResult<T extends TMatrix> = T extends TMatrix1 ? TMatrix1 : T extends TMatrix2 ? TMatrix2 : T extends TMatrix3 ? TMatrix3 : T extends TMatrix4 ? TMatrix4 : TMatrix;
 
+/**
+ * Square matrix schema for runtime validation using Zod.
+ *
+ * Validates that a value is a square matrix with dimensions m×m (where m > 0),
+ * all rows containing finite numbers with consistent length. Use this schema
+ * for type inference and external runtime validation.
+ *
+ * @example
+ * ```typescript
+ * import { MATRIX_SQUARE_SCHEMA } from '@pawells/math-extended';
+ *
+ * const data = [[1, 2], [3, 4]];
+ * const parsed = MATRIX_SQUARE_SCHEMA.parse(data); // Valid 2×2 square matrix
+ *
+ * const invalid = [[1, 2, 3], [4, 5, 6]]; // Non-square, throws validation error
+ * try {
+ *   MATRIX_SQUARE_SCHEMA.parse(invalid);
+ * } catch (e) {
+ *   console.log(e.message); // "Matrix must be square (m×m)"
+ * }
+ * ```
+ */
 export const MATRIX_SQUARE_SCHEMA = z.array(z.array(z.number())).refine(arr => arr.length > 0 && arr.every(row => row.length === arr.length), { message: 'Matrix must be square (m×m)' });
+
+/**
+ * Square matrix type representing an m×m matrix (where m > 0).
+ * All rows have equal length and all elements are finite numbers.
+ * Used for square-matrix-only operations like determinant, eigenvalues, and matrix inversion.
+ *
+ * @example
+ * ```typescript
+ * const rotation: TMatrixSquare = [[0, -1], [1, 0]]; // 2×2 rotation matrix
+ * const transform: TMatrixSquare = [
+ *   [1, 0, 0, 5],
+ *   [0, 1, 0, 10],
+ *   [0, 0, 1, 15],
+ *   [0, 0, 0, 1]
+ * ]; // 4×4 transformation matrix
+ * ```
+ */
 export type TMatrixSquare = z.infer<typeof MATRIX_SQUARE_SCHEMA>;

@@ -45,7 +45,7 @@ function getRow(matrix: TMatrix, index: number): number[] {
  * @param a - First matrix (addend) - must have same dimensions as b
  * @param b - Second matrix (addend) - must have same dimensions as a
  * @returns {TMatrixResult<T>} A new matrix where each element is the sum of corresponding elements
- * @throws {Error} If matrices have different dimensions or contain invalid values
+ * @throws {MatrixError} If matrices have different dimensions or contain invalid values
  *
  * @example
  * ```typescript
@@ -117,7 +117,7 @@ export function MatrixAdd<T extends TMatrix>(a: T, b: T): TMatrixResult<T> {
  * @param a - First matrix (minuend) - the matrix being subtracted from
  * @param b - Second matrix (subtrahend) - the matrix being subtracted
  * @returns {TMatrixResult<T>} A new matrix where each element is the difference of corresponding elements
- * @throws {Error} If matrices have different dimensions or contain invalid values
+ * @throws {MatrixError} If matrices have different dimensions or contain invalid values
  *
  * @example
  * ```typescript
@@ -213,7 +213,7 @@ export function MatrixSubtract<T extends TMatrix>(a: T, b: T): TMatrixResult<T> 
  *   - For scalar: m×n matrix with each element multiplied by scalar
  *   - For vector: m×1 column vector matrix
  *   - For matrix: m×p product matrix
- * @throws {Error} If matrix dimensions are incompatible for multiplication
+ * @throws {MatrixError} If matrix dimensions are incompatible for multiplication
  *
  * @example
  * ```typescript
@@ -320,7 +320,7 @@ export function MatrixMultiply(a: TMatrix, b: TMatrix | TVector | number): TMatr
  * @param matrix - The matrix to multiply with dimensions m×n
  * @param scalar - The scalar value to multiply each element by
  * @returns {TMatrix} A new m×n matrix with each element multiplied by the scalar
- * @throws {Error} If matrix is invalid or scalar is not a valid number
+ * @throws {MatrixError} If matrix is invalid or scalar is not a valid number
  *
  * @example
  * ```typescript
@@ -1038,7 +1038,7 @@ function matrixMultiplyStrassen(a: TMatrix, b: TMatrix): TMatrix {
  * @param width - Number of columns to extract (must be positive)
  * @param height - Number of rows to extract (must be positive)
  * @returns {TMatrix} The extracted submatrix with dimensions height×width
- * @throws {Error} If extraction bounds exceed matrix dimensions or contain invalid values
+ * @throws {MatrixError} If extraction bounds exceed matrix dimensions or contain invalid values
  * @example
  * ```typescript
  * const matrix = [
@@ -1120,7 +1120,7 @@ export function MatrixSubmatrix(matrix: TMatrix, startCol: number, startRow: num
  * @param newRows - Target number of rows (must be ≥ current rows)
  * @param newCols - Target number of columns (must be ≥ current columns)
  * @returns {TMatrix} The padded matrix with dimensions newRows×newCols
- * @throws {Error} If new dimensions are smaller than current dimensions
+ * @throws {MatrixError} If new dimensions are smaller than current dimensions
  * @example
  * ```typescript
  * const matrix = [[1, 2], [3, 4]]; // 2×2 matrix
@@ -1217,7 +1217,7 @@ export function MatrixPad(matrix: TMatrix, newRows: number, newCols: number): TM
  * @param c21 - Bottom-left quadrant (lower-left block)
  * @param c22 - Bottom-right quadrant (lower-right block)
  * @returns {TMatrix} The combined matrix with dimensions 2n×2n (where each input is n×n)
- * @throws {Error} If quadrants have mismatched dimensions or invalid values
+ * @throws {MatrixError} If quadrants have mismatched dimensions or invalid values
  *
  * @example
  * ```typescript

@@ -212,16 +212,27 @@ export function MatrixCholesky(matrix: TMatrix): TMatrix {
  *
  * @example
  * ```typescript
- * // Simple 2x2 matrix
+ * import { MatrixEigen, MatrixSize, MatrixMultiply, VectorScale } from '@pawells/math-extended';
+ *
+ * // Simple 2×2 matrix
  * const A = [[3, 1], [0, 2]];
- * const { eigenvalues, eigenvectors } = MatrixEigen(A);
- * // eigenvalues: [3, 2]
- * // eigenvectors: matrix where each column corresponds to an eigenvalue
- * // Verify eigenvalue equation: A × v = λ × v
- * const v = Matrix_GetColumn(eigenvectors, 0); // First eigenvector
- * const Av = MatrixMultiplyVector(A, v);
- * const lambdaV = Matrix_ScaleVector(v, eigenvalues[0]);
- * // Av should approximately equal lambdaV
+ * const result = MatrixEigen(A);
+ * const { eigenvalues, eigenvectors } = result;
+ * // eigenvalues: approximately [3, 2]
+ * // eigenvectors: 2×2 matrix where each column is an eigenvector
+ *
+ * // Verify eigenvalue equation: A × v ≈ λ × v
+ * const [rows, cols] = MatrixSize(eigenvectors);
+ * const firstEigenvector: unknown[] = [];
+ * for (let i = 0; i < rows; i++) {
+ *   firstEigenvector.push(eigenvectors[i][0]);
+ * }
+ * // firstEigenvector is now the first column of eigenvectors
+ * // Av = A × [v0, v1]
+ * const Av = MatrixMultiply(A, [[firstEigenvector[0]], [firstEigenvector[1]]]);
+ * // lambdaV = λ × v
+ * const lambdaV = [VectorScale([firstEigenvector[0], firstEigenvector[1]], eigenvalues[0])];
+ * // Av should approximately equal [[lambdaV[0][0]], [lambdaV[0][1]]]
  * ```
  * @complexity O(n³) time for an n×n matrix
  * @see {@link MatrixEigenQRIteration} For the iterative algorithm used for larger matrices
@@ -766,7 +777,7 @@ export function MatrixQR(matrix: TMatrix, allowDependentColumns = false): TQRDec
  * const conditionNumber = S[0] / S[S.length - 1];
  * ```
  * @complexity Time: O(min(m²n, mn²)), Space: O(m² + n²)
- * @see {@link MatrixQR} {@link MatrixEigenQRIteration} {@link Matrix_PseudoInverse}
+ * @see {@link MatrixQR} {@link MatrixEigenQRIteration} {@link MatrixPseudoInverse}
  */
 export function MatrixSVD(matrix: TMatrix): TSVDDecompositionResult {
 	AssertMatrix(matrix);

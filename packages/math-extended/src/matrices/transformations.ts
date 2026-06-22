@@ -766,8 +766,9 @@ export function MatrixTranslation3D(translationOrX: number | TVector3, y?: numbe
  * @param matrix - A 3x3 transformation matrix to apply
  * @returns {TVector2} The transformed 2D vector
  *
- * @throws {Error} If the homogeneous w component is near zero (degenerate transformation)
- * @throws {Error} If inputs are not valid vector/matrix types
+ * @throws {VectorError} If the vector is not valid.
+ * @throws {MatrixError} If the transformation matrix is invalid.
+ * @throws {MatrixError} If the homogeneous w component is near zero (degenerate transformation).
  *
  * @example
  * ```typescript
@@ -809,11 +810,13 @@ export function MatrixTransform2D(vector: TVector2, matrix: TMatrix3): TVector2 
  * Transforms a 3D vector using a 4x4 transformation matrix with homogeneous coordinates.
  * Converts to homogeneous coordinates, applies transformation, then converts back to 3D.
  *
- * @param transform - A 4x4 transformation matrix.
  * @param vector - The 3D vector to transform.
+ * @param transform - A 4x4 transformation matrix.
  * @returns {TVector3} The transformed 3D vector.
  *
- * @throws {Error} If the w component is near zero (degenerate transformation).
+ * @throws {MatrixError} If the transformation matrix is invalid.
+ * @throws {VectorError} If the vector is invalid.
+ * @throws {MatrixError} If the w component is near zero (degenerate transformation).
  *
  * @example
  * ```typescript
@@ -850,9 +853,12 @@ export function MatrixTransform3D(vector: TVector3, transform: TMatrix4): TVecto
  * Transforms a 3D direction vector using a 3x3 matrix, ignoring translation components.
  * Designed for direction vectors (normals, velocities) where translation should not apply.
  *
- * @param matrix - A 3x3 transformation matrix (rotation and/or scale only).
  * @param direction - The 3D direction vector to transform.
+ * @param matrix - A 3x3 transformation matrix (rotation and/or scale only).
  * @returns {TVector3} The transformed direction vector.
+ *
+ * @throws {MatrixError} If the transformation matrix is invalid.
+ * @throws {VectorError} If the direction vector is invalid.
  *
  * @example
  * ```typescript
@@ -881,6 +887,8 @@ export function MatrixDirection3D(direction: TVector3, matrix: TMatrix3): TVecto
  * @param target - Point the camera is looking at.
  * @param up - Up direction vector (usually [0, 1, 0]).
  * @returns {TMatrix4} A 4x4 view transformation matrix.
+ *
+ * @throws {VectorError} If any input vector is invalid.
  *
  * @example
  * ```typescript
@@ -938,7 +946,7 @@ export function MatrixView(eye: TVector3, target: TVector3, up: TVector3): TMatr
  * @param up - Up direction vector (usually [0, 1, 0]).
  * @returns {TMatrix4} A 4x4 view transformation matrix.
  *
- * @throws {Error} If inputs are not valid 3D vectors.
+ * @throws {VectorError} If any input vector is invalid.
  *
  * @see MatrixView
  *

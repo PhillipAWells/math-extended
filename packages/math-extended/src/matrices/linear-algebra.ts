@@ -36,7 +36,7 @@ function getRow(matrix: TMatrix, index: number): number[] {
  *
  * @param matrix - The square matrix to compute determinant for
  * @returns The determinant value (can be positive, negative, or zero)
- * @throws {Error} If the matrix is not square
+ * @throws {MatrixError} If the matrix is not square
  * @example
  * ```typescript
  * MatrixDeterminant([[1, 2], [3, 4]]) // -2 (1×4 - 2×3)
@@ -103,7 +103,7 @@ export function MatrixDeterminant(matrix: TMatrix): number {
  * @param x - Column index (0-based, 0 ≤ x < matrix width)
  * @param y - Row index (0-based, 0 ≤ y < matrix height)
  * @returns {number} The cofactor value (can be positive, negative, or zero)
- * @throws {Error} If the matrix is not square or indices are out of bounds
+ * @throws {MatrixError} If the matrix is not square or indices are out of bounds
  * @example
 	 * ```typescript
 	 * MatrixCofactorElement([[1, 2], [3, 4]], 0, 0) // +4 (sign: +, minor: 4)
@@ -129,7 +129,7 @@ function normalizeZeroMatrix(matrix: TMatrix): TMatrix {
  * Computes the cofactor matrix (matrix of all cofactors) of a square matrix.
  * @param matrix - The square matrix (must be at least 1×1)
  * @returns {TMatrix} The cofactor matrix (same dimensions as input)
- * @throws {Error} If the matrix is not square
+ * @throws {MatrixError} If the matrix is not square
  * @example
 	 * ```typescript
 	 * MatrixCofactor([[1, 2], [3, 4]]) // [[4, -3], [-2, 1]]
@@ -155,7 +155,7 @@ export function MatrixCofactor(matrix: TMatrix): TMatrix {
  * Computes the adjoint (adjugate) matrix of a square matrix.
  * @param matrix - The square matrix (must be at least 1×1)
  * @returns {TMatrix} The adjoint matrix (same dimensions as input)
- * @throws {Error} If the matrix is not square
+ * @throws {MatrixError} If the matrix is not square
  * @example
 	 * ```typescript
 	 * MatrixAdjoint([[1, 2], [3, 4]]) // [[4, -2], [-3, 1]]
@@ -254,7 +254,7 @@ export function MatrixInverse(matrix: TMatrix): TMatrix {
  * Orthogonalizes matrix columns using Gram-Schmidt process.
  * @param matrix - Input matrix with columns to orthogonalize
  * @returns {TMatrix} Matrix with orthonormal columns
- * @throws {Error} If matrix contains linearly dependent columns
+ * @throws {MatrixError} If matrix contains linearly dependent columns
  * @example
 	 * ```typescript
 	 * MatrixGramSchmidt([[1, 1], [0, 1]]) // Orthonormal columns
@@ -356,7 +356,7 @@ export function MatrixGramSchmidt(matrix: TMatrix): TMatrix {
  * @param x - Column index to remove
  * @param y - Row index to remove
  * @returns {number} Determinant of resulting submatrix
- * @throws {Error} If matrix too small or indices out of bounds
+ * @throws {MatrixError} If matrix too small or indices out of bounds
  * @example
 	 * ```typescript
 	 * MatrixMinor([[1,2,3],[4,5,6],[7,8,9]], 1, 0) // -6
@@ -632,19 +632,26 @@ export function MatrixPseudoInverse(matrix: TMatrix, tolerance?: number): TMatri
  *
  * @example
  * ```typescript
+ * import { MatrixNullSpace, MatrixMultiply } from '@pawells/math-extended';
+ *
  * // Rank-deficient 2×3 matrix: [[1, 2, 3], [2, 4, 6]] (second row = 2 × first row)
  * const A = [[1, 2, 3], [2, 4, 6]];
  * const nullBasis = MatrixNullSpace(A);
- * // nullBasis is 3×1 (rank is 1, so null space dimension is 3 - 1 = 2... adjusted for actual rank)
+ * // nullBasis is a 3×k matrix where k = 3 - rank(A) = 3 - 1 = 2
  * // Each column is a basis vector v such that A × v ≈ 0
- * for (const col of nullBasis[0] || []) {
- *   const result = MatrixMultiply(A, [nullBasis[0], nullBasis[1], nullBasis[2]]);
- *   // result ≈ [0, 0]
+ * if (nullBasis.length > 0) {
+ *   // Test first null space basis vector
+ *   const v: unknown[] = [];
+ *   for (let i = 0; i < nullBasis.length; i++) {
+ *     v.push(nullBasis[i][0]); // First column of nullBasis
+ *   }
+ *   // A × v should be approximately [0, 0]
  * }
+ *
  * // Full-rank square matrix has trivial null space
  * const fullRank = [[1, 2], [3, 4]];
  * const nullFull = MatrixNullSpace(fullRank);
- * // nullFull.length === 0 (empty matrix)
+ * // nullFull.length === 0 (empty matrix, no non-trivial null space)
  * ```
  */
 export function MatrixNullSpace(matrix: TMatrix, tolerance?: number): TMatrix {

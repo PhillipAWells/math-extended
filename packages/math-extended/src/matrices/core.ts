@@ -24,7 +24,7 @@ export function MatrixCreate(rows: number, cols: number): TMatrix;
  * @param rows - Number of rows (non-negative integer). If only this parameter is provided, creates a square matrix.
  * @param cols - Number of columns (non-negative integer). Optional for square matrices.
  * @returns Zero-filled matrix with specified dimensions
- * @throws {Error} If rows or cols are negative or not integers
+ * @throws {RangeError} If rows or cols are negative or not integers
  * @example
  * ```typescript
  * MatrixCreate() // [[0]] (1x1 matrix)
@@ -84,7 +84,7 @@ export function MatrixCreate(rows?: number, cols?: number): TMatrix | TMatrix1 |
  * Returns the dimensions of a matrix as [rows, columns].
  * @param matrix - The matrix to measure
  * @returns {[number, number]} Tuple [rows, columns]. Returns [0, 0] for empty matrices.
- * @throws {Error} If the input is not a valid matrix
+ * @throws {MatrixError} If the input is not a valid matrix
  * @example
  * ```typescript
  * MatrixSize([[1, 2, 3], [4, 5, 6]]) // [2, 3]
@@ -103,7 +103,7 @@ export function MatrixSize(matrix: TMatrix): [number, number] {
  * Returns the size of a square matrix (number of rows/columns).
  * @param matrix - The square matrix to measure
  * @returns {number} The size (n for an n×n matrix)
- * @throws {Error} If the matrix is not square
+ * @throws {MatrixError} If the matrix is not square
  * @example
  * ```typescript
  * MatrixSizeSquare([[1, 2], [3, 4]]) // 2
@@ -120,7 +120,7 @@ export function MatrixSizeSquare(matrix: TMatrix): number {
  * @param matrix - The matrix to check
  * @param threshold - Tolerance for considering values as zero (default: 1e-14)
  * @returns {boolean} True if all matrix elements are within threshold of zero
- * @throws {Error} If the input is not a valid matrix
+ * @throws {MatrixError} If the input is not a valid matrix
  * @example
  * ```typescript
  * MatrixIsZero([[0, 0], [0, 0]]) // true
@@ -157,7 +157,7 @@ export function MatrixIsZero(matrix: TMatrix, threshold = EPSILON_STRUCTURAL): b
  * @param matrix - The matrix to check
  * @param threshold - Tolerance for floating-point comparisons (default: 1e-14)
  * @returns {boolean} True if the matrix is an identity matrix within tolerance
- * @throws {Error} If the input is not a valid matrix
+ * @throws {MatrixError} If the input is not a valid matrix
  * @example
  * ```typescript
  * MatrixIsIdentity([[1, 0], [0, 1]]) // true
@@ -254,7 +254,7 @@ export function MatrixIsFinite(matrix: unknown): boolean {
  * @param matrix - The matrix to check (must be square)
  * @param threshold - Tolerance for floating-point comparisons (default: 1e-14)
  * @returns {boolean} True if the matrix is symmetric within tolerance
- * @throws {Error} If the input is not a valid matrix
+ * @throws {MatrixError} If the input is not a valid matrix
  * @example
  * ```typescript
  * MatrixIsSymmetric([[1, 2], [2, 1]]) // true
@@ -296,7 +296,7 @@ export function MatrixIsSymmetric(matrix: TMatrix, threshold = EPSILON_STRUCTURA
  * @param matrix - The matrix to check (must be square)
  * @param threshold - Tolerance for considering values as zero (default: 1e-14)
  * @returns {boolean} True if the matrix is diagonal within tolerance
- * @throws {Error} If the input is not a valid matrix
+ * @throws {MatrixError} If the input is not a valid matrix
  * @example
  * ```typescript
  * MatrixIsDiagonal([[3, 0], [0, 7]]) // true
@@ -335,7 +335,7 @@ export function MatrixIsDiagonal(matrix: TMatrix, threshold = EPSILON_STRUCTURAL
  * Creates an identity matrix of the specified size.
  * @param size - The dimensions of the square identity matrix (must be non-negative integer)
  * @returns A square identity matrix of size n×n
- * @throws {Error} If size is negative or not an integer
+ * @throws {RangeError} If size is negative or not an integer
  * @example
  * ```typescript
  * MatrixIdentity(2) // [[1, 0], [0, 1]]
@@ -372,7 +372,7 @@ export function MatrixIdentity(size: number): TMatrix {
  * Creates a deep copy of the given matrix.
  * @param matrix - The matrix to clone
  * @returns {TMatrixResult<T>} A new matrix with identical values but independent memory allocation
- * @throws {Error} If the input is not a valid matrix
+ * @throws {MatrixError} If the input is not a valid matrix
  * @example
  * ```typescript
  * MatrixClone([[1, 2], [3, 4]]) // [[1, 2], [3, 4]] (independent copy)
@@ -390,7 +390,7 @@ export function MatrixClone<T extends TMatrix>(matrix: T): TMatrixResult<T> {
  * @param b - Second matrix to compare
  * @param tolerance - Maximum allowed difference between corresponding elements (default: 1e-8)
  * @returns {boolean} True if matrices are equal within tolerance, false otherwise
- * @throws {Error} If either input is not a valid matrix or if matrix data is corrupted
+ * @throws {MatrixError} If either input is not a valid matrix or if matrix data is corrupted
  * @example
  * ```typescript
  * MatrixEquals([[1, 2]], [[1.0001, 2]], 0.001) // true
@@ -432,7 +432,7 @@ export function MatrixEquals(a: TMatrix, b: TMatrix, tolerance = EPSILON_COMPARI
  * @param matrix - The matrix to convert to string
  * @param precision - Number of decimal places for formatting (default: 2)
  * @returns {string} A formatted string representation of the matrix
- * @throws {Error} If the input is not a valid matrix
+ * @throws {MatrixError} If the input is not a valid matrix
  * @example
  * ```typescript
  * MatrixToString([[1.23, 2.7]]) // "[ 1.23, 2.70 ]"
@@ -460,7 +460,7 @@ export function MatrixToString(matrix: TMatrix, precision = 2): string {
  * @param matrix - The input matrix (any dimensions)
  * @param tolerance - Numerical tolerance for zero detection (default: 1e-10)
  * @returns {number} The rank of the matrix (0 ≤ rank ≤ min(rows, columns))
- * @throws {Error} If the matrix contains invalid values
+ * @throws {MatrixError} If the matrix contains invalid values
  * @example
  * ```typescript
  * MatrixRank([[1, 2], [2, 4]]) // 1 (second row = 2 × first row)
@@ -536,7 +536,7 @@ export function MatrixRank(matrix: TMatrix, tolerance = EPSILON): number {
  * Computes the trace of a matrix (sum of main diagonal elements).
  * @param matrix - The input matrix (can be square or rectangular)
  * @returns {number} The trace value (sum of diagonal elements)
- * @throws {Error} If the matrix contains invalid values
+ * @throws {MatrixError} If the matrix contains invalid values
  * @example
  * ```typescript
  * MatrixTrace([[1, 2, 3], [4, 5, 6], [7, 8, 9]]) // 15 (1 + 5 + 9)
@@ -568,7 +568,7 @@ export function MatrixTrace(matrix: TMatrix): number {
  * Returns the transpose of a matrix (rows become columns and vice versa).
  * @param matrix - The matrix to transpose (can be any m×n matrix)
  * @returns {TMatrixResult<T>} The transposed matrix with dimensions n×m
- * @throws {Error} If the input is not a valid matrix
+ * @throws {MatrixError} If the input is not a valid matrix
  * @example
  * ```typescript
  * MatrixTranspose([[1, 2, 3], [4, 5, 6]]) // [[1, 4], [2, 5], [3, 6]]
@@ -610,7 +610,7 @@ export function MatrixTranspose<T extends TMatrix>(matrix: T): TMatrixResult<T> 
  * @param matrix - The input matrix to transform
  * @param fn - Transformation function: (value, row, col) => transformedValue
  * @returns {TMatrixResult<T>} A new matrix with transformed values (same dimensions as input)
- * @throws {Error} If the input matrix is invalid or transformation function throws
+ * @throws {MatrixError} If the input matrix is invalid or transformation function throws
  * @example
  * ```typescript
  * MatrixMap([[1, 2], [3, 4]], (value) => value * value) // [[1, 4], [9, 16]]

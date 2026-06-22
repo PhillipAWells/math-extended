@@ -60,10 +60,8 @@ export class MatrixError extends BaseError<TMatrixErrorMetadata> {
  *
  * Extends base error metadata from BaseError with matrix-specific context.
  * Contains the error code for classification and an optional cause chain for root cause analysis.
- *
- * @typedef {object} TMatrixErrorMetadata
- * @property {string} [code] - Error code for classification (e.g., `MATRIX_ERROR`)
- * @property {Error} [cause] - Optional original error for cause chain propagation
+ * The code field is used for error classification (e.g., `MATRIX_ERROR`), and the optional cause field
+ * enables root cause analysis by preserving the original error in the cause chain.
  */
 export type TMatrixErrorMetadata = TErrorMetadata;
 
@@ -142,6 +140,26 @@ export function AssertMatrix(matrix: unknown): asserts matrix is TMatrix {
  * ```
  */
 export const ValidateMatrix: (value: unknown) => value is TMatrix = makeValidate(AssertMatrix);
+
+/**
+ * Asserts that an unknown value is a valid 1×1 matrix conforming to TMatrix1.
+ *
+ * Throws a {@link MatrixError} if the value is not a valid 1×1 matrix. Use this
+ * function at runtime boundaries to narrow `unknown` input to `TMatrix1` before
+ * performing any matrix operations.
+ *
+ * @param matrix - The value to assert as a valid 1×1 matrix
+ * @throws {MatrixError} If the value is not a valid TMatrix1 (not a 1×1 2-D array of finite numbers)
+ *
+ * @example
+ * ```typescript
+ * import { AssertMatrix1 } from '@pawells/math-extended';
+ *
+ * const input: unknown = [[5]];
+ * AssertMatrix1(input); // no-op if valid
+ * // input is now narrowed to TMatrix1
+ * ```
+ */
 export function AssertMatrix1(matrix: unknown): asserts matrix is TMatrix1 {
 	if (!Array.isArray(matrix)) {
 		throw new MatrixError('Invalid 1x1 matrix: Expected array, got ' + typeof matrix);
@@ -183,6 +201,26 @@ export function AssertMatrix1(matrix: unknown): asserts matrix is TMatrix1 {
  * ```
  */
 export const ValidateMatrix1: (value: unknown) => value is TMatrix1 = makeValidate(AssertMatrix1);
+
+/**
+ * Asserts that an unknown value is a valid 2×2 matrix conforming to TMatrix2.
+ *
+ * Throws a {@link MatrixError} if the value is not a valid 2×2 matrix. Use this
+ * function at runtime boundaries to narrow `unknown` input to `TMatrix2` before
+ * performing any matrix operations.
+ *
+ * @param matrix - The value to assert as a valid 2×2 matrix
+ * @throws {MatrixError} If the value is not a valid TMatrix2 (not a 2×2 2-D array of finite numbers)
+ *
+ * @example
+ * ```typescript
+ * import { AssertMatrix2 } from '@pawells/math-extended';
+ *
+ * const input: unknown = [[1, 2], [3, 4]];
+ * AssertMatrix2(input); // no-op if valid
+ * // input is now narrowed to TMatrix2
+ * ```
+ */
 export function AssertMatrix2(matrix: unknown): asserts matrix is TMatrix2 {
 	if (!Array.isArray(matrix)) {
 		throw new MatrixError('Invalid 2x2 matrix: Expected array, got ' + typeof matrix);
@@ -234,6 +272,26 @@ export function AssertMatrix2(matrix: unknown): asserts matrix is TMatrix2 {
  * ```
  */
 export const ValidateMatrix2: (value: unknown) => value is TMatrix2 = makeValidate(AssertMatrix2);
+
+/**
+ * Asserts that an unknown value is a valid 3×3 matrix conforming to TMatrix3.
+ *
+ * Throws a {@link MatrixError} if the value is not a valid 3×3 matrix. Use this
+ * function at runtime boundaries to narrow `unknown` input to `TMatrix3` before
+ * performing any matrix operations.
+ *
+ * @param matrix - The value to assert as a valid 3×3 matrix
+ * @throws {MatrixError} If the value is not a valid TMatrix3 (not a 3×3 2-D array of finite numbers)
+ *
+ * @example
+ * ```typescript
+ * import { AssertMatrix3 } from '@pawells/math-extended';
+ *
+ * const input: unknown = [[1, 2, 3], [4, 5, 6], [7, 8, 9]];
+ * AssertMatrix3(input); // no-op if valid
+ * // input is now narrowed to TMatrix3
+ * ```
+ */
 export function AssertMatrix3(matrix: unknown): asserts matrix is TMatrix3 {
 	if (!Array.isArray(matrix)) {
 		throw new MatrixError('Invalid 3x3 matrix: Expected array, got ' + typeof matrix);
@@ -283,6 +341,26 @@ export function AssertMatrix3(matrix: unknown): asserts matrix is TMatrix3 {
  * ```
  */
 export const ValidateMatrix3: (value: unknown) => value is TMatrix3 = makeValidate(AssertMatrix3);
+
+/**
+ * Asserts that an unknown value is a valid 4×4 matrix conforming to TMatrix4.
+ *
+ * Throws a {@link MatrixError} if the value is not a valid 4×4 matrix. Use this
+ * function at runtime boundaries to narrow `unknown` input to `TMatrix4` before
+ * performing any matrix operations.
+ *
+ * @param matrix - The value to assert as a valid 4×4 matrix
+ * @throws {MatrixError} If the value is not a valid TMatrix4 (not a 4×4 2-D array of finite numbers)
+ *
+ * @example
+ * ```typescript
+ * import { AssertMatrix4 } from '@pawells/math-extended';
+ *
+ * const input: unknown = [[1, 0, 0, 5], [0, 1, 0, 10], [0, 0, 1, 15], [0, 0, 0, 1]];
+ * AssertMatrix4(input); // no-op if valid
+ * // input is now narrowed to TMatrix4
+ * ```
+ */
 export function AssertMatrix4(matrix: unknown): asserts matrix is TMatrix4 {
 	if (!Array.isArray(matrix)) {
 		throw new MatrixError('Invalid 4x4 matrix: Expected array, got ' + typeof matrix);
@@ -333,6 +411,26 @@ export function AssertMatrix4(matrix: unknown): asserts matrix is TMatrix4 {
  * ```
  */
 export const ValidateMatrix4: (value: unknown) => value is TMatrix4 = makeValidate(AssertMatrix4);
+
+/**
+ * Asserts that an unknown value is a valid square matrix conforming to TMatrixSquare.
+ *
+ * Throws a {@link MatrixError} if the value is not a valid square matrix (m×m). Use this
+ * function at runtime boundaries to narrow `unknown` input to `TMatrixSquare` before
+ * performing square-matrix-only operations like determinant or eigenvalue decomposition.
+ *
+ * @param matrix - The value to assert as a valid square matrix
+ * @throws {MatrixError} If the value is not a valid TMatrixSquare (not a square 2-D array of finite numbers)
+ *
+ * @example
+ * ```typescript
+ * import { AssertMatrixSquare } from '@pawells/math-extended';
+ *
+ * const input: unknown = [[1, 2], [3, 4]];
+ * AssertMatrixSquare(input); // no-op if valid
+ * // input is now narrowed to TMatrixSquare
+ * ```
+ */
 export function AssertMatrixSquare(matrix: unknown): asserts matrix is TMatrixSquare {
 	if (!Array.isArray(matrix)) {
 		throw new MatrixError('Invalid square matrix: Expected array, got ' + typeof matrix);
